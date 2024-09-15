@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tentang Kami - DIGIPAN</title>
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f9fafb;
+            color: #333;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Header Section */
+        header {
+            background: linear-gradient(135deg, #f9fafb, #f44336);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+            animation: fadeIn 1.5s ease;
+        }
+        header h1 {
+            font-size: 36px;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+        header p {
+            font-size: 18px;
+            margin: 10px 0 0;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        /* Section Titles */
+        h2 {
+            font-size: 30px;
+            color: #f4880b;
+            margin-bottom: 20px;
+            font-weight: 600;
+            position: relative;
+        }
+        h2::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background-color: #ff9800;
+            margin-top: 10px;
+            animation: growLine 0.6s ease-out;
+        }
+
+        p {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #666;
+        }
+
+        /* Feature Section */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .feature-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            border-top: 5px solid #ff9800;
+            animation: fadeInUp 0.8s ease forwards;
+            opacity: 0;
+        }
+        .feature-box:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        .feature-box h3 {
+            color: #f44336;
+            margin-bottom: 15px;
+            font-size: 24px;
+            position: relative;
+        }
+        .feature-box h3::before {
+            content: '';
+            display: block;
+            width: 30px;
+            height: 3px;
+            background-color: #f44336;
+            position: absolute;
+            top: -10px;
+            left: 0;
+        }
+        .feature-box p {
+            color: #555;
+        }
+        .feature-box i {
+            font-size: 50px;
+            color: #f44336;
+            position: absolute;
+            top: -25px;
+            right: 20px;
+            opacity: 0.1;
+        }
+
+        /* Vision & Mission Section */
+        .vision-mission {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 60px;
+        }
+        .vision, .mission {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+            transition: transform 0.3s ease;
+            border-top: 5px solid #4caf50;
+            animation: fadeInUp 0.8s ease forwards;
+            opacity: 0;
+        }
+        .vision:hover, .mission:hover {
+            transform: scale(1.05);
+        }
+        .vision h2, .mission h2 {
+            margin-top: 0;
+            color: #4caf50;
+        }
+        .vision-mission i {
+            font-size: 50px;
+            color: #4caf50;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            opacity: 0.05;
+        }
+
+        /* Contact Us Section */
+        .contact-us {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 60px;
+        }
+        .contact-us form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .contact-us input, .contact-us textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .contact-us button {
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f44336;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .contact-us button:hover {
+            background-color: #e53935;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #f9fafb;
+            color: black;
+            padding: 20px;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 16px;
+        }
+        footer p {
+            margin: 0;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes growLine {
+            0% { width: 0; }
+            100% { width: 50px; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            .vision-mission {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 28px;
+            }
+            header p {
+                font-size: 16px;
+            }
+            .container h2 {
+                font-size: 26px;
+            }
+            .container p {
+                font-size: 16px;
+            }
+            footer {
+                font-size: 14px;
+            }
+        }
+    
+    .contact-us {
+        text-align: center;
+        padding: 40px;
+        background: linear-gradient(135deg, #e0eafc, #cfdef3);
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        margin: auto;
+    }
+
+    .contact-us h2 {
+        font-size: 2.2em;
+        margin-bottom: 20px;
+        color: #333;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .contact-us p {
+        font-size: 1.2em;
+        color: #555;
+        margin-bottom: 30px;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .contact-info {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+    }
+
+    .contact-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 200px;
+        text-align: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .contact-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .contact-item i {
+        font-size: 2.5em;
+        color: #007bff;
+        margin-bottom: 10px;
+        transition: color 0.3s;
+    }
+
+    .contact-item i:hover {
+        color: #0056b3;
+    }
+
+    .contact-item span {
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .contact-item a {
+        text-decoration: none;
+        color: #007bff;
+        font-size: 1.1em;
+        transition: color 0.3s;
+    }
+
+    .contact-item a:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+
+    .contact-item p {
+        margin: 0;
+        color: #666;
+        font-size: 1em;
+        font-family: 'Arial', sans-serif;
+    }
+   #map {
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Tentang Kami</h1>
+    <p>DIGIPAN - Membawa Solusi Digital untuk Pengelolaan Komunitas</p>
+</header>
+
+<div class="container">
+    <h2>Selamat Datang di Aplikasi Warga RT 08</h2>
+    <p>DIGIPAN adalah solusi digital modern yang dirancang untuk mempermudah pengelolaan administrasi warga. Dengan fitur unggulan kami, mengelola data keluarga, membuat surat keterangan, dan pembayaran iuran warga kini menjadi lebih mudah, cepat, dan terorganisir.</p>
+
+    <div class="feature-grid">
+        <div class="feature-box">
+            <h3>Input Data Keluarga</h3>
+            <p>Mengelola dan menyimpan data keluarga dengan aman dan mudah diakses. Sistem kami dirancang untuk memastikan privasi dan keamanan data warga.</p>
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="feature-box">
+            <h3>Pembuatan Surat</h3>
+            <p>Fitur pembuatan surat otomatis memudahkan warga untuk membuat surat keterangan tanpa repot, langsung dari aplikasi.</p>
+            <i class="fas fa-file-alt"></i>
+        </div>
+        <div class="feature-box">
+            <h3>Pembayaran Iuran</h3>
+            <p>Dengan fitur pembayaran iuran online, warga dapat membayar dengan mudah dan pengurus bisa memantau status pembayaran secara real-time.</p>
+            <i class="fas fa-wallet"></i>
+        </div>
+    </div>
+
+    <div class="vision-mission">
+        <div class="vision">
+            <h2>Visi Kami</h2>
+            <p>Menjadi platform digital terdepan dalam membantu pengelolaan administrasi warga yang transparan, efisien, dan berbasis teknologi.</p>
+            <i class="fas fa-eye"></i>
+        </div>
+        <div class="mission">
+            <h2>Misi Kami</h2>
+            <p>Memberikan kemudahan dalam pengelolaan data, pembuatan surat, dan pembayaran iuran melalui solusi digital yang inovatif dan aman.</p>
+            <i class="fas fa-bullseye"></i>
+        </div>
+    </div>
+
+   <div id="map" style="width: 100%; height: 400px; margin-top: 20px;"></div>
+    <h2 style="text-align: center;">Hubungi Kami</h2>
+    <p style="text-align: center;">Ingin tahu lebih lanjut? Hubungi kami langsung melalui:</p>
+    <div class="contact-info">
+        <div class="contact-item">
+            <i class="fas fa-phone-alt"></i>
+            <span>Nomor HP</span>
+            <a href="tel:+6281234567890">+62 811 949 275</a>
+        </div>
+        <div class="contact-item">
+            <i class="fas fa-envelope"></i>
+            <span>Email</span>
+            <a href="mailto:info@digipan.com">info@digipan.com</a>
+        </div>
+        <div class="contact-item">
+            <i class="fas fa-home"></i>
+            <span>Alamat</span>
+            <p>Jl. Persatuan 1 RT 08/01</p>
+        </div>
+    </div>
+</div>
+<footer>
+    <p>&copy; 2024 Digipan. All rights reserved.</p>
+</footer>
+
+
+<!-- Font Awesome for Icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script>
+     // Inisialisasi peta
+        var map = L.map('map').setView([-6.340731402708275, 106.84716291215553], 16);
+
+        // Menggunakan tile layer yang lebih menarik
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        }).addTo(map);
+
+        // Tambahkan marker dengan ikon khusus
+        var customIcon = L.icon({
+            iconUrl: 'https://leafletjs.com/examples/custom-icons/leaf-red.png', // URL gambar ikon
+            iconSize: [38, 95], // Ukuran ikon
+            iconAnchor: [22, 94], // Titik jangkar ikon
+            popupAnchor: [-3, -76] // Titik popup relatif ke jangkar ikon
+        });
+
+        // Tambahkan marker ke peta
+        var marker = L.marker([-6.340731402708275, 106.84716291215553], { icon: customIcon }).addTo(map)
+            .bindPopup('<b>Kampung Rumbut RT 08/01</b><br>Selamat datang!') // Tambahkan deskripsi popup
+            .openPopup();
+
+        // Tambahkan kontrol skala ke peta
+        L.control.scale().addTo(map);
+
+    //hide klik kanan
+document.addEventListener("contextmenu", function(e){
+    e.preventDefault();
+}, false);
+
+document.onkeydown = function(e) {
+    if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {
+        e.preventDefault();
+    }
+};
+</script>
+
+</body>
+</html>
