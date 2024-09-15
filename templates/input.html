@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
+    <title>Formulir Data Keluarga</title>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> -->
+    <link rel="icon" type="image/png" href="/static/2.png">
+    <style>
+        /* Styling untuk formulir */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #4CAF50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+       button {
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    padding: 10px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    width: 50%;
+    position: relative;
+    display: block;      /* Ubah tombol menjadi elemen block */
+    margin: 0 auto;      /* Otomatis margin di kiri dan kanan */
+}
+
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 0;
+        }
+
+        /* Spinner Styles */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* Hidden by default */
+            z-index: 9999;
+        }
+
+        .spinner-text {
+            position: fixed;
+            top: calc(50% + 60px); /* Position below the spinner with added space */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1rem;
+            color: #4CAF50;
+            display: none; /* Hidden by default */
+            z-index: 9999;
+            text-align: center;
+            margin-top: 10px; /* Adjust this value to control the space */
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.5); /* Black with opacity */
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-in-out; /* Fade in animation */
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #f5f5f5, #ffffff); /* Gradient background */
+            margin: 15% auto; /* Centered */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 400px;
+            animation: scaleUp 0.3s ease-in-out; /* Scale up animation */
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #4CAF50;
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-footer {
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 1.5rem;
+            font-weight: bold;
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #4CAF50;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        button:focus {
+            outline: none;
+        }
+        .note {
+    display: block;
+    margin-top: -10px;
+    font-size: 12px; /* Atur ukurn teks di sini */
+    color: #666; /* Atur warna teks jika diinginkan */
+    margin-left: 5px;
+}
+
+
+        /* Animations */
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleUp {
+            0% {
+                transform: scale(0.8);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        input::placeholder {
+    font-size: 1rem; /* Ukuran font untuk placeholder */
+    color: #888; /* Warna teks untuk placeholder */
+}
+
+.swal2-confirm-custom {
+    padding: 10px 20px; /* Sesuaikan padding */
+    font-size: 1rem; /* Sesuaikan ukuran font */
+    min-width: 80px; /* Pastikan lebar tombol cukup */
+    border-radius: 5px; /* Sesuaikan radius border jika perlu */
+}
+
+    </style>
+</head>
+<body>
+    <form id="family-form" action="{{ url_for('input_data') }}" method="POST">
+        <h1>Formulir Data Keluarga</h1>
+         <div class="form-group">
+        <label for="nama_keluarga">Nama Keluarga:</label>
+        <input type="text" id="nama_keluarga" name="nama_keluarga" placeholder="*contoh : Keluarga Sitompul" required style="text-transform: uppercase;">
+        <small class="note">*Catatan: Nama Keluarga harus sama untuk setiap anggota keluarga</small>
+    </div>
+    <div id="error-message" style="display: none; color: red;"></div>
+
+        <div class="form-group">
+            <label for="nama">Nama Lengkap:</label>
+            <input type="text" id="nama" name="nama" placeholder="*contoh : Joko Widodo" required>
+        </div>
+        <div class="form-group">
+            <label for="tempat_lahir">Tempat Lahir:</label>
+            <input type="text" id="tempat_lahir" name="tempat_lahir" placeholder="*contoh : Bogor" required>
+        </div>
+        <div class="form-group">
+    <label for="tanggal_lahir">Tanggal Lahir:</label>
+    <input type="date" id="tanggal_lahir" name="tanggal_lahir" required onclick="this.showPicker();" onkeydown="return false;">
+        </div>
+        <div class="form-group">
+            <label for="nomor_keluarga">Nomor Keluarga:</label>
+            <input type="text" id="nomor_keluarga" name="nomor_keluarga" pattern="\d*" placeholder="*contoh : 0899992999">
+        </div>
+        <div class="form-group">
+            <label for="hubungan_keluarga">Hubungan Keluarga:</label>
+            <select id="hubungan_keluarga" name="hubungan_keluarga" required>
+                <option value="" disabled selected>Pilih Hubungan</option>
+                <option value="kepala_keluarga">KepalaKeluarga</option>
+                <option value="istri">Istri</option>
+                <option value="anak">Anak</option>
+            </select>
+        </div>
+        <button type="submit">
+            Kirim
+        </button>
+    </form>
+
+    <!-- Spinner -->
+    <div class="spinner" id="loading-spinner"></div>
+    <div class="spinner-text" id="loading-text">Mengirim data, harap tunggu...</div>
+
+    <!-- Modal -->
+    <!-- <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">&times;</span>
+                Sukses
+            </div>
+            <div class="modal-body">
+                <p>Terima Kasih Telah Mengisi Data</p>
+            </div>
+            <div class="modal-footer">
+                <button id="okBtn">OK</button>
+            </div>
+        </div>
+    </div> -->
+
+   <script>
+  document.getElementById('family-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+    let formData = new FormData(this);
+    let spinner = document.getElementById('loading-spinner');
+    let spinnerText = document.getElementById('loading-text');
+
+    // Show spinner and text
+    spinner.style.display = 'block';
+    spinnerText.style.display = 'block';
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            // Show the SweetAlert popup for success
+            Swal.fire({
+                title: 'Sukses!',
+                text: 'Terima Kasih Telah Mengisi Data',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'swal2-confirm-custom'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirect to the page after clicking OK
+                    window.location.href = 'https://digiwarga08.vercel.app/';
+                }
+            });
+            this.reset(); // Reset the form
+        } else {
+            return response.json().then(data => {
+                Swal.fire({
+                    title: 'Gagal',
+                    text: data.message || 'Gagal mengirim data',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'swal2-confirm-custom'
+                    }
+                });
+            });
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Kesalahan',
+            text: 'Terjadi kesalahan',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'swal2-confirm-custom'
+            }
+        });
+    }).finally(() => {
+        // Hide spinner and text
+        spinner.style.display = 'none';
+        spinnerText.style.display = 'none';
+    });
+});
+
+ //hide klik kanan
+document.addEventListener("contextmenu", function(e){
+    e.preventDefault();
+}, false);
+
+document.onkeydown = function(e) {
+    if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {
+        e.preventDefault();
+    }
+};
+    </script>
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <!-- SURAT KETERANGAN DOMISILI -->
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="icon" type="image/png" href="/static/2.png">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@latest"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
+    <title>DIGIPAN | Formulir Surat </title>
+    <style>
+        /* Styling untuk formulir */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #4CAF50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+       button {
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    padding: 10px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    width: 50%;
+    position: relative;
+    display: block;      /* Ubah tombol menjadi elemen block */
+    margin: 0 auto;      /* Otomatis margin di kiri dan kanan */
+}
+
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 0;
+        }
+
+        /* Spinner Styles */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* Hidden by default */
+            z-index: 9999;
+        }
+
+        .spinner-text {
+            position: fixed;
+            top: calc(50% + 60px); /* Position below the spinner with added space */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1rem;
+            color: #4CAF50;
+            display: none; /* Hidden by default */
+            z-index: 9999;
+            text-align: center;
+            margin-top: 10px; /* Adjust this value to control the space */
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.5); /* Black with opacity */
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-in-out; /* Fade in animation */
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #f5f5f5, #ffffff); /* Gradient background */
+            margin: 15% auto; /* Centered */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 400px;
+            animation: scaleUp 0.3s ease-in-out; /* Scale up animation */
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #4CAF50;
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-footer {
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 1.5rem;
+            font-weight: bold;
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #4CAF50;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        button:focus {
+            outline: none;
+        }
+        .note {
+    display: block;
+    margin-top: -10px;
+    font-size: 12px; /* Atur ukurn teks di sini */
+    color: #666; /* Atur warna teks jika diinginkan */
+    margin-left: 5px;
+}
+
+
+        /* Animations */
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleUp {
+            0% {
+                transform: scale(0.8);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        input::placeholder {
+    font-size: 1rem; /* Ukuran font untuk placeholder */
+    color: #888; /* Warna teks untuk placeholder */
+}
+.swal2-confirm-custom {
+    padding: 10px 20px; /* Sesuaikan padding */
+    font-size: 1rem; /* Sesuaikan ukuran font */
+    min-width: 80px; /* Pastikan lebar tombol cukup */
+    border-radius: 5px; /* Sesuaikan radius border jika perlu */
+}
+
+    </style>
+</head>
+<body>
+    <form id="suratForm">
+            <!-- <img src="static/soon.png" alt="Logo RT"> -->
+            <h1>Formulir Surat</h1>
+        
+        
+            <div class="form-group">
+                <label for="jenissurat">Jenis Surat:</label>
+                <select id="jenissurat" name="jenissurat" required style="width: 98%;">
+                    <option value="" disabled selected>Pilih Jenis Surat</option>
+                    <option value="surat_pernyataan_belum_menikah">Surat Pernyataan Belum Menikah</option>
+                    <option value="surat_keterangan_domisili">Surat Keterangan Domisili</option>
+                    <option value="surat_pernyataan_tidak_mampu">Surat Pernyataan Tidak Mampu</option>
+                    <option value="surat_pengantar">Surat Pengantar</option>
+                </select>
+        </div>
+            <div class="form-group">
+                <label for="nama">Nama Lengkap:</label>
+                <input type="text" id="nama" name="nama" placeholder="*contoh : Joko Widodo" required style="width: 98%;">
+            </div>
+           <div class="form-group">
+                <label for="tanggal">Tanggal lahir:</label>
+                <input type="date" id="tanggal" name="tanggal" required onclick="this.showPicker();" onkeydown="return false;" style="width: 98%;">
+            </div>
+            <div class="form-group">
+                <label for="tempatlahir">Tempat lahir:</label>
+                <input type="text" id="tempatlahir" name="tempatlahir" placeholder="*contoh : Depok" required style="width: 98%;">
+            </div>
+            <div class="form-group">
+                <label for="jeniskelamin">Jenis Kelamin:</label>
+                <select id="jeniskelamin" name="jeniskelamin" required style="width: 98%;">
+                    <option value="" disabled selected>Pilih Jenis Kelamin</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+        </div>
+        <div class="form-group">
+                <label for="agama">Agama:</label>
+                 <select id="agama" name="agama" required style="width: 98%;">
+                    <option value="" disabled selected>Pilih Agama</option>
+                    <option value="Islam">Islam</option>
+                    <option value="Kristen Protestan">Kristen Protestan</option>
+                    <option value="Katolik">Katolik</option>
+                    <option value="Hindu">Hindu</option>
+                    <option value="Buddha">Buddha</option>
+                    <option value="Khonghucu">Khonghucu</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="pekerjaan">Pekerjaan:</label>
+                <input type="text" id="pekerjaan" name="pekerjaan" placeholder="*contoh : Pegawai Swasta" required style="width: 98%;">
+            </div>
+           <div class="form-group"> 
+                <label for="ktp">No KTP/KK:</label>
+                <input type="text" id="ktp" name="ktp" pattern="\d*" placeholder="*contoh : 32727272812923823"required style="width: 98%;">
+            </div>
+            <div class="form-group">
+                <label for="alamatktp">Alamat sesuai KTP:</label>
+                <input type="text" id="alamatktp" name="alamatktp" required style="width: 98%;">
+            </div>
+           <div class="form-group">
+                <label for="statusperkawinan">Jenis Kelamin:</label>
+                <select id="statusperkawinan" name="statusperkawinan" required style="width: 98%;">
+                    <option value="" disabled selected>Pilih Status Perkawinan</option>
+                    <option value="Lajang">Lajang</option>
+                    <option value="Menikah">Menikah</option>
+                    <option value="Bercerai">Bercerai</option>
+                </select>
+        </div>
+            <div class="form-group">
+                <label for="tujuan">Tujuan Surat:</label>
+               <textarea id="tujuan" name="tujuan" required style="width: 98%; height: 150px;"></textarea>
+            </div>
+            <!-- <button type="button" class="btn" onclick="generateSurat()">Lihat Surat</button> -->
+            <button type="button" class="btn" onclick="kirimSurat()">Kirim Surat</button>
+             <div class="spinner" id="loading-spinner"></div>
+    <div class="spinner-text" id="loading-text">Mengirim data, harap tunggu...</div>
+
+        </form>
+
+   
+        </div>
+    </div>
+    
+    <script>
+        
+function kirimSurat() {
+    var nama = document.getElementById('nama').value.trim();
+    var tanggal = document.getElementById('tanggal').value.trim();
+    var tempatlahir = document.getElementById('tempatlahir').value.trim();
+    var jeniskelamin = document.getElementById('jeniskelamin').value.trim();
+    var agama = document.getElementById('agama').value.trim();
+    var pekerjaan = document.getElementById('pekerjaan').value.trim();
+    var ktp = document.getElementById('ktp').value.trim();
+    var alamatktp = document.getElementById('alamatktp').value.trim();
+    var statusperkawinan = document.getElementById('statusperkawinan').value.trim();
+    var tujuan = document.getElementById('tujuan').value.trim();
+    var jenissurat = document.getElementById('jenissurat').value.trim();
+
+    if (!nama || !tanggal || !tempatlahir || !jeniskelamin || !pekerjaan || !alamatktp || !tujuan || !ktp || !statusperkawinan || !agama || !jenissurat) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Peringatan',
+            text: 'Semua field harus diisi!',
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'swal2-confirm-custom'
+            }
+        });
+        return;
+    }
+
+    var spinner = document.getElementById('loading-spinner');
+    var spinnerText = document.getElementById('loading-text');
+
+    // Show spinner and text
+    spinner.style.display = 'block';
+    spinnerText.style.display = 'block';
+
+    var data = {
+        nama: nama,
+        tanggal: tanggal,
+        tempatlahir: tempatlahir,
+        jeniskelamin: jeniskelamin,
+        agama: agama,
+        pekerjaan: pekerjaan,
+        ktp: ktp,
+        alamatktp: alamatktp,
+        statusperkawinan: statusperkawinan,
+        tujuan: tujuan,
+        jenissurat: jenissurat
+    };
+
+    fetch('/kirim-surat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }).then(response => {
+        if (response.ok) {
+            // If response is ok, parse JSON and display success message
+            return response.json().then(data => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: data.message, // Use message from backend
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'swal2-confirm-custom'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'https://digiwarga08.vercel.app/';
+                    }
+                });
+            });
+        } else {
+            // If response is not ok, display error message
+            return response.json().then(data => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: data.message, // Use message from backend
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'swal2-confirm-custom'
+                    }
+                });
+            });
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Kesalahan',
+            text: 'Terjadi kesalahan saat mengirim surat.',
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'swal2-confirm-custom'
+            }
+        });
+    }).finally(() => {
+        // Hide spinner and text
+        spinner.style.display = 'none';
+        spinnerText.style.display = 'none';
+    });
+}
+
+document.querySelector('form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+    let formData = new FormData(this);
+    let spinner = document.getElementById('loading-spinner');
+    let spinnerText = document.getElementById('loading-text');
+
+    // Show spinner and text
+    spinner.style.display = 'block';
+    spinnerText.style.display = 'block';
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    }).then(response => {
+        // Check if response is ok (status 200-299)
+        if (response.ok) {
+            // Convert response to JSON and show success message
+            return response.json().then(data => {
+                Swal.fire({
+                    title: 'Sukses!',
+                    text: data.message, // Display server message
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'swal2-confirm-custom'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        setTimeout(() => {
+                            window.location.href = 'https://digiwarga08.vercel.app/';
+                        }, 500);
+                    }
+                });
+            });
+        } else {
+            // If the response is not ok, display error message
+            return response.json().then(data => {
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: data.message, // Display server message
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'swal2-confirm-custom'
+                    }
+                });
+            });
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Kesalahan', 'Terjadi kesalahan saat mengirim surat.', 'error', {
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'swal2-confirm-custom'
+            }
+        });
+    }).finally(() => {
+        // Hide spinner and text
+        spinner.style.display = 'none';
+        spinnerText.style.display = 'none';
+    });
+});
+
+
+ //hide klik kanan
+document.addEventListener("contextmenu", function(e){
+    e.preventDefault();
+}, false);
+
+document.onkeydown = function(e) {
+    if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {
+        e.preventDefault();
+    }
+};
+
+    </script>
+</body>
+</html>
