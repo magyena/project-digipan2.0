@@ -249,7 +249,7 @@ a:focus {
 }
 
 .text-xs {
-  font-size: .7rem
+  font-size: 15px
 }
 
 .text-lg {
@@ -1918,3 +1918,8 @@ body.sidebar-toggled footer.sticky-footer {
   background-color: #3f51b5;
   border-color: #3f51b5
 }
+
+ .more-messages {
+            display: none;
+        }
+   

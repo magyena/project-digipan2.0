@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tentang Kami - DIGIPAN</title>
+    <link href="static/img/logo/2.png" rel="icon">
+    <title>DIGIPAN | Tentang</title>
     <!-- Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -350,6 +351,41 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
 }
+.contact-form {
+    width: 350px;
+    margin: 20px auto;
+    padding: 50px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.hidden {
+    display: none;
+}
+
+.contact-btn, .submit-btn, .close-btn {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.contact-btn:hover, .submit-btn:hover, .close-btn:hover {
+    background-color: #0056b3;
+}
+
+.contact-form input, .contact-form textarea {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
 
     </style>
 </head>
@@ -396,25 +432,47 @@ body {
     </div>
 
    <div id="map" style="width: 100%; height: 400px; margin-top: 20px;"></div>
-    <h2 style="text-align: center;">Hubungi Kami</h2>
-    <p style="text-align: center;">Ingin tahu lebih lanjut? Hubungi kami langsung melalui:</p>
-    <div class="contact-info">
-        <div class="contact-item">
-            <i class="fas fa-phone-alt"></i>
-            <span>Nomor HP</span>
-            <a href="tel:+6281234567890">+62 811 949 275</a>
-        </div>
-        <div class="contact-item">
-            <i class="fas fa-envelope"></i>
-            <span>Email</span>
-            <a href="mailto:info@digipan.com">info@digipan.com</a>
-        </div>
-        <div class="contact-item">
-            <i class="fas fa-home"></i>
-            <span>Alamat</span>
-            <p>Jl. Persatuan 1 RT 08/01</p>
-        </div>
+   <h2 style="text-align: center;">Hubungi Kami</h2>
+<p style="text-align: center;">Ingin tahu lebih lanjut? Hubungi kami langsung melalui:</p>
+<div class="contact-info">
+    <div class="contact-item">
+        <i class="fas fa-phone-alt"></i>
+        <span>Nomor HP</span>
+        <a href="tel:+6281234567890">+62 811 949 275</a>
     </div>
+    <div class="contact-item">
+        <i class="fas fa-envelope"></i>
+        <span>Email</span>
+        <a href="mailto:info@digipan.com">info@digipan.com</a>
+    </div>
+    <div class="contact-item">
+        <i class="fas fa-home"></i>
+        <span>Alamat</span>
+        <p>Jl. Persatuan 1 RT 08/01</p>
+    </div>
+</div>
+
+<!-- Tombol untuk membuka form -->
+<div style="text-align: center;">
+    <button id="contactButton" class="contact-btn">LAPOR PENGURUS RT</button>
+</div>
+
+<!-- Form Kirim Pesan (tersembunyi) -->
+<div id="contactForm" class="contact-form hidden">
+    <h3>Kirim Pesan</h3>
+    <form action="/messages" method="POST">
+    <label for="user">Nama:</label>
+    <input type="text" id="user" name="user" required>
+
+    <label for="nomor">No Whatsapp:</label>
+    <input type="text" id="nomor" name="nomor" required>
+
+    <label for="message">Pesan:</label>
+    <textarea id="message" name="message" required></textarea>
+
+    <button type="submit">Kirim</button>
+</form>
+    <button id="closeForm" class="close-btn">Tutup</button>
 </div>
 <footer>
     <p>&copy; 2024 Digipan. All rights reserved.</p>
@@ -449,16 +507,24 @@ body {
         // Tambahkan kontrol skala ke peta
         L.control.scale().addTo(map);
 
-    //hide klik kanan
-document.addEventListener("contextmenu", function(e){
-    e.preventDefault();
-}, false);
+//     //hide klik kanan
+// document.addEventListener("contextmenu", function(e){
+//     e.preventDefault();
+// }, false);
 
 document.onkeydown = function(e) {
     if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {
         e.preventDefault();
     }
 };
+document.getElementById('contactButton').addEventListener('click', function() {
+    document.getElementById('contactForm').classList.remove('hidden');
+});
+
+document.getElementById('closeForm').addEventListener('click', function() {
+    document.getElementById('contactForm').classList.add('hidden');
+});
+
 </script>
 
 </body>
