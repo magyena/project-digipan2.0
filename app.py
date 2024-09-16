@@ -15,11 +15,14 @@ from flask import (
     send_file,
     make_response,
 )
+from sqlalchemy import func
 from werkzeug.utils import secure_filename
 from supabase import create_client, Client
 import logging
 import os
 from werkzeug.security import check_password_hash
+import re
+
 
 app = Flask(__name__)
 
@@ -109,6 +112,16 @@ class Iuran(db.Model):
     status_pembayaran = db.Column(db.String(20), default="Menunggu")
     tanggal = db.Column(db.Date, default=func.now(), nullable=False)
 
+class Message(db.Model):
+    __tablename__ = "pesan"
+    __table_args__ = {"schema": "data_keluarga"}
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.String(150), nullable=False)
+    nomor_whatsapp = db.Column(db.String(15), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
     def __init__(
         self,
         nama,
@@ -151,7 +164,18 @@ class Iuran(db.Model):
         self.status_pembayaran = status_pembayaran
         if tanggal is not None:
             self.tanggal = tanggal
-
+            
+    def __init__(
+        self,
+        user,
+        nomor_whatsapp,
+        message,
+        timestamp=None,
+    ):
+        self.user = user
+        self.nomor_whatsapp = nomor_whatsapp
+        self.message = message
+        self.timestamp = timestamp if timestamp else datetime.now()
 
 def __init__(self, username, password):
     self.username = username
@@ -168,35 +192,31 @@ def index():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if not username or not password:
+            flash("Username dan password harus diisi.", "warning")
+            return render_template("login.html")
 
         # Mencari user di database berdasarkan username
         user = User.query.filter_by(username=username).first()
 
         # Validasi username dan password
-        if user:
-            if check_password_hash(user.password, password):
-                session["user_id"] = user.id  # Simpan user id di session
-                session["username"] = user.username  # Simpan username di session
-                return redirect(url_for("dashboard"))
-            else:
-                # Jika password salah
-                flash("Password salah. Silakan coba lagi.", "danger")
+        if user and check_password_hash(user.password, password):
+            session["user_id"] = user.id  # Simpan user id di session
+            session["username"] = user.username  # Simpan username di session
+            return redirect(url_for("dashboard"))
         else:
-            # Jika username tidak ditemukan
-            flash("Username tidak ditemukan. Silakan coba lagi.", "danger")
+            flash("Username atau password salah. Silakan coba lagi.", "danger")
 
     return render_template("login.html")
 
-
 @app.route("/logout")
 def logout():
-    # Hapus semua data sesi
-    session.clear()
-    flash("Anda telah logout.", "info")
+    session.clear()  # Hapus semua data sesi
+    flash("Anda telah keluar.", "info")
     return redirect(url_for("login"))
-
 
 def format_rupiah(value):
     """Format nilai menjadi rupiah dengan pemisah ribuan (misalnya, 60000 menjadi '60.000')."""
@@ -210,6 +230,7 @@ def dashboard():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
+
     # Menghitung jumlah keluarga yang unik
     subquery = (
         db.session.query(func.lower(func.replace(Family.nama_keluarga, " ", "")))
@@ -218,13 +239,18 @@ def dashboard():
     )
 
     family_count = db.session.query(func.count()).select_from(subquery).scalar()
+    
     # Menghitung jumlah total surat
     surat_count = db.session.query(SuratPengantar).count()
+    
+    # Menghitung jumlah total warga
     warga_count = (
         db.session.query(func.count().label("total"))
         .filter(Family.nama.isnot(None), Family.nama != "")
         .scalar()
     )
+    
+    # Menghitung total iuran
     total_iuran = (
         db.session.query(func.sum(Iuran.jumlah_iuran))
         .filter(Iuran.status_pembayaran == "Diterima")
@@ -235,8 +261,33 @@ def dashboard():
     # Format total iuran ke dalam format '60.000'
     total_iuran_diterima_formatted = format_rupiah(total_iuran)
 
-    # Debugging: cetak nilai family_count ke konsol
-    print(f"Family Count: {family_count}")
+    # Ambil pesan dari database
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+    
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+    more_messages = all_messages[3:5]  # 5 pesan tambahan untuk View More
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            'message': msg.message,
+            'user': msg.user,
+            'nomor_whatsapp': msg.nomor_whatsapp,
+            'timestamp': msg.timestamp.strftime('%d %b %Y · %H:%M')
+        } for msg in messages_to_display
+    ]
+
+    message_list_more = [
+        {
+            'message': msg.message,
+            'user': msg.user,
+            'nomor_whatsapp': msg.nomor_whatsapp,
+            'timestamp': msg.timestamp.strftime('%d %b %Y · %H:%M')
+        } for msg in more_messages
+    ]
+
+    current_datetime = datetime.now().strftime("%m/%d/%Y, %I:%M %p")  # Formatkan sesuai kebutuhan
 
     return render_template(
         "dashboard.html",
@@ -244,7 +295,12 @@ def dashboard():
         surat_count=surat_count,
         warga_count=warga_count,
         total_iuran=total_iuran_diterima_formatted,
+        current_datetime=current_datetime,
+        messages=message_list_to_display,  # Tampilkan pesan yang dibatasi
+        more_messages=message_list_more,   # Kirimkan pesan tambahan untuk View More
     )
+
+
 
 
 @app.route("/api/family-stats", methods=["GET"])
@@ -445,6 +501,202 @@ def kirim_iuran():
 
     return redirect(url_for("input_iuran"))
 
+@app.route("/kirim-surat", methods=["POST"])
+def kirim_surat():
+    data = request.json
+    print(f"Received data: {data}")  # Logging data yang diterima
+
+    try:
+        # Validasi nomor KTP/KK hanya boleh angka
+        ktp = data.get("ktp")
+        if not re.fullmatch(r"\d+", ktp):
+            return jsonify({"message": "Nomor KTP/KK hanya boleh berisi angka."}), 400
+
+        # Cek apakah format tanggal benar
+        tanggal_str = data.get("tanggal")
+        tanggal = datetime.strptime(tanggal_str, "%Y-%m-%d").date()
+        print(f"Parsed date: {tanggal}")  # Logging tanggal yang di-parse
+
+        surat = SuratPengantar(
+            nama=data["nama"],
+            tanggal=tanggal,
+            tempatlahir=data["tempatlahir"],
+            jeniskelamin=data["jeniskelamin"],
+            agama=data["agama"],
+            pekerjaan=data["pekerjaan"],
+            ktp=ktp,  # Menggunakan ktp yang sudah divalidasi
+            alamatktp=data["alamatktp"],
+            statusperkawinan=data["statusperkawinan"],
+            tujuan=data["tujuan"],
+            jenissurat=data["jenissurat"],
+        )
+        db.session.add(surat)
+        db.session.commit()
+        return jsonify({"message": "Surat berhasil dikirim!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error: {str(e)}")  # Logging error
+        return jsonify({"message": "Terjadi kesalahan saat mengirim surat."}), 500
+
+@app.route("/api/recent_updates")
+def recent_updates():
+    # Ambil data terbaru untuk keluarga
+    latest_families = (
+        db.session.query(Family)
+        .order_by(Family.id.desc())
+        .limit(5)
+        .all()
+    )
+    
+    # Ambil data terbaru untuk iuran
+    latest_iuran = (
+        db.session.query(Iuran)
+        .order_by(Iuran.id.desc())
+        .limit(5)
+        .all()
+    )
+
+    # Ambil data terbaru untuk surat
+    latest_surat = (
+        db.session.query(SuratPengantar)
+        .order_by(SuratPengantar.id.desc())
+        .limit(5)
+        .all()
+    )
+
+    # Format data
+    updates = [
+        {"title": "Data Keluarga Baru", "time": "2m ago"},  # Ganti dengan data terbaru dari `latest_families`
+        {"title": "Data Iuran Baru", "time": "5m ago"},     # Ganti dengan data terbaru dari `latest_iuran`
+        {"title": "Data Surat Baru", "time": "10m ago"}    # Ganti dengan data terbaru dari `latest_surat`
+    ]
+    
+    return jsonify(updates)
+
+#route menu pesan terbaru
+@app.route("/messages", methods=["GET", "POST"])
+def message_center():
+    if request.method == "POST":
+        user = request.form["user"]  # Nama pengirim
+        nomor_whatsapp = request.form["nomor"]  # Nomor WhatsApp
+        message = request.form["message"]  # Isi pesan
+
+        # Simpan pesan ke database
+        new_message = Message(user=user, nomor_whatsapp=nomor_whatsapp, message=message)
+        db.session.add(new_message)
+        db.session.commit()
+        return redirect(url_for("message_center"))
+
+    # # Mengambil semua pesan dari database, urutkan berdasarkan timestamp
+    # messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    return render_template("tentang.html")
+
+#  route menu keluarga
+@app.route('/keluarga')
+def keluarga():
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("login"))
+    
+    # Mengambil nama keluarga unik (distinct) setelah mengabaikan spasi
+    families = db.session.query(func.trim(Family.nama_keluarga)).distinct().all()
+
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+    
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            'message': msg.message,
+            'user': msg.user,
+            'nomor_whatsapp': msg.nomor_whatsapp,
+            'timestamp': msg.timestamp.strftime('%d %b %Y · %H:%M')
+        } for msg in messages_to_display
+    ]
+
+    return render_template('datatables.html', families=families, messages=message_list_to_display)
+
+
+@app.route("/get_family_details/<nama_keluarga>")
+def get_family_details(nama_keluarga):
+    # Menghapus spasi tambahan di nama keluarga
+    nama_keluarga = nama_keluarga.strip()
+
+    # Query dengan menghapus spasi ekstra di database
+    family_details = Family.query.filter(
+        func.trim(Family.nama_keluarga) == nama_keluarga
+    ).all()
+
+    family_data = [
+        {
+            "id": member.id,  # Tambahkan ID untuk pengeditan
+            "nama_keluarga": member.nama_keluarga,
+            "nama": member.nama,
+            "tempat_lahir": member.tempat_lahir,
+            "tanggal_lahir": member.tanggal_lahir.strftime('%Y-%m-%d'),  # Formatkan tanggal
+            "nomor_keluarga": member.nomor_keluarga,
+            "hubungan_keluarga": member.hubungan_keluarga
+        } for member in family_details
+    ]
+
+    return jsonify(family_data)
+
+@app.route('/delete_family_member/<int:member_id>', methods=['DELETE'])
+def delete_family_member(member_id):
+    try:
+        # Menghapus anggota keluarga dari database
+        member = db.session.query(Family).filter_by(id=member_id).first()
+        if not member:
+            return jsonify({'error': 'Anggota keluarga tidak ditemukan.'}), 404
+        
+        db.session.delete(member)
+        db.session.commit()
+        return jsonify({'message': 'Anggota keluarga berhasil dihapus.'}), 200
+
+    except Exception as e:
+        # Menangani kemungkinan kesalahan
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/edit_family', methods=['POST'])
+def edit_family():
+    data = request.form
+    member_id = data.get('member_id')
+    nama_keluarga = data.get('nama_keluarga')
+    nama = data.get('nama')
+    tempat_lahir = data.get('tempat_lahir')
+    tanggal_lahir_str = data.get('tanggal_lahir')
+    nomor_keluarga = data.get('nomor_keluarga')
+    hubungan_keluarga = data.get('hubungan_keluarga')
+
+    # Validasi ID anggota keluarga
+    if not member_id:
+        return jsonify({'status': 'error', 'message': 'ID anggota keluarga tidak diberikan.'}), 400
+
+    # Cari anggota keluarga yang sesuai berdasarkan ID
+    family_member = Family.query.get(member_id)
+
+    if family_member:
+        try:
+            # Parsing tanggal lahir dari string ke objek date
+            tanggal_lahir = datetime.strptime(tanggal_lahir_str, '%Y-%m-%d').date()
+
+            # Perbarui data anggota keluarga
+            family_member.nama_keluarga = nama_keluarga
+            family_member.nama = nama
+            family_member.tempat_lahir = tempat_lahir
+            family_member.tanggal_lahir = tanggal_lahir
+            family_member.nomor_keluarga = nomor_keluarga
+            family_member.hubungan_keluarga = hubungan_keluarga
+
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': 'Data keluarga berhasil diperbarui.'})
+        except ValueError:
+            return jsonify({'status': 'error', 'message': 'Format tanggal tidak valid. Harap gunakan format YYYY-MM-DD.'}), 400
+    else:
+        return jsonify({'status': 'error', 'message': 'Anggota keluarga tidak ditemukan.'}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)

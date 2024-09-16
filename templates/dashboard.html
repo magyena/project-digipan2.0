@@ -7,18 +7,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="">
   <meta name="author" content="">
-  <link href="static/img/logo/logo.png" rel="icon">
-  <title>Digipan - Dashboard</title>
+  <link href="static/img/logo/2.png" rel="icon">
+  <title>Digipan | Dashboard</title>
   <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
+   <meta http-equiv="refresh" content="3600">
 </head>
 
 <body id="page-top">
   <div id="wrapper">
     <!-- Sidebar -->
     <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar">
-      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
         <div class="sidebar-brand-icon">
           <img src="static/img/logo/2.png">
         </div>
@@ -26,7 +27,7 @@
       </a>
       <hr class="sidebar-divider my-0">
       <li class="nav-item active">
-        <a class="nav-link" href="/">
+        <a class="nav-link" href="/dashboard">
           <i class="fas fa-fw fa-tachometer-alt"></i>
           <span>Dashboard</span></a>
       </li>
@@ -35,22 +36,10 @@
         Features
       </div>
       <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseBootstrap"
-          aria-expanded="true" aria-controls="collapseBootstrap">
+        <a class="nav-link" href="{{ url_for('keluarga') }}">
           <i class="far fa-fw fa-user"></i>
           <span>Keluarga</span>
         </a>
-        <!-- <div id="collapseBootstrap" class="collapse" aria-labelledby="headingBootstrap" data-parent="#accordionSidebar">
-          <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Bootstrap UI</h6>
-            <a class="collapse-item" href="alerts.html">Alerts</a>
-            <a class="collapse-item" href="buttons.html">Buttons</a>
-            <a class="collapse-item" href="dropdowns.html">Dropdowns</a>
-            <a class="collapse-item" href="modals.html">Modals</a>
-            <a class="collapse-item" href="popovers.html">Popovers</a>
-            <a class="collapse-item" href="progress-bar.html">Progress Bars</a>
-          </div>
-        </div> -->
       </li>
       <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseForm" aria-expanded="true"
@@ -195,37 +184,32 @@
               <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-envelope fa-fw"></i>
-                <span class="badge badge-warning badge-counter">2</span>
+                <span class="badge badge-warning badge-counter">3</span>
               </a>
-              <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                aria-labelledby="messagesDropdown">
-                <h6 class="dropdown-header">
-                  Message Center
-                </h6>
-                <a class="dropdown-item d-flex align-items-center" href="#">
+             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+              aria-labelledby="messagesDropdown">
+              <h6 class="dropdown-header">
+                  Pesan Terbaru
+              </h6>
+
+              <!-- Loop melalui pesan yang dikirim dari backend -->
+              {% for msg in messages %}
+              <a class="dropdown-item d-flex align-items-center" href="https://wa.me/{{ msg.nomor_whatsapp }}" target="_blank">
                   <div class="dropdown-list-image mr-3">
-                    <img class="rounded-circle" src="static/img/man.png" style="max-width: 60px" alt="">
-                    <div class="status-indicator bg-success"></div>
+                      <img class="rounded-circle" src="static/img/man.png" style="max-width: 60px" alt="User Image">
+                      <div class="status-indicator bg-success"></div>
                   </div>
                   <div class="font-weight-bold">
-                    <div class="text-truncate">Hi there! I am wondering if you can help me with a problem I've been
-                      having.</div>
-                    <div class="small text-gray-500">Udin Cilok · 58m</div>
+                      <div class="text-truncate">{{ msg.message }}</div>
+                      <div class="small text-gray-500">{{ msg.user }} · {{ msg.timestamp }}</div>
                   </div>
-                </a>
-                <a class="dropdown-item d-flex align-items-center" href="#">
-                  <div class="dropdown-list-image mr-3">
-                    <img class="rounded-circle" src="static/img/girl.png" style="max-width: 60px" alt="">
-                    <div class="status-indicator bg-default"></div>
-                  </div>
-                  <div>
-                    <div class="text-truncate">Am I a good boy? The reason I ask is because someone told me that people
-                      say this to all dogs, even if they aren't good...</div>
-                    <div class="small text-gray-500">Jaenab · 2w</div>
-                  </div>
-                </a>
-                <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
-              </div>
+              </a>
+              {% endfor %}
+
+              <!-- Link untuk lebih banyak pesan -->
+              <a id="read-more-messages" class="dropdown-item text-center small text-gray-500" href="#">Baca lebih banyak</a>
+          </div>
+
             </li>
             <li class="nav-item dropdown no-arrow mx-1">
               <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown"
@@ -238,7 +222,7 @@
                 <h6 class="dropdown-header">
                   Task
                 </h6>
-                <a class="dropdown-item align-items-center" href="#">
+                <!-- <a class="dropdown-item align-items-center" href="#">
                   <div class="mb-3">
                     <div class="small text-gray-500">Design Button
                       <div class="small float-right"><b>50%</b></div>
@@ -269,7 +253,7 @@
                       <div class="progress-bar bg-danger" role="progressbar" style="width: 75%" aria-valuenow="75"
                         aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
-                  </div>
+                  </div> -->
                 </a>
                 <a class="dropdown-item text-center small text-gray-500" href="#">View All Taks</a>
               </div>
@@ -317,7 +301,7 @@
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
             <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="./">Home</a></li>
+              <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
               <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
             </ol>
           </div>
@@ -332,8 +316,8 @@
                       <div class="text-xs font-weight-bold text-uppercase mb-1">Total Keluarga</div>
                       <div class="h5 mb-0 font-weight-bold text-gray-800">{{family_count}}</div>
                       <div class="mt-2 mb-0 text-muted text-xs">
-                        <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> 3.48%</span>
-                        <span>Since last month</span>
+                        <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> Update Terakhir</span>
+                        <span>{{ current_datetime }}</span>
                       </div>
                     </div>
                     <div class="col-auto">
@@ -352,8 +336,8 @@
                       <div class="text-xs font-weight-bold text-uppercase mb-1">Total Warga</div>
                       <div class="h5 mb-0 font-weight-bold text-gray-800">{{warga_count}}</div>
                       <div class="mt-2 mb-0 text-muted text-xs">
-                        <span class="text-success mr-2"><i class="fas fa-arrow-up"></i> 12%</span>
-                        <span>Since last years</span>
+                       <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> Update Terakhir</span>
+                        <span>{{ current_datetime }}</span>
                       </div>
                     </div>
                     <div class="col-auto">
@@ -372,8 +356,8 @@
                       <div class="text-xs font-weight-bold text-uppercase mb-1">Total Surat</div>
                       <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ surat_count }}</div>
                       <div class="mt-2 mb-0 text-muted text-xs">
-                        <span class="text-success mr-2"><i class="fas fa-arrow-up"></i> 20.4%</span>
-                        <span>Since last month</span>
+                        <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> Update Terakhir</span>
+                        <span>{{ current_datetime }}</span>
                       </div>
                     </div>
                     <div class="col-auto">
@@ -392,8 +376,8 @@
                       <div class="text-xs font-weight-bold text-uppercase mb-1">Total Iuran</div>
                       <div class="h5 mb-0 font-weight-bold text-gray-800">{{total_iuran}}</div>
                       <div class="mt-2 mb-0 text-muted text-xs">
-                        <span class="text-danger mr-2"><i class="fas fa-arrow-down"></i> 1.10%</span>
-                        <span>Since yesterday</span>
+                        <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> Update Terakhir</span>
+                        <span>{{ current_datetime }}</span>
                       </div>
                     </div>
                     <div class="col-auto">
@@ -474,8 +458,8 @@
                     <tr>
                       <th>ID</th>
                       <th>Nama Keluarga</th>
-                      <th>Nama Individu</th>
-                      <th>Hubungan Keluarga</th>
+                      <th>Nama</th>
+                      <th>Hubungan</th>
                       <th>Nomor</th>
                     </tr>
                   </thead>
@@ -487,50 +471,66 @@
                 <div class="card-footer"></div>
               </div>
             </div>
-            <!-- Message From Customer-->
-            <div class="col-xl-4 col-lg-5 ">
-              <div class="card">
-                <div class="card-header py-4 bg-primary d-flex flex-row align-items-center justify-content-between">
-                  <h6 class="m-0 font-weight-bold text-light">Message From Customer</h6>
-                </div>
-                <div>
-                  <div class="customer-message align-items-center">
-                    <a class="font-weight-bold" href="#">
-                      <div class="text-truncate message-title">Hi there! I am wondering if you can help me with a
-                        problem I've been having.</div>
-                      <div class="small text-gray-500 message-time font-weight-bold">Udin Cilok · 58m</div>
-                    </a>
-                  </div>
-                  <div class="customer-message align-items-center">
-                    <a href="#">
-                      <div class="text-truncate message-title">But I must explain to you how all this mistaken idea
-                      </div>
-                      <div class="small text-gray-500 message-time">Nana Haminah · 58m</div>
-                    </a>
-                  </div>
-                  <div class="customer-message align-items-center">
-                    <a class="font-weight-bold" href="#">
-                      <div class="text-truncate message-title">Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                      </div>
-                      <div class="small text-gray-500 message-time font-weight-bold">Jajang Cincau · 25m</div>
-                    </a>
-                  </div>
-                  <div class="customer-message align-items-center">
-                    <a class="font-weight-bold" href="#">
-                      <div class="text-truncate message-title">At vero eos et accusamus et iusto odio dignissimos
-                        ducimus qui blanditiis
-                      </div>
-                      <div class="small text-gray-500 message-time font-weight-bold">Udin Wayang · 54m</div>
-                    </a>
-                  </div>
-                  <div class="card-footer text-center">
-                    <a class="m-0 small text-primary card-link" href="#">View More <i
-                        class="fas fa-chevron-right"></i></a>
-                  </div>
-                </div>
-              </div>
+                  <!-- Pesan dari Pelanggan -->
+<div id="messages-section" class="col-xl-4 col-lg-5">
+    <div class="card">
+        <div class="card-header py-4 bg-primary d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-light">Pesan dari Warga</h6>
+        </div>
+        <div class="card-body">
+    <!-- Tampilkan 3 pesan awal -->
+    {% for msg in messages %}
+        <div class="customer-message align-items-center mb-3 message-item">
+            <a class="font-weight-bold" href="#" data-toggle="modal" data-target="#message-detail-{{ loop.index }}">
+                <div class="text-truncate message-title">{{ msg.message }}</div>
+                <div class="small text-gray-500 message-time font-weight-bold">{{ msg.user }} · {{ msg.timestamp }}</div>
+            </a>
+        </div>
+    {% endfor %}
+
+    <!-- Pesan tambahan yang awalnya tersembunyi -->
+    <div class="more-messages" style="display: none;">
+        {% for msg in more_messages %}
+            <div class="customer-message align-items-center mb-3 message-item">
+                <a class="font-weight-bold" href="#" data-toggle="modal" data-target="#message-detail-{{ loop.index }}">
+                    <div class="text-truncate message-title">{{ msg.message }}</div>
+                    <div class="small text-gray-500 message-time font-weight-bold">{{ msg.user }} · {{ msg.timestamp }}</div>
+                </a>
             </div>
-          </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card-footer text-center">
+            <a id="view-more" class="m-0 small text-primary card-link" href="#">Tampilkan lebih banyak <i class="fas fa-chevron-right"></i></a>
+        </div>
+<!-- Modal for message details -->
+{% for msg in messages + more_messages %}
+    <div class="modal fade" id="message-detail-{{ loop.index }}" tabindex="-1" role="dialog" aria-labelledby="messageDetailLabel-{{ loop.index }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="messageDetailLabel-{{ loop.index }}">Detail Pesan</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Nama:</strong> {{ msg.user }}</p>
+                    <p><strong>WhatsApp:</strong> {{ msg.nomor_whatsapp }}</p>
+                    <p><strong>Pesan:</strong> {{ msg.message }}</p>
+                    <p><strong>Waktu Lapor:</strong> {{ msg.timestamp }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+     </div>
+{% endfor %}
+
           <!--Row-->
 
           <div class="row">
@@ -556,7 +556,7 @@
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-outline-primary" data-dismiss="modal">Cancel</button>
-                <a href="/login" class="btn btn-primary">logout</a>
+                <a href="/logout" class="btn btn-primary">logout</a>
 
                 </div>
               </div>
@@ -570,7 +570,7 @@
       <footer class="sticky-footer bg-white">
         <div class="container my-auto">
           <div class="copyright text-center my-auto">
-            <span>copyright &copy; <script> document.write(new Date().getFullYear()); </script> - developed by Digipan
+            <span>copyright &copy; <script> document.write(new Date().getFullYear()); </script> - developed by Digipan 2.0
               <!-- <b><a href="https://indrijunanda.gitlab.io/" target="_blank">indrijunanda</a></b> -->
             </span>
           </div>
