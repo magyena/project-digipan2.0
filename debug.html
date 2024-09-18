@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surat Keterangan Domisili</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .header {
+            position: relative;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            position: absolute;
+            top: -5px;
+            right: 20px; /* Mengatur posisi gambar ke kanan */
+            width: 80px;
+        }
+       .header p {
+            margin: 0;
+            font-weight: bold; /* Membuat teks menjadi bold */
+            font-size: 16px; /* Mengatur ukuran teks */
+        }
+        h1 {
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        .nomor-surat {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 50px;
+        }
+        .content p {
+            margin: 5px 0;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+        }
+        .signature-left, .signature-right {
+            width: 45%;
+        }
+        .signature-left p, .signature-right p {
+            margin: 5px 0;
+            text-align: center;
+        }
+        .signature-right img {
+            display: block;
+            margin: 10px auto;
+            width: 100px;
+            height: auto;
+        }
+        .horizontal-line {
+            border-top: 3px solid #000; /* Warna dan ketebalan garis */
+            margin: 15px auto; /* Jarak di atas dan bawah garis, dan memusatkan garis */
+            width: 30%; /* Mengatur panjang garis menjadi 30% dari lebar kontainer */
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <!-- Gunakan URL statis dari Flask -->
+        <img src="/static/img/logo/depok.png" alt="Logo" style="height: 100px;">
+        <p>
+            RUKUN TETANGGA 08 RUKUN WARGA 01<br>
+            PEMERINTAH KOTA DEPOK<br>
+            KECAMATAN CIMANGGIS<br>
+            KELURAHAN PASIR GUNUNG SELATAN
+        </p>
+    </div>
+    <div class="horizontal-line"></div>
+
+    <h1>SURAT KETERANGAN DOMISILI</h1>
+    <div class="nomor-surat">Nomor: SKD-07/RT-08/01/2024</div>
+
+    <div class="content">
+        <p>Yang bertanda tangan di bawah ini, kami pengurus RT 008 RW 001 Kelurahan Pasir Gunung Selatan Kecamatan Cimanggis, Kota Depok 16451. Dengan ini kami menerangkan bahwa:</p>
+        <p>Nama: <b>add</b></p>
+        <p>Tempat, Tanggal Lahir: <b>asdd, 2024-09-04</b></p>
+        <p>Jenis Kelamin: <b>Perempuan</b></p>
+        <p>Agama: <b>Islam</b></p>
+        <p>Pekerjaan: <b>asdad</b></p>
+        <p>No KTP/KK: <b>123213</b></p>
+        <p>Alamat Sesuai KTP: <b>adad</b></p>
+        <p>Status Perkawinan: <b>Lajang</b></p>
+
+        <p>Adalah benar-benar berdomisili di lingkungan kami RT 008 RW 001 berstatus Penduduk Tetap/Kontrak/Tamu dan saat ini bermaksud: <b>adad</b></p>
+
+        <p>Demikian surat keterangan ini dibuat agar dapat dipergunakan sebagaimana mestinya.</p>
+    </div>
+<img src="data:image/png;base64," alt="Tanda Tangan" style="height: 50px;">
+    <div class="signatures">
+        <div class="signature-left">
+            <p>Mengetahui<br>Ketua RW 001</p>
+            <p><br>(ENCUP SUPARDI)</p>
+        </div>
+        <div class="signature-right">
+            <p>Pasir Gunung Selatan, 17 September 2024<br>Ketua RT 008</p>
+            <img src="data:image/png;base64," alt="Logo">
+            <p><br>A/N (SURATMO)</p>
+        </div>
+    </div>
+</body>
+</html>

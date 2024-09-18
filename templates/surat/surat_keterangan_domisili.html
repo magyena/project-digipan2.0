@@ -307,8 +307,9 @@
                 {% endif %}
               </td>
               <td>
-                <a href="{{ url_for('download_surat', surat_id=surat.id) }}" class="btn btn-primary">Unduh</a>
+                <a href="{{ url_for('download_surat_pdf', surat_id=surat.id) }}" class="btn btn-primary">Unduh</a>
               </td>
+              
             </tr>
             {% endfor %}
           </tbody>

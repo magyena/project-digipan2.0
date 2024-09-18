@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surat Keterangan Domisili</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            position: absolute;
+            top: -5px;
+            right: 20px;
+            width: 80px;
+        }
+        .header p {
+            margin-top: -50px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        h1 {
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 16px;
+            margin: 25px 0;
+        }
+        .nomor-surat {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 20px;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 50px;
+        }
+        .content p {
+            margin: 5px 0;
+        }
+        .details {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            margin: 10px 0;
+        }
+        .details .label {
+            flex: 1 1 100px;
+            text-align: left;
+        }
+        .details .colon {
+            flex-shrink: 0;
+            margin-left: -50px;
+        }
+        .details .value {
+            flex: 2 1 100px;
+            text-align: left;
+            margin-left: -45px;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+        }
+        .signature-left, .signature-right {
+            width: 45%;
+        }
+        .signature-left p, .signature-right p {
+            margin: 5px 0;
+            text-align: center;
+        }
+        .signature-right img {
+            display: block;
+            
+            width: 100px;
+            height: auto;
+        }
+        .horizontal-line {
+            border-top: 3px solid #000;
+            margin: 0px auto;
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ logo_url }}" alt="Logo" style="height: 70px; margin-right: 480px; width: 60px; margin-top: -22px;"></img>
+        <p>
+            RUKUN TETANGGA 08 RUKUN WARGA 01<br>
+            PEMERINTAH KOTA DEPOK<br>
+            KECAMATAN CIMANGGIS<br>
+            KELURAHAN PASIR GUNUNG SELATAN
+        </p>
+    </div>
+    <div style="border-top: 3px solid black; margin: -10px auto 0; width: 90%;"></div>
+    <h1>SURAT KETERANGAN DOMISILI</h1>
+    <div style="border-top: 1px solid black; margin: -20px auto 0; width: 40%;"></div>
+     <div class="nomor-surat">
+        Nomor: {{ nomor_surat }}
+    </div>
+
+    <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 10px;">
+        <p>Yang bertanda tangan di bawah ini, kami pengurus RT 008 RW 001 Kelurahan Pasir Gunung Selatan Kecamatan Cimanggis, Kota Depok 16451. Dengan ini kami menerangkan bahwa:</p>
+      <div class="details">
+        <div class="label">Nama</div>
+        <div class="colon">:</div>
+        <div class="value">{{ nama }}</div>
+        </div>
+        <div class="details">
+            <div class="label">Tempat, Tanggal Lahir</div>
+            <div class="colon">:</div>
+            <div class="value">{{ tempat_lahir }}, {{ tanggal }}</div>
+        </div>
+        <div class="details">
+            <div class="label">Jenis Kelamin</div>
+            <div class="colon">:</div>
+            <div class="value">{{ jeniskelamin }}</div>
+        </div>
+        <div class="details">
+            <div class="label">Agama</div>
+            <div class="colon">:</div>
+            <div class="value">{{ agama }}</div>
+        </div>
+        <div class="details">
+            <div class="label">Pekerjaan</div>
+            <div class="colon">:</div>
+            <div class="value">{{ pekerjaan }}</div>
+        </div>
+        <div class="details">
+            <div class="label">No KTP/KK</div>
+            <div class="colon">:</div>
+            <div class="value">{{ ktp }}</div>
+        </div>
+        <div class="details">
+            <div class="label">Alamat Sesuai KTP</div>
+            <div class="colon">:</div>
+            <div class="value">{{ alamat }}</div>
+        </div>
+        <div class="details">
+            <div class="label">Status Perkawinan</div>
+            <div class="colon">:</div>
+            <div class="value">{{ statusperkawinan }}</div>
+        </div>
+    </div>
+
+    <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 10px;">
+        <p>Adalah benar-benar berdomisili di lingkungan kami RT 008 RW 001 berstatus Penduduk Tetap/Kontrak/Tamu dan saat ini bermaksud : <b>{{ tujuan }}</b></p>
+    </div>
+    <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 10px;">
+        <p>Demikian surat keterangan ini dibuat agar dapat dipergunakan sebagaimana mestinya.</p>
+    </div>
+    
+   <div class="signatures">
+    <div class="signature-left">
+        <p style="margin-top: 30px; margin-left: -80px ; margin-bottom: 82px;">Mengetahui<br>Ketua RW 001</p>
+        <p style="margin-left: -80px;"><br>(ENCUP SUPARDI)</p>
+    </div>
+   <div class="signature-right">
+    <p id="tanggal" style="position: relative; left: -32px; margin-top: 10px; white-space: nowrap;">&nbsp;{{ today }}</p>
+    <p id="tanggal" style="position: relative; right: -27px; margin-top: 20px;  white-space: nowrap;">Ketua RT 08</p>
+     <img src="{{ ttd_url }}" alt="Logo" style="position: relative; left: 100px; height: 70px; width: 80px;">
+    <p style="margin-right: -50px;"><br>(SURATMO)</p>   
+    </div>
+</div>
+</body>
+</html>
