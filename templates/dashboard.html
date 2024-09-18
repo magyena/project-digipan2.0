@@ -45,12 +45,12 @@
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseForm" aria-expanded="true"
           aria-controls="collapseForm">
           <i class="fab fa-fw fa-wpforms"></i>
-          <span>Forms</span>
+          <span>Surat</span>
         </a>
         <div id="collapseForm" class="collapse" aria-labelledby="headingForm" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Forms</h6>
-            <a class="collapse-item" href="form_basics.html">Form Basics</a>
+            <h6 class="collapse-header">Surat</h6>
+            <a class="collapse-item" href="/surat">Keterangan Domisili</a>
             <a class="collapse-item" href="form_advanceds.html">Form Advanceds</a>
           </div>
         </div>
@@ -422,25 +422,14 @@
               <div class="card mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                   <h6 class="m-0 font-weight-bold text-primary">Statistik Surat</h6>
-                  <div class="dropdown no-arrow">
-                    <!-- <a class="dropdown-toggle btn btn-primary btn-sm" href="#" role="button" id="dropdownMenuLink"
-                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      Month <i class="fas fa-chevron-down"></i>
-                    </a> -->
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-                      <div class="dropdown-header">Select Periode</div>
-                      <a class="dropdown-item" href="#">Today</a>
-                      <a class="dropdown-item" href="#">Week</a>
-                      <a class="dropdown-item active" href="#">Month</a>
-                      <a class="dropdown-item" href="#">This Year</a>
-                    </div>
+                  <div class="dropdown no-arrow"> 
                   </div>
                 </div>
+                 <p style="margin-left: 20px;"><strong>Jumlah Surat Selesai :</strong> {{ selesai_count }} Surat</p>
+                 <p style="margin-left: 20px;"><strong>Jumlah Surat Proses :</strong> {{ none_count }} Surat</p>
                 <div class="card-body" id="productsSold">
-                  <!-- Data will be inserted here by JavaScript -->
                 </div>
                 <div class="card-footer text-center">
-                  <!-- <a class="m-0 small text-primary card-link" href="#">View More <i class="fas fa-chevron-right"></i></a> -->
                 </div>
               </div>
             </div>

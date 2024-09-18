@@ -1,0 +1,30 @@
+[HEADER: Nama Instansi]
+
+SURAT KETERANGAN DOMISILI
+
+No. : {NOMOR_SURAT}
+
+Yang bertanda tangan di bawah ini, kami:
+Nama : {NAMA_PEMBERI}
+Jabatan : {JABATAN_PEMBERI}
+Alamat : {ALAMAT_PEMBERI}
+
+Dengan ini menerangkan bahwa:
+
+Nama : {NAMA}
+Tempat, Tanggal Lahir : {TEMPAT_TANGGAL_LAHIR}
+Alamat : {ALAMAT}
+RT/RW : {RT_RW}
+Kelurahan/Desa : {KELURAHAN}
+Kecamatan : {KECAMATAN}
+Kota/Kabupaten : {KOTA}
+
+Adalah benar-benar berdomisili di alamat tersebut di atas.
+
+Demikian surat keterangan ini dibuat untuk dapat dipergunakan sebagaimana mestinya.
+
+[Tempat], [Tanggal]
+
+[Signature]
+[Nama Pemberi]
+[Jabatan]

@@ -15,6 +15,13 @@ from flask import (
     send_file,
     make_response,
 )
+from reportlab.lib.units import inch
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import Paragraph
+from textwrap import fill, wrap
+from werkzeug.exceptions import NotFound
+from io import BytesIO
+from urllib.parse import unquote
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
 from supabase import create_client, Client
@@ -22,8 +29,21 @@ import logging
 import os
 from werkzeug.security import check_password_hash
 import re
+from flask import Flask, send_from_directory, send_file, abort
+import io
+from docx import Document
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+import textwrap
 
+pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", "static/font/Times-Bold.TTF"))
 
+pdfmetrics.registerFont(TTFont("TimesNewRoman-Regular", "static/font/times.ttf"))
 app = Flask(__name__)
 
 
@@ -112,6 +132,7 @@ class Iuran(db.Model):
     status_pembayaran = db.Column(db.String(20), default="Menunggu")
     tanggal = db.Column(db.Date, default=func.now(), nullable=False)
 
+
 class Message(db.Model):
     __tablename__ = "pesan"
     __table_args__ = {"schema": "data_keluarga"}
@@ -120,7 +141,6 @@ class Message(db.Model):
     nomor_whatsapp = db.Column(db.String(15), nullable=False)
     message = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
 
     def __init__(
         self,
@@ -164,7 +184,7 @@ class Message(db.Model):
         self.status_pembayaran = status_pembayaran
         if tanggal is not None:
             self.tanggal = tanggal
-            
+
     def __init__(
         self,
         user,
@@ -176,6 +196,7 @@ class Message(db.Model):
         self.nomor_whatsapp = nomor_whatsapp
         self.message = message
         self.timestamp = timestamp if timestamp else datetime.now()
+
 
 def __init__(self, username, password):
     self.username = username
@@ -212,11 +233,13 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/logout")
 def logout():
     session.clear()  # Hapus semua data sesi
     flash("Anda telah keluar.", "info")
     return redirect(url_for("login"))
+
 
 def format_rupiah(value):
     """Format nilai menjadi rupiah dengan pemisah ribuan (misalnya, 60000 menjadi '60.000')."""
@@ -239,17 +262,17 @@ def dashboard():
     )
 
     family_count = db.session.query(func.count()).select_from(subquery).scalar()
-    
+
     # Menghitung jumlah total surat
     surat_count = db.session.query(SuratPengantar).count()
-    
+
     # Menghitung jumlah total warga
     warga_count = (
         db.session.query(func.count().label("total"))
         .filter(Family.nama.isnot(None), Family.nama != "")
         .scalar()
     )
-    
+
     # Menghitung total iuran
     total_iuran = (
         db.session.query(func.sum(Iuran.jumlah_iuran))
@@ -263,31 +286,38 @@ def dashboard():
 
     # Ambil pesan dari database
     all_messages = Message.query.order_by(Message.timestamp.desc()).all()
-    
+
     # Batasi pesan yang ditampilkan
     messages_to_display = all_messages[:3]
     more_messages = all_messages[3:5]  # 5 pesan tambahan untuk View More
 
+    selesai_count = SuratPengantar.query.filter_by(statussurat="Selesai").count()
+    none_count = SuratPengantar.query.filter_by(statussurat=None).count()
+
     # Format pesan untuk template
     message_list_to_display = [
         {
-            'message': msg.message,
-            'user': msg.user,
-            'nomor_whatsapp': msg.nomor_whatsapp,
-            'timestamp': msg.timestamp.strftime('%d %b %Y · %H:%M')
-        } for msg in messages_to_display
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": msg.nomor_whatsapp,
+            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
     ]
 
     message_list_more = [
         {
-            'message': msg.message,
-            'user': msg.user,
-            'nomor_whatsapp': msg.nomor_whatsapp,
-            'timestamp': msg.timestamp.strftime('%d %b %Y · %H:%M')
-        } for msg in more_messages
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": msg.nomor_whatsapp,
+            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in more_messages
     ]
 
-    current_datetime = datetime.now().strftime("%m/%d/%Y, %I:%M %p")  # Formatkan sesuai kebutuhan
+    current_datetime = datetime.now().strftime(
+        "%m/%d/%Y, %I:%M %p"
+    )  # Formatkan sesuai kebutuhan
 
     return render_template(
         "dashboard.html",
@@ -297,10 +327,10 @@ def dashboard():
         total_iuran=total_iuran_diterima_formatted,
         current_datetime=current_datetime,
         messages=message_list_to_display,  # Tampilkan pesan yang dibatasi
-        more_messages=message_list_more,   # Kirimkan pesan tambahan untuk View More
+        more_messages=message_list_more,  # Kirimkan pesan tambahan untuk View More
+        selesai_count=selesai_count,
+        none_count=none_count,
     )
-
-
 
 
 @app.route("/api/family-stats", methods=["GET"])
@@ -501,6 +531,7 @@ def kirim_iuran():
 
     return redirect(url_for("input_iuran"))
 
+
 @app.route("/kirim-surat", methods=["POST"])
 def kirim_surat():
     data = request.json
@@ -538,23 +569,14 @@ def kirim_surat():
         print(f"Error: {str(e)}")  # Logging error
         return jsonify({"message": "Terjadi kesalahan saat mengirim surat."}), 500
 
+
 @app.route("/api/recent_updates")
 def recent_updates():
     # Ambil data terbaru untuk keluarga
-    latest_families = (
-        db.session.query(Family)
-        .order_by(Family.id.desc())
-        .limit(5)
-        .all()
-    )
-    
+    latest_families = db.session.query(Family).order_by(Family.id.desc()).limit(5).all()
+
     # Ambil data terbaru untuk iuran
-    latest_iuran = (
-        db.session.query(Iuran)
-        .order_by(Iuran.id.desc())
-        .limit(5)
-        .all()
-    )
+    latest_iuran = db.session.query(Iuran).order_by(Iuran.id.desc()).limit(5).all()
 
     # Ambil data terbaru untuk surat
     latest_surat = (
@@ -566,14 +588,24 @@ def recent_updates():
 
     # Format data
     updates = [
-        {"title": "Data Keluarga Baru", "time": "2m ago"},  # Ganti dengan data terbaru dari `latest_families`
-        {"title": "Data Iuran Baru", "time": "5m ago"},     # Ganti dengan data terbaru dari `latest_iuran`
-        {"title": "Data Surat Baru", "time": "10m ago"}    # Ganti dengan data terbaru dari `latest_surat`
+        {
+            "title": "Data Keluarga Baru",
+            "time": "2m ago",
+        },  # Ganti dengan data terbaru dari `latest_families`
+        {
+            "title": "Data Iuran Baru",
+            "time": "5m ago",
+        },  # Ganti dengan data terbaru dari `latest_iuran`
+        {
+            "title": "Data Surat Baru",
+            "time": "10m ago",
+        },  # Ganti dengan data terbaru dari `latest_surat`
     ]
-    
+
     return jsonify(updates)
 
-#route menu pesan terbaru
+
+# route menu pesan terbaru
 @app.route("/messages", methods=["GET", "POST"])
 def message_center():
     if request.method == "POST":
@@ -592,32 +624,36 @@ def message_center():
 
     return render_template("tentang.html")
 
+
 #  route menu keluarga
-@app.route('/keluarga')
+@app.route("/keluarga")
 def keluarga():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
-    
+
     # Mengambil nama keluarga unik (distinct) setelah mengabaikan spasi
     families = db.session.query(func.trim(Family.nama_keluarga)).distinct().all()
 
     all_messages = Message.query.order_by(Message.timestamp.desc()).all()
-    
+
     # Batasi pesan yang ditampilkan
     messages_to_display = all_messages[:3]
 
     # Format pesan untuk template
     message_list_to_display = [
         {
-            'message': msg.message,
-            'user': msg.user,
-            'nomor_whatsapp': msg.nomor_whatsapp,
-            'timestamp': msg.timestamp.strftime('%d %b %Y · %H:%M')
-        } for msg in messages_to_display
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": msg.nomor_whatsapp,
+            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
     ]
 
-    return render_template('datatables.html', families=families, messages=message_list_to_display)
+    return render_template(
+        "datatables.html", families=families, messages=message_list_to_display
+    )
 
 
 @app.route("/get_family_details/<nama_keluarga>")
@@ -636,44 +672,54 @@ def get_family_details(nama_keluarga):
             "nama_keluarga": member.nama_keluarga,
             "nama": member.nama,
             "tempat_lahir": member.tempat_lahir,
-            "tanggal_lahir": member.tanggal_lahir.strftime('%Y-%m-%d'),  # Formatkan tanggal
+            "tanggal_lahir": member.tanggal_lahir.strftime(
+                "%Y-%m-%d"
+            ),  # Formatkan tanggal
             "nomor_keluarga": member.nomor_keluarga,
-            "hubungan_keluarga": member.hubungan_keluarga
-        } for member in family_details
+            "hubungan_keluarga": member.hubungan_keluarga,
+        }
+        for member in family_details
     ]
 
     return jsonify(family_data)
 
-@app.route('/delete_family_member/<int:member_id>', methods=['DELETE'])
+
+@app.route("/delete_family_member/<int:member_id>", methods=["DELETE"])
 def delete_family_member(member_id):
     try:
         # Menghapus anggota keluarga dari database
         member = db.session.query(Family).filter_by(id=member_id).first()
         if not member:
-            return jsonify({'error': 'Anggota keluarga tidak ditemukan.'}), 404
-        
+            return jsonify({"error": "Anggota keluarga tidak ditemukan."}), 404
+
         db.session.delete(member)
         db.session.commit()
-        return jsonify({'message': 'Anggota keluarga berhasil dihapus.'}), 200
+        return jsonify({"message": "Anggota keluarga berhasil dihapus."}), 200
 
     except Exception as e:
         # Menangani kemungkinan kesalahan
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/edit_family', methods=['POST'])
+
+@app.route("/edit_family", methods=["POST"])
 def edit_family():
     data = request.form
-    member_id = data.get('member_id')
-    nama_keluarga = data.get('nama_keluarga')
-    nama = data.get('nama')
-    tempat_lahir = data.get('tempat_lahir')
-    tanggal_lahir_str = data.get('tanggal_lahir')
-    nomor_keluarga = data.get('nomor_keluarga')
-    hubungan_keluarga = data.get('hubungan_keluarga')
+    member_id = data.get("member_id")
+    nama_keluarga = data.get("nama_keluarga")
+    nama = data.get("nama")
+    tempat_lahir = data.get("tempat_lahir")
+    tanggal_lahir_str = data.get("tanggal_lahir")
+    nomor_keluarga = data.get("nomor_keluarga")
+    hubungan_keluarga = data.get("hubungan_keluarga")
 
     # Validasi ID anggota keluarga
     if not member_id:
-        return jsonify({'status': 'error', 'message': 'ID anggota keluarga tidak diberikan.'}), 400
+        return (
+            jsonify(
+                {"status": "error", "message": "ID anggota keluarga tidak diberikan."}
+            ),
+            400,
+        )
 
     # Cari anggota keluarga yang sesuai berdasarkan ID
     family_member = Family.query.get(member_id)
@@ -681,7 +727,7 @@ def edit_family():
     if family_member:
         try:
             # Parsing tanggal lahir dari string ke objek date
-            tanggal_lahir = datetime.strptime(tanggal_lahir_str, '%Y-%m-%d').date()
+            tanggal_lahir = datetime.strptime(tanggal_lahir_str, "%Y-%m-%d").date()
 
             # Perbarui data anggota keluarga
             family_member.nama_keluarga = nama_keluarga
@@ -692,11 +738,327 @@ def edit_family():
             family_member.hubungan_keluarga = hubungan_keluarga
 
             db.session.commit()
-            return jsonify({'status': 'success', 'message': 'Data keluarga berhasil diperbarui.'})
+            return jsonify(
+                {"status": "success", "message": "Data keluarga berhasil diperbarui."}
+            )
         except ValueError:
-            return jsonify({'status': 'error', 'message': 'Format tanggal tidak valid. Harap gunakan format YYYY-MM-DD.'}), 400
+            return (
+                jsonify(
+                    {
+                        "status": "error",
+                        "message": "Format tanggal tidak valid. Harap gunakan format YYYY-MM-DD.",
+                    }
+                ),
+                400,
+            )
     else:
-        return jsonify({'status': 'error', 'message': 'Anggota keluarga tidak ditemukan.'}), 404
+        return (
+            jsonify(
+                {"status": "error", "message": "Anggota keluarga tidak ditemukan."}
+            ),
+            404,
+        )
+
+
+# route untuk menu surat
+@app.route("/surat")
+def surat():
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("login"))
+
+    # Mengambil semua pesan terbaru
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": msg.nomor_whatsapp,
+            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+
+    # Mengambil data surat pengantar
+    all_surat = SuratPengantar.query.order_by(SuratPengantar.tanggal.desc()).all()
+
+    # Format data surat pengantar untuk template, menghilangkan underscore di jenissurat
+    surat_list_to_display = [
+        {
+            "id": surat.id,
+            "nama": surat.nama,
+            "tanggal": surat.tanggal.strftime("%d %b %Y"),
+            "tempatlahir": surat.tempatlahir,
+            "jeniskelamin": surat.jeniskelamin,
+            "agama": surat.agama,
+            "pekerjaan": surat.pekerjaan,
+            "ktp": surat.ktp,
+            "alamatktp": surat.alamatktp,
+            "statusperkawinan": surat.statusperkawinan,
+            "tujuan": surat.tujuan,
+            # Mengganti underscore dengan spasi
+            "jenissurat": surat.jenissurat.replace("_", " "),
+            "statussurat": surat.statussurat,
+        }
+        for surat in all_surat
+    ]
+
+    return render_template(
+        "surat/surat_keterangan_domisili.html",
+        messages=message_list_to_display,
+        surat_list=surat_list_to_display,
+    )
+
+
+@app.route("/update_status_surat/<int:surat_id>", methods=["POST"])
+def update_status_surat(surat_id):
+    # Cari surat berdasarkan ID
+    surat = SuratPengantar.query.get_or_404(surat_id)
+
+    # Perbarui status surat jika status None
+    if surat.statussurat is None:
+        surat.statussurat = "Selesai"
+        db.session.commit()
+        flash("Status surat telah diperbarui menjadi Selesai.", "success")
+    else:
+        flash("Status surat sudah diperbarui sebelumnya.", "warning")
+
+    return redirect(url_for("surat"))
+
+
+@app.route("/download_surat/<int:surat_id>", methods=["GET"])
+def download_surat(surat_id):
+    # Data contoh untuk surat
+    surat = {
+        "nama": "John Doe",
+        "tempatlahir": "Depok",
+        "tanggal": "1 Januari 1980",
+        "jeniskelamin": "Laki-laki",
+        "agama": "Islam",
+        "pekerjaan": "Pekerja Swasta",
+        "ktp": "1234567890123456",
+        "alamatktp": "Jalan Raya No. 1",
+        "statusperkawinan": "Belum Menikah",
+        "tujuan": "Pendaftaran KTP",
+    }
+
+    # Set ukuran halaman dan margin
+    page_width, page_height = A4
+    left_margin = 1 * inch  # margin kiri
+    right_margin = 1 * inch  # margin kanan
+    top_margin = 1 * inch  # margin atas
+    bottom_margin = 1 * inch  # margin bawah
+
+    pdf_file = BytesIO()
+    # Menggunakan ukuran A4
+    c = canvas.Canvas(pdf_file, pagesize=A4)
+    width, height = A4
+
+    # Gambar Logo (lebih ke atas, tanpa background hijau)
+    logo_width = 65
+    logo_height = 80
+    c.drawImage(
+        "static/img/logo/depok.png",
+        1.3 * inch,
+        height - 0.5 * inch - logo_height,  # Menggeser lebih ke atas
+        width=logo_width,
+        height=logo_height,
+        mask="auto",  # Menghilangkan background hijau
+    )
+
+    # Header - Title Block
+    x_pos_adjusted = width / 2.1 + 0.6 * inch
+    y_pos_start = height - 0.65 * inch
+    line_height = 0.3 * inch  # Jarak antar baris
+
+    # Set font
+    c.setFont("TimesNewRoman-Bold", 16)
+
+    # Draw each line of text
+    c.drawCentredString(x_pos_adjusted, y_pos_start, "RUKUN TETANGGA 08 RUKUN WARGA 01")
+    c.drawCentredString(
+        x_pos_adjusted, y_pos_start - line_height, "PEMERINTAH KOTA DEPOK"
+    )
+    c.drawCentredString(
+        x_pos_adjusted, y_pos_start - 2 * line_height, "KECAMATAN CIMANGGIS"
+    )
+    c.drawCentredString(
+        x_pos_adjusted, y_pos_start - 3 * line_height, "KELURAHAN PASIR GUNUNG SELATAN"
+    )
+
+    # Garis Pemisah
+    c.setStrokeColor(colors.black)
+    c.setLineWidth(3)
+
+    # Posisi garis pemisah
+    offset_from_top = 1.8 * inch  # Jarak dari atas halaman
+    y_position = height - offset_from_top
+
+    c.line(1.3 * inch, y_position, width - 1.1 * inch, y_position)
+    # Judul Surat
+    c.setFont("TimesNewRoman-Bold", 14)
+    # Geser ke kanan (menambah nilai x) dan ke atas (menambah nilai y)
+    c.drawCentredString(
+        (width / 2.3) + 50, (height - 2.5 * inch) + 20, "SURAT KETERANGAN DOMISILI"
+    )
+    # Garis di bawah judul
+    offset_from_title = -0.2 * inch  # Jarak garis dari judul
+    y_position_title_line = (height - 2.5 * inch) - offset_from_title
+    c.setLineWidth(1)
+
+    # Menggambar garis di bawah judul dengan panjang yang lebih pendek
+    c.line(2.8 * inch, y_position_title_line, width - 2.5 * inch, y_position_title_line)
+
+    # Nomor Surat
+    c.setFont("TimesNewRoman-Regular", 14)
+    c.drawCentredString(
+        (width / 2.3) + 50, height - 2.5 * inch, "Nomor: SKD-01/RT-08/01/2024"
+    )
+
+    # Isi Surat - Penjelasan awal
+    c.setFont("TimesNewRoman-Regular", 12)
+
+    # Menyesuaikan batas kiri dan kanan
+    left_margin = 1.3 * inch  # Geser teks lebih ke kanan
+    right_margin = width - 1.3 * inch  # Geser batas kanan lebih ke kiri
+    max_text_width = right_margin - left_margin  # Lebar teks
+    line_height = 0.28 * inch  # Jarak antar baris
+
+    # Teks penjelasan
+    text = (
+        "Yang bertanda tangan di bawah ini,   kami selaku Pengurus RT 008 RW 001 Kelurahan Pasir Gunung Selatan Kecamatan Cimanggis "
+        "Kota Depok 16451. "
+        "Dengan surat ini kami menerangkan bahwa:"
+    )
+
+    # Membungkus teks secara manual
+    text_lines = textwrap.fill(
+        text, width=int(max_text_width / 5)
+    )  # 5 adalah skala untuk panjang karakter
+
+    # Menggambar teks dengan menggeser vertikal (atas/bawah)
+    current_y = height - 3.1 * inch
+    for line in text_lines.split("\n"):
+        c.drawString(left_margin, current_y, line)
+        current_y -= line_height  # Geser ke bawah sesuai dengan jarak antar baris
+
+    # Detail Surat - Informasi pribadi
+    c.setFont("TimesNewRoman-Regular", 12)
+    details = [
+        ("Nama", surat["nama"]),
+        ("Tempat, Tanggal Lahir", f"{surat['tempatlahir']}, {surat['tanggal']}"),
+        ("Jenis Kelamin", surat["jeniskelamin"]),
+        ("Agama", surat["agama"]),
+        ("Pekerjaan", surat["pekerjaan"]),
+        ("NO KTP/KK", surat["ktp"]),
+        ("Alamat Sesuai KTP", surat["alamatktp"]),
+        ("Status Perkawinan", surat["statusperkawinan"]),
+    ]
+
+    # Mengatur margin dan jarak antar baris
+    left_margin = 1.3 * inch  # Jarak dari tepi kiri
+    top_margin = height - 4.3 * inch  # Jarak dari tepi atas
+    line_spacing = 0.25 * inch  # Jarak antar baris
+    label_width = 200  # Lebar area label (sesuaikan sesuai kebutuhan)
+
+    # Menentukan font dan ukuran
+    c.setFont("TimesNewRoman-Regular", 12)
+
+    # Menggambar detail
+    y_position = top_margin
+
+    # Menghitung posisi untuk titik dua
+    for label, value in details:
+        # Menggambar label
+        c.drawString(left_margin, y_position, label)
+
+        # Menghitung lebar label dan menentukan posisi titik dua
+        label_text_width = c.stringWidth(label, "TimesNewRoman-Regular", 12)
+        colon_position = left_margin + label_width  # Posisi titik dua
+        c.drawString(colon_position, y_position, ":")
+
+        # Menggambar nilai
+        value_x_position = colon_position + 10  # Jarak tambahan untuk nilai
+        c.drawString(value_x_position, y_position, value)
+
+        y_position -= line_spacing  # Geser ke bawah sesuai dengan jarak antar baris
+
+    # Teks penjelasan akhir
+    text = (
+        "Adalah  benar  nama  tersebut saat  ini  berdomisili di lingkungan kami RT 008 RW 001 dengan status : "
+        " Penduduk Tetap / Kontrak / Tamu"
+    )
+
+    # Membungkus teks agar sesuai dengan lebar yang sudah ditentukan
+    wrapped_text = wrap(
+        text, width=int(max_text_width / 4.7)
+    )  # 5 adalah skala untuk panjang karakter
+
+    # Menggambar teks penjelasan akhir
+    current_y = y_position - line_height  # Mengatur posisi awal untuk penjelasan akhir
+    for line in wrapped_text:
+        c.drawString(left_margin, current_y, line)
+        current_y -= line_height  # Geser ke bawah sesuai dengan jarak antar baris
+
+    # Tujuan Surat
+    c.drawString(left_margin, current_y, f"dan saat ini bermaksud : {surat['tujuan']}")
+    current_y -= 0.4 * inch
+
+    # Penutup Surat
+    penutup_surat = "Demikian  surat  keterangan  ini  dibuat agar dapat dipergunakan sebagaimana mestinya sesuai dengan ketentuan."
+    wrapped_text = wrap(
+        penutup_surat, width=int(max_text_width / 4.65)
+    )  # 5 adalah skala untuk panjang karakter
+
+    # Menulis teks yang dibungkus pada posisi (mulai dari kiri dan turun ke bawah)
+    for line in wrapped_text:
+        c.drawString(left_margin, current_y, line)
+        current_y -= 0.28 * inch  # pindah ke baris berikutnya dengan jarak antar baris
+
+    # Penutup Surat - Tanda tangan dan tanggal
+    c.drawString(
+        120, 200, "Mengetahui,"
+    )  # 100 adalah posisi horizontal, 500 adalah posisi vertikal
+    c.drawString(
+        115, 200 - 0.3 * inch, "Ketua RW 001"
+    )  # Sama dengan sebelumnya, tetapi 0.3 inch lebih rendah
+    c.drawString(
+        100, 160 - 1.0 * inch, "(ENCUP SUPARDI)"
+    )  # Sama dengan sebelumnya, tetapi 1 inch lebih rendah
+
+    # Tanda Tangan Ketua RT & Tanggal
+    tanggal_otomatis = datetime.today().strftime("Pasir Gunung Selatan, %d %B %Y")
+    date_position = width - 2.75 * inch
+    c.drawString(312, 220, tanggal_otomatis)
+    c.drawString(420, 200 - 0.3 * inch, "Ketua RT 008")
+
+    # Gambar Tanda Tangan
+    c.drawImage(
+        "static/img/logo/ttd2.png",
+        date_position,
+        current_y
+        - 1.5 * inch
+        - 50,  # Posisi y gambar tanda tangan, disesuaikan dengan tinggi gambar
+        width=80,
+        height=60,
+    )
+    c.drawString(422, 161 - 1.0 * inch, "(SURATMO)")
+
+    c.save()
+    pdf_file.seek(0)
+
+    return send_file(
+        pdf_file,
+        as_attachment=True,
+        download_name="surat_keterangan_domisili.pdf",
+        mimetype="application/pdf",
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
