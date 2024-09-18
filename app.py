@@ -15,6 +15,8 @@ from flask import (
     send_file,
     make_response,
 )
+from flask import current_app
+from weasyprint import HTML
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import Paragraph
@@ -40,6 +42,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 import textwrap
+import base64
+
 
 pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", "static/font/Times-Bold.TTF"))
 
@@ -831,233 +835,66 @@ def update_status_surat(surat_id):
     return redirect(url_for("surat"))
 
 
-@app.route("/download_surat/<int:surat_id>", methods=["GET"])
-def download_surat(surat_id):
-    # Data contoh untuk surat
-    surat = {
-        "nama": "John Doe",
-        "tempatlahir": "Depok",
-        "tanggal": "1 Januari 1980",
-        "jeniskelamin": "Laki-laki",
-        "agama": "Islam",
-        "pekerjaan": "Pekerja Swasta",
-        "ktp": "1234567890123456",
-        "alamatktp": "Jalan Raya No. 1",
-        "statusperkawinan": "Belum Menikah",
-        "tujuan": "Pendaftaran KTP",
-    }
+def read_image_as_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
 
-    # Set ukuran halaman dan margin
-    page_width, page_height = A4
-    left_margin = 1 * inch  # margin kiri
-    right_margin = 1 * inch  # margin kanan
-    top_margin = 1 * inch  # margin atas
-    bottom_margin = 1 * inch  # margin bawah
 
-    pdf_file = BytesIO()
-    # Menggunakan ukuran A4
-    c = canvas.Canvas(pdf_file, pagesize=A4)
-    width, height = A4
+nomor_surat_counter = 1
 
-    # Gambar Logo (lebih ke atas, tanpa background hijau)
-    logo_width = 65
-    logo_height = 80
-    c.drawImage(
-        "static/img/logo/depok.png",
-        1.3 * inch,
-        height - 0.5 * inch - logo_height,  # Menggeser lebih ke atas
-        width=logo_width,
-        height=logo_height,
-        mask="auto",  # Menghilangkan background hijau
+
+@app.route("/download_surat_pdf/<int:surat_id>", methods=["GET"])
+def download_surat_pdf(surat_id):
+
+    # Ambil data surat berdasarkan surat_id
+    surat = SuratPengantar.query.get(surat_id)
+    if not surat:
+        return "Surat tidak ditemukan", 404
+
+    # Tentukan jalur absolut gambar
+    logo_url = os.path.join(current_app.root_path, "static/img/logo/depok.png")
+    ttd_url = os.path.join(current_app.root_path, "static/img/logo/ttd2.png")
+    today = datetime.now().strftime("Pasir Gunung Selatan, %d %B %Y")
+    global nomor_surat_counter
+
+    # Buat format nomor surat otomatis
+    nomor_surat = f"SKD-{nomor_surat_counter:02d}/RT-08/01/2024"
+
+    # Setelah nomor dibuat, increment counter
+    nomor_surat_counter += 1
+    # Render template HTML dengan data surat
+    rendered_template = render_template(
+        "surat/template_surat_domisili.html",
+        nama=surat.nama,
+        tempat_lahir=surat.tempatlahir,
+        tanggal=surat.tanggal,
+        jeniskelamin=surat.jeniskelamin,
+        agama=surat.agama,
+        pekerjaan=surat.pekerjaan,
+        ktp=surat.ktp,
+        alamat=surat.alamatktp,
+        statusperkawinan=surat.statusperkawinan,
+        tujuan=surat.tujuan,
+        logo_url=logo_url,
+        ttd_url=ttd_url,
+        today=today,
+        nomor_surat=nomor_surat,
     )
 
-    # Header - Title Block
-    x_pos_adjusted = width / 2.1 + 0.6 * inch
-    y_pos_start = height - 0.65 * inch
-    line_height = 0.3 * inch  # Jarak antar baris
+    # Tentukan base_url
+    base_url = os.path.abspath(current_app.root_path)
 
-    # Set font
-    c.setFont("TimesNewRoman-Bold", 16)
+    # Konversi HTML ke PDF menggunakan WeasyPrint
+    pdf_file = HTML(string=rendered_template, base_url=base_url).write_pdf()
 
-    # Draw each line of text
-    c.drawCentredString(x_pos_adjusted, y_pos_start, "RUKUN TETANGGA 08 RUKUN WARGA 01")
-    c.drawCentredString(
-        x_pos_adjusted, y_pos_start - line_height, "PEMERINTAH KOTA DEPOK"
-    )
-    c.drawCentredString(
-        x_pos_adjusted, y_pos_start - 2 * line_height, "KECAMATAN CIMANGGIS"
-    )
-    c.drawCentredString(
-        x_pos_adjusted, y_pos_start - 3 * line_height, "KELURAHAN PASIR GUNUNG SELATAN"
+    # Mengirim file sebagai unduhan
+    response = make_response(pdf_file)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = (
+        f"attachment; filename=surat_{surat.nama}.pdf"
     )
 
-    # Garis Pemisah
-    c.setStrokeColor(colors.black)
-    c.setLineWidth(3)
-
-    # Posisi garis pemisah
-    offset_from_top = 1.8 * inch  # Jarak dari atas halaman
-    y_position = height - offset_from_top
-
-    c.line(1.3 * inch, y_position, width - 1.1 * inch, y_position)
-    # Judul Surat
-    c.setFont("TimesNewRoman-Bold", 14)
-    # Geser ke kanan (menambah nilai x) dan ke atas (menambah nilai y)
-    c.drawCentredString(
-        (width / 2.3) + 50, (height - 2.5 * inch) + 20, "SURAT KETERANGAN DOMISILI"
-    )
-    # Garis di bawah judul
-    offset_from_title = -0.2 * inch  # Jarak garis dari judul
-    y_position_title_line = (height - 2.5 * inch) - offset_from_title
-    c.setLineWidth(1)
-
-    # Menggambar garis di bawah judul dengan panjang yang lebih pendek
-    c.line(2.8 * inch, y_position_title_line, width - 2.5 * inch, y_position_title_line)
-
-    # Nomor Surat
-    c.setFont("TimesNewRoman-Regular", 14)
-    c.drawCentredString(
-        (width / 2.3) + 50, height - 2.5 * inch, "Nomor: SKD-01/RT-08/01/2024"
-    )
-
-    # Isi Surat - Penjelasan awal
-    c.setFont("TimesNewRoman-Regular", 12)
-
-    # Menyesuaikan batas kiri dan kanan
-    left_margin = 1.3 * inch  # Geser teks lebih ke kanan
-    right_margin = width - 1.3 * inch  # Geser batas kanan lebih ke kiri
-    max_text_width = right_margin - left_margin  # Lebar teks
-    line_height = 0.28 * inch  # Jarak antar baris
-
-    # Teks penjelasan
-    text = (
-        "Yang bertanda tangan di bawah ini,   kami selaku Pengurus RT 008 RW 001 Kelurahan Pasir Gunung Selatan Kecamatan Cimanggis "
-        "Kota Depok 16451. "
-        "Dengan surat ini kami menerangkan bahwa:"
-    )
-
-    # Membungkus teks secara manual
-    text_lines = textwrap.fill(
-        text, width=int(max_text_width / 5)
-    )  # 5 adalah skala untuk panjang karakter
-
-    # Menggambar teks dengan menggeser vertikal (atas/bawah)
-    current_y = height - 3.1 * inch
-    for line in text_lines.split("\n"):
-        c.drawString(left_margin, current_y, line)
-        current_y -= line_height  # Geser ke bawah sesuai dengan jarak antar baris
-
-    # Detail Surat - Informasi pribadi
-    c.setFont("TimesNewRoman-Regular", 12)
-    details = [
-        ("Nama", surat["nama"]),
-        ("Tempat, Tanggal Lahir", f"{surat['tempatlahir']}, {surat['tanggal']}"),
-        ("Jenis Kelamin", surat["jeniskelamin"]),
-        ("Agama", surat["agama"]),
-        ("Pekerjaan", surat["pekerjaan"]),
-        ("NO KTP/KK", surat["ktp"]),
-        ("Alamat Sesuai KTP", surat["alamatktp"]),
-        ("Status Perkawinan", surat["statusperkawinan"]),
-    ]
-
-    # Mengatur margin dan jarak antar baris
-    left_margin = 1.3 * inch  # Jarak dari tepi kiri
-    top_margin = height - 4.3 * inch  # Jarak dari tepi atas
-    line_spacing = 0.25 * inch  # Jarak antar baris
-    label_width = 200  # Lebar area label (sesuaikan sesuai kebutuhan)
-
-    # Menentukan font dan ukuran
-    c.setFont("TimesNewRoman-Regular", 12)
-
-    # Menggambar detail
-    y_position = top_margin
-
-    # Menghitung posisi untuk titik dua
-    for label, value in details:
-        # Menggambar label
-        c.drawString(left_margin, y_position, label)
-
-        # Menghitung lebar label dan menentukan posisi titik dua
-        label_text_width = c.stringWidth(label, "TimesNewRoman-Regular", 12)
-        colon_position = left_margin + label_width  # Posisi titik dua
-        c.drawString(colon_position, y_position, ":")
-
-        # Menggambar nilai
-        value_x_position = colon_position + 10  # Jarak tambahan untuk nilai
-        c.drawString(value_x_position, y_position, value)
-
-        y_position -= line_spacing  # Geser ke bawah sesuai dengan jarak antar baris
-
-    # Teks penjelasan akhir
-    text = (
-        "Adalah  benar  nama  tersebut saat  ini  berdomisili di lingkungan kami RT 008 RW 001 dengan status : "
-        " Penduduk Tetap / Kontrak / Tamu"
-    )
-
-    # Membungkus teks agar sesuai dengan lebar yang sudah ditentukan
-    wrapped_text = wrap(
-        text, width=int(max_text_width / 4.7)
-    )  # 5 adalah skala untuk panjang karakter
-
-    # Menggambar teks penjelasan akhir
-    current_y = y_position - line_height  # Mengatur posisi awal untuk penjelasan akhir
-    for line in wrapped_text:
-        c.drawString(left_margin, current_y, line)
-        current_y -= line_height  # Geser ke bawah sesuai dengan jarak antar baris
-
-    # Tujuan Surat
-    c.drawString(left_margin, current_y, f"dan saat ini bermaksud : {surat['tujuan']}")
-    current_y -= 0.4 * inch
-
-    # Penutup Surat
-    penutup_surat = "Demikian  surat  keterangan  ini  dibuat agar dapat dipergunakan sebagaimana mestinya sesuai dengan ketentuan."
-    wrapped_text = wrap(
-        penutup_surat, width=int(max_text_width / 4.65)
-    )  # 5 adalah skala untuk panjang karakter
-
-    # Menulis teks yang dibungkus pada posisi (mulai dari kiri dan turun ke bawah)
-    for line in wrapped_text:
-        c.drawString(left_margin, current_y, line)
-        current_y -= 0.28 * inch  # pindah ke baris berikutnya dengan jarak antar baris
-
-    # Penutup Surat - Tanda tangan dan tanggal
-    c.drawString(
-        120, 200, "Mengetahui,"
-    )  # 100 adalah posisi horizontal, 500 adalah posisi vertikal
-    c.drawString(
-        115, 200 - 0.3 * inch, "Ketua RW 001"
-    )  # Sama dengan sebelumnya, tetapi 0.3 inch lebih rendah
-    c.drawString(
-        100, 160 - 1.0 * inch, "(ENCUP SUPARDI)"
-    )  # Sama dengan sebelumnya, tetapi 1 inch lebih rendah
-
-    # Tanda Tangan Ketua RT & Tanggal
-    tanggal_otomatis = datetime.today().strftime("Pasir Gunung Selatan, %d %B %Y")
-    date_position = width - 2.75 * inch
-    c.drawString(312, 220, tanggal_otomatis)
-    c.drawString(420, 200 - 0.3 * inch, "Ketua RT 008")
-
-    # Gambar Tanda Tangan
-    c.drawImage(
-        "static/img/logo/ttd2.png",
-        date_position,
-        current_y
-        - 1.5 * inch
-        - 50,  # Posisi y gambar tanda tangan, disesuaikan dengan tinggi gambar
-        width=80,
-        height=60,
-    )
-    c.drawString(422, 161 - 1.0 * inch, "(SURATMO)")
-
-    c.save()
-    pdf_file.seek(0)
-
-    return send_file(
-        pdf_file,
-        as_attachment=True,
-        download_name="surat_keterangan_domisili.pdf",
-        mimetype="application/pdf",
-    )
+    return response
 
 
 if __name__ == "__main__":
