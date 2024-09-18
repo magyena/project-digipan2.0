@@ -539,7 +539,7 @@ def kirim_iuran():
 @app.route("/kirim-surat", methods=["POST"])
 def kirim_surat():
     data = request.json
-    print(f"Received data: {data}")  # Logging data yang diterima
+    # print(f"Received data: {data}")  # Logging data yang diterima
 
     try:
         # Validasi nomor KTP/KK hanya boleh angka
@@ -550,7 +550,7 @@ def kirim_surat():
         # Cek apakah format tanggal benar
         tanggal_str = data.get("tanggal")
         tanggal = datetime.strptime(tanggal_str, "%Y-%m-%d").date()
-        print(f"Parsed date: {tanggal}")  # Logging tanggal yang di-parse
+        # print(f"Parsed date: {tanggal}")  # Logging tanggal yang di-parse
 
         surat = SuratPengantar(
             nama=data["nama"],
@@ -570,7 +570,7 @@ def kirim_surat():
         return jsonify({"message": "Surat berhasil dikirim!"}), 200
     except Exception as e:
         db.session.rollback()
-        print(f"Error: {str(e)}")  # Logging error
+        # print(f"Error: {str(e)}")  # Logging error
         return jsonify({"message": "Terjadi kesalahan saat mengirim surat."}), 500
 
 
@@ -845,11 +845,13 @@ nomor_surat_counter = 1
 
 @app.route("/download_surat_pdf/<int:surat_id>", methods=["GET"])
 def download_surat_pdf(surat_id):
-
     # Ambil data surat berdasarkan surat_id
     surat = SuratPengantar.query.get(surat_id)
     if not surat:
         return "Surat tidak ditemukan", 404
+
+    # Cetak nilai jenissurat untuk debugging
+    # print(f"Jenis surat: {surat.jenissurat}")
 
     # Tentukan jalur absolut gambar
     logo_url = os.path.join(current_app.root_path, "static/img/logo/depok.png")
@@ -862,24 +864,45 @@ def download_surat_pdf(surat_id):
 
     # Setelah nomor dibuat, increment counter
     nomor_surat_counter += 1
-    # Render template HTML dengan data surat
-    rendered_template = render_template(
-        "surat/template_surat_domisili.html",
-        nama=surat.nama,
-        tempat_lahir=surat.tempatlahir,
-        tanggal=surat.tanggal,
-        jeniskelamin=surat.jeniskelamin,
-        agama=surat.agama,
-        pekerjaan=surat.pekerjaan,
-        ktp=surat.ktp,
-        alamat=surat.alamatktp,
-        statusperkawinan=surat.statusperkawinan,
-        tujuan=surat.tujuan,
-        logo_url=logo_url,
-        ttd_url=ttd_url,
-        today=today,
-        nomor_surat=nomor_surat,
-    )
+
+    # Tentukan template berdasarkan jenis surat
+    if surat.jenissurat == "surat_keterangan_domisili":
+        template = "surat/template_surat_domisili.html"
+    elif surat.jenissurat == "surat_pengantar":
+        template = "surat/template_surat_pengantar.html"
+    elif surat.jenissurat == "surat_pernyataan_tidak_mampu":
+        template = "surat/template_surat_tidak_mampu.html"
+    elif surat.jenissurat == "surat_pernyataan_belum_menikah":
+        template = "surat/template_surat_belum_menikah.html"
+    else:
+        # app.logger.error(f"Jenis surat tidak dikenal: {surat.jenissurat}")
+        return "Jenis surat tidak dikenal", 400
+
+    # Cetak template yang akan digunakan
+    # print(f"Template yang digunakan: {template}")
+
+    try:
+        # Render template HTML dengan data surat
+        rendered_template = render_template(
+            template,
+            nama=surat.nama,
+            tempat_lahir=surat.tempatlahir,
+            tanggal=surat.tanggal,
+            jeniskelamin=surat.jeniskelamin,
+            agama=surat.agama,
+            pekerjaan=surat.pekerjaan,
+            ktp=surat.ktp,
+            alamat=surat.alamatktp,
+            statusperkawinan=surat.statusperkawinan,
+            tujuan=surat.tujuan,
+            logo_url=logo_url,
+            ttd_url=ttd_url,
+            today=today,
+            nomor_surat=nomor_surat,
+        )
+    except NotFound:
+        # app.logger.error(f"Template tidak ditemukan: {template}")
+        return "Template tidak ditemukan", 500
 
     # Tentukan base_url
     base_url = os.path.abspath(current_app.root_path)
@@ -887,11 +910,11 @@ def download_surat_pdf(surat_id):
     # Konversi HTML ke PDF menggunakan WeasyPrint
     pdf_file = HTML(string=rendered_template, base_url=base_url).write_pdf()
 
-    # Mengirim file sebagai unduhan
+    # Mengirim file sebagai unduhan, nama file mengikuti jenis surat
     response = make_response(pdf_file)
     response.headers["Content-Type"] = "application/pdf"
     response.headers["Content-Disposition"] = (
-        f"attachment; filename=surat_{surat.nama}.pdf"
+        f"attachment; filename=surat_{surat.jenissurat}_{surat.nama}.pdf"
     )
 
     return response
