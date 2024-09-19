@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surat Pernyataan Tidak Mampu</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            position: absolute;
+            top: -5px;
+            right: 20px;
+            width: 80px;
+        }
+        .header p {
+            margin-top: -50px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        h1 {
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 16px;
+            margin: 25px 0;
+        }
+        .nomor-surat {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 20px;
+            margin-top: 5px;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 50px;
+        }
+        .content p {
+            margin: 5px 0;
+        }
+        .details {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            margin: 10px 0;
+        }
+        .details .label {
+            flex: 1 1 100px;
+            text-align: left;
+        }
+        .details .colon {
+            flex-shrink: 0;
+            margin-left: -50px;
+        }
+        .details .value {
+            flex: 2 1 100px;
+            text-align: left;
+            margin-left: -45px;
+            /* word-break: break-word; */
+            overflow-wrap: break-word;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+        }
+        .signature-left, .signature-right {
+            width: 45%;
+        }
+        .signature-left p, .signature-right p {
+            margin: 5px 0;
+            text-align: center;
+        }
+        .signature-right img {
+            display: block;
+            
+            width: 100px;
+            height: auto;
+        }
+        .horizontal-line {
+            border-top: 3px solid #000;
+            margin: 0px auto;
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="margin-top: -50px;">SURAT PERNYATAAN</h1>
+    <div style="border-top: 2px solid black; margin: -20px auto 0; width: 50%;"></div>
+    <div class="content" style="width:90%; margin: 0 auto; text-align: justify; margin-top: 50px;">
+        <p>Yang bertanda tangan di bawah ini : </p>
+      <div class="details">
+        <div class="label">Nama</div>
+        <div class="colon">:</div>
+        <div class="value">{{ nama }}</div>
+        </div>
+        <div class="details">
+            <div class="label">Tempat, Tanggal Lahir</div>
+            <div class="colon">:</div>
+            <div class="value">{{ tempat_lahir }}, {{ tanggal }}</div>
+        </div>
+         <div class="details">
+            <div class="label">Pekerjaan</div>
+            <div class="colon">:</div>
+            <div class="value">{{ pekerjaan }}</div>
+        </div>
+        <div class="details">
+            <div class="label">Jenis Kelamin</div>
+            <div class="colon">:</div>
+            <div class="value">{{ jeniskelamin }}</div>
+        </div>
+         <div class="details">
+            <div class="label">Kewarganegaraan</div>
+            <div class="colon">:</div>
+            <div class="value">Indonesia</div>
+        </div>
+        <div class="details">
+            <div class="label">Agama</div>
+            <div class="colon">:</div>
+            <div class="value">{{ agama }}</div>
+        </div>
+        <div class="details">
+            <div class="label">No Identitas Penduduk</div>
+            <div class="colon">:</div>
+            <div class="value">{{ ktp }}</div>
+        </div>
+        <div class="details">
+            <div class="label">Alamat Sesuai KTP</div>
+            <div class="colon">:</div>
+            <div class="value">{{ alamat }}</div>
+        </div>
+</div>
+
+ <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 20px;text-indent: 30px;">
+        <p>Dengan ini menyatakan dengan sebenarnya dan sesungguhnya tanpa paksaan dari pihak manapun serta dalam kondisi sehat jasmani/rohani , bahwa sampai saat ini saya belum pernah menikah/kawin dengan siapapun
+        , baik secara resmi melalui instansi yang berwenang maupun secara adat dengan agama yang saya anut.</p>
+    </div>
+    <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 0px;">
+        <p>Pernyataan ini akan saya gunakan untuk : <b>{{ tujuan }}</b>
+        </p>
+    </div>
+    <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 0px;text-indent: 30px;">
+        <p>Apabila di kemudian hari ternyata pernyataan ini tidak benar, maka saya sepenuhnya bertanggung jawab dan bersedia dituntut sesuai hukum yang berlaku tanpa melibatkan pihak lain termasuk aparat Kelurahan
+            dan para saksi yang turut menandatangani surat pernyataan ini.</p>
+    </div>
+    <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 0px;text-indent: 30px;">
+        <p>Demikian surat pernyataan ini saya buat dengan sebenarya untuk dipergunakan sebagaimana mestinya.</p>
+    </div>
+   <div class="signatures">
+    <div class="signature-left">
+        <p style="margin-top: 20px; margin-left: -129px ; margin-bottom: 50px;">Saksi - Saksi</p>
+        <p style="margin-left: -79px; margin-top: -60px;"><br>Ketua RT 08 RW 01</p>
+         <img src="{{ ttd_url }}" alt="Logo" style="position: relative; left: 60px; height: 70px; width: 80px;">
+         <p style="margin-left: -122px; margin-top: -20px;"><br>Ketua RW 01</p>
+    </div>
+   <div class="signature-right">
+    <p id="tanggal" style="position: relative; left: -32px; margin-top: -20px; white-space: nowrap;">&nbsp;{{ today }}</p>
+    <p style="margin-right: -50px;margin-top: 50px;"><br>Materi 10000</p>   
+    <p style="margin-right: -50px;margin-top: 50px;"><br>(......................................)</p> 
+    
+    </div>
+</div>
+</body>
+</html>
