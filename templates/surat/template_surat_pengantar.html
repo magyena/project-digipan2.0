@@ -54,14 +54,17 @@
         }
         .details .label {
             flex: 1 1 100px;
+            line-height: 1;
             text-align: left;
         }
         .details .colon {
             flex-shrink: 0;
+            line-height: 1;
             margin-left: -50px;
         }
         .details .value {
             flex: 2 1 100px;
+            line-height: 1;
             text-align: left;
             margin-left: -45px;
             /* word-break: break-word; */
@@ -106,7 +109,7 @@
     <h1>SURAT PENGANTAR</h1>
     <div style="border-top: 1px solid black; margin: -20px auto 0; width: 40%;"></div>
      <div class="nomor-surat">
-        Nomor: {{ nomor_surat }}
+        Nomor: {{ nomor_surat_pengantar }}
     </div>
 
     <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 10px;">
@@ -141,25 +144,38 @@
             <div class="colon">:</div>
             <div class="value">{{ ktp }}</div>
         </div>
+         <div class="details">
+            <div class="label">Kewarganegaraan</div>
+            <div class="colon">:</div>
+            <div class="value">WNI/WNA</div>
+        </div>
         <div class="details">
             <div class="label">Alamat Sesuai KTP</div>
             <div class="colon">:</div>
             <div class="value">{{ alamat }}</div>
         </div>
         <div class="details">
-            <div class="label">Status Perkawinan</div>
-            <div class="colon">:</div>
-            <div class="value">{{ statusperkawinan }}</div>
-        </div>
+    <div class="label">Maksud / Keperluan</div>
+    <div class="colon">:</div>
+    <div class="value">
+        (&nbsp;) Membuat KTP <br>
+        (&nbsp;) Membuat KK <br>
+        (&nbsp;) Lapor diri dari daerah <br>
+        (&nbsp;) Pindah Alamat <br>
+        (&nbsp;) Laporan Kematian <br>
+        (&nbsp;) Membuat Akta Kelahiran <br>
+        (&nbsp;) Membuat SKCK <br>
+        (&nbsp;) Membuat Keterangan Tidak Mampu <br>
+        (&nbsp;) Membuat Keterangan Belum Pernah Menikah <br>
+        (&nbsp;) Keterangan Numpang Nikah <br>
+        (&nbsp;) Keterangan Menikah <br>
+        (&nbsp;) Surat Keterangan Domisili <br>
+        (&nbsp;) Rekomendasi IMB <br>
+        (&nbsp;) Rekomendasi SKDU <br>
+        (&nbsp;) Membuat SKU <br>
+        (&nbsp;) Maksud / Keperluan Lainnya ....................................
     </div>
-
-    <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 10px;">
-        <p>Adalah benar-benar berdomisili di lingkungan kami RT 008 RW 001 berstatus Penduduk Tetap/Kontrak/Tamu dan saat ini bermaksud : <b>{{ tujuan }}</b></p>
-    </div>
-    <div class="content" style="width: 90%; margin: 0 auto; text-align: justify; margin-top: 10px;">
-        <p>Demikian surat keterangan ini dibuat agar dapat dipergunakan sebagaimana mestinya.</p>
-    </div>
-    
+</div>
    <div class="signatures">
     <div class="signature-left">
         <p style="margin-top: 30px; margin-left: -80px ; margin-bottom: 82px;">Mengetahui<br>Ketua RW 001</p>
