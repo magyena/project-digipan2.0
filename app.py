@@ -813,7 +813,7 @@ def surat():
     ]
 
     return render_template(
-        "surat/surat_keterangan_domisili.html",
+        "surat/list_surat.html",
         messages=message_list_to_display,
         surat_list=surat_list_to_display,
     )
@@ -841,6 +841,7 @@ def read_image_as_base64(image_path):
 
 
 nomor_surat_counter = 1
+nomor_surat_pengantar_counter = 1
 
 
 @app.route("/download_surat_pdf/<int:surat_id>", methods=["GET"])
@@ -858,12 +859,18 @@ def download_surat_pdf(surat_id):
     ttd_url = os.path.join(current_app.root_path, "static/img/logo/ttd2.png")
     today = datetime.now().strftime("Pasir Gunung Selatan, %d %B %Y")
     global nomor_surat_counter
+    global nomor_surat_pengantar_counter
 
     # Buat format nomor surat otomatis
     nomor_surat = f"SKD-{nomor_surat_counter:02d}/RT-08/01/2024"
 
     # Setelah nomor dibuat, increment counter
     nomor_surat_counter += 1
+
+    nomor_surat_pengantar = f"SP-{nomor_surat_pengantar_counter:02d}/RT-08/01/2024"
+
+    # Setelah nomor dibuat, increment counter
+    nomor_surat_pengantar_counter += 1
 
     # Tentukan template berdasarkan jenis surat
     if surat.jenissurat == "surat_keterangan_domisili":
@@ -899,6 +906,7 @@ def download_surat_pdf(surat_id):
             ttd_url=ttd_url,
             today=today,
             nomor_surat=nomor_surat,
+            nomor_surat_pengantar=nomor_surat_pengantar,
         )
     except NotFound:
         # app.logger.error(f"Template tidak ditemukan: {template}")
