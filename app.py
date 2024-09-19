@@ -922,7 +922,7 @@ def download_surat_pdf(surat_id):
     response = make_response(pdf_file)
     response.headers["Content-Type"] = "application/pdf"
     response.headers["Content-Disposition"] = (
-        f"attachment; filename=surat_{surat.jenissurat}_{surat.nama}.pdf"
+        f"attachment; filename={surat.jenissurat}_{surat.nama}.pdf"
     )
 
     return response
