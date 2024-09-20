@@ -8,7 +8,8 @@
   <meta name="description" content="">
   <meta name="author" content="">
   <link href="static/img/logo/2.png" rel="icon">
-  <title>Digipan | Keluarga</title>
+  <title>Digipan | Laporan</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
@@ -254,138 +255,45 @@
           </ul>
         </nav>
         <!-- Topbar -->
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Data Keluarga</h1>
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Data Keluarga</li>
-            </ol>
-          </div> 
-            <!-- DataTables with Unique Family Names -->
-          <div class="col-lg-12">
-            <div class="card mb-4">
-              <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Daftar Nama Keluarga</h6>
-              </div>
-              <div class="table-responsive p-3">
-                <table class="table align-items-center table-flush table-hover" id="dataTableHover">
-                  <thead class="thead-light">
-                    <tr>
-                      <th>Nama Keluarga</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                   {% for family in families %}
-                    <tr>
-                      <td>
-                        <a href="#" class="family-link" data-nama-keluarga="{{ family[0] }}">{{ family[0] }}</a>
-                      </td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-                </div>
-              </div>
-            </div>
-            
-          </div>
-          <!--Row-->
+       <!-- Container Fluid-->
 
-         </div>
-            <!-- Modal HTML -->
-<div class="modal fade" id="familyDetailsModal" tabindex="-1" role="dialog" aria-labelledby="familyDetailsModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="familyDetailsModalLabel">Detail Keluarga</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+<div class="container-fluid" id="container-wrapper">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Laporan</h1>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Laporan</li>
+    </ol>
+  </div>
+  
+  <h4>Download Laporan</h4>
+  
+  <form method="POST" action="/generate_report">
+    <div class="form-row mb-3">
+      <div class="col">
+        <label for="report_type">Pilih Jenis Laporan</label>
+        <select class="form-control" id="report_type" name="report_type" required>
+          <option value="">-- Pilih Laporan --</option>
+          <option value="keluarga">Laporan Keluarga</option>
+          <option value="keuangan">Laporan Keuangan</option>
+        </select>
       </div>
-      <div class="modal-body" id="family-details-content">
-        <!-- Detail keluarga akan dimuat di sini -->
+
+      <div class="col" id="status-container" style="display:none;">
+        <label for="status_pembayaran">Pilih Status Pembayaran</label>
+        <select class="form-control" id="status_pembayaran" name="status_pembayaran">
+          <option value="">Pilih status</option>
+          <option value="Diterima">Diterima</option>
+          <option value="Menunggu">Menunggu</option>
+        </select>
       </div>
-      <div class="modal-body" id="edit-family-form" style="display: none;">
-      <!-- Formulir Edit -->
-      <form id="edit-form">
-        <div class="form-group">
-          <label for="select-family-member">Pilih Anggota Keluarga:</label>
-          <select id="select-family-member" class="form-control" required>
-            <!-- Opsi anggota keluarga akan dimuat di sini -->
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="edit-nama-keluarga">Nama Keluarga:</label>
-          <input type="text" class="form-control" id="edit-nama-keluarga" name="nama_keluarga" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-nama">Nama Lengkap:</label>
-          <input type="text" class="form-control" id="edit-nama" name="nama" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-tempat-lahir">Tempat Lahir:</label>
-          <input type="text" class="form-control" id="edit-tempat-lahir" name="tempat_lahir" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-tanggal-lahir">Tanggal Lahir:</label>
-          <input type="date" class="form-control" id="edit-tanggal-lahir" name="tanggal_lahir" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-nomor-keluarga">Nomor Keluarga:</label>
-          <input type="text" class="form-control" id="edit-nomor-keluarga" name="nomor_keluarga" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-hubungan-keluarga">Hubungan Keluarga:</label>
-          <select type="text" class="form-control" id="edit-hubungan-keluarga" name="hubungan_keluarga" required>
-                <option value="" disabled selected>Pilih Hubungan</option>
-                <option value="kepala_keluarga">KepalaKeluarga</option>
-                <option value="istri">Istri</option>
-                <option value="anak">Anak</option>
-            </select>
-        </div>
-        <input type="hidden" id="edit-member-id" name="member_id">
-        <button type="submit" class="btn btn-primary">Simpan</button>
-      </form>
     </div>
-
-      <div class="modal-footer">
-        <button type="button" id="edit-family" class="btn btn-warning">Edit</button>
-        <button type="button" id="delete-family" class="btn btn-danger">Hapus</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-      </div>
-    <!-- Tambahkan modal konfirmasi untuk memilih anggota keluarga yang akan dihapus -->
-<div class="modal fade" id="deleteFamilyMemberModal" tabindex="-1" role="dialog" aria-labelledby="deleteFamilyMemberLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="deleteFamilyMemberLabel">Pilih Anggota Keluarga untuk Dihapus</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="select-member-to-delete">Pilih Anggota Keluarga:</label>
-          <select id="select-member-to-delete" class="form-control">
-            <!-- Opsi anggota keluarga akan dimuat di sini -->
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" id="confirm-delete-family-member" class="btn btn-danger">Hapus</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-    
+    <button type="submit" class="btn btn-primary">Download Laporan</button>
+  </form>
 </div>
 
-
+</div>
+      </div>
           <!-- Modal Logout -->
           <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabelLogout"
             aria-hidden="true">
@@ -435,10 +343,12 @@
   <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="static/js/ruang-admin.min.js"></script>
-  <script src="static/js/keluarga.js"></script>
+  <script src="static/js/iuran.js"></script>
   <!-- Page level plugins -->
   <script src="static/vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+  
+
 
   <!-- Page level custom scripts -->
   <script>
@@ -446,6 +356,9 @@
       $('#dataTable').DataTable(); // ID From dataTable 
       $('#dataTableHover').DataTable(); // ID From dataTable with Hover
     });
+
+  
+
   </script>
 
 </body>
