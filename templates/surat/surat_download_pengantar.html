@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIGIPAN | Surat Pengantar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        .container {
+            width: 220mm;
+            margin: auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+       h1 {
+    text-align: center; /* Mengatur teks agar berada di tengah secara horizontal */
+    margin-top: 0px;  
+    font-size: 20px;
+    font-family: "Times New Roman", Times, serif;
+      /* Jarak dari atas */
+    /* margin-right: 230px;   */
+    margin-bottom: 0;    /* Jarak dari bawah */
+    margin-left: 30px;   /* Jarak dari kiri */
+}
+ .header {
+    position: relative;
+}
+/* 
+.logo {
+    height: 100px;
+    width: auto;
+    position: absolute;
+    left: 190px;
+    top: 45px;
+}
+
+@media (max-width: 1200px) {
+        .logo {
+            left: 190px; 
+            top: 48px; 
+            height: 90px; 
+        }
+    }
+ @media (max-width: 400px) {
+        .logo {
+            left: 100px; 
+            top: 48px;
+            height: 90px; 
+        }
+    } */
+
+    /* Media query untuk perangkat dengan lebar layar maksimal 600px */
+   
+        .header, .footer {
+            text-align: left;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 20px;
+            margin-top: 17px;
+            padding-left: 240px;
+        }
+        .header p, .footer p {
+            margin: 0;
+            font-weight: bold;
+        }
+        .text-center {
+    text-align: center;
+}
+        .line {
+            border-top: 1px solid #000;
+            margin: 20px 0;
+        }
+        .content p {
+            margin: 10px 0;
+        }
+        .signature {
+            margin-top: 40px;
+            text-align: center;
+        }
+        .signature canvas {
+            border: 1px solid #000;
+            width: 300px;
+            height: 100px;
+        }
+        .signature-buttons {
+            margin-top: 10px;
+        }
+        .signature-buttons button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .signature-buttons button:hover {
+            background-color: #0056b3;
+        }
+        .line {
+            border-top: none; /* Hilangkan border default */
+            background-color: #000; /* Warna garis */
+            height: 5px; /* Ketebalan garis */
+            width: 75%; /* Panjang garis (ubah sesuai kebutuhan) */
+            margin:10px auto; /* Posisi tengah dan jarak atas bawah */
+            
+        }
+         .line2 {
+            border-top: none; /* Hilangkan border default */
+            background-color: #000; /* Warna garis */
+            height: 2px; /* Ketebalan garis */
+            width: 25%; /* Panjang garis (ubah sesuai kebutuhan) */
+            margin:5px auto; /* Posisi tengah dan jarak atas bawah */
+            
+        }
+       .content {
+    display: flex;
+    margin-left: 80px;
+    flex-direction: column; /* Untuk tata letak vertikal */
+    align-items: flex-start; /* Untuk rata kiri */
+}
+
+.content p {
+    margin: 5px 0; /* Jarak antar elemen */
+}
+.judul {
+    font-size: 18px; /* Ukuran teks */
+    text-align: center; /* Teks di tengah */
+    margin-top: -5px; /* Mengatur jarak dari atas */
+    font-family: "Times New Roman", Times, serif;
+    font-weight: bold;
+}
+.sekretariat {
+    font-family: "Times New Roman", Times, serif; /* Gaya font */
+    font-size: 18px; /* Ukuran font */
+    text-align: left; /* Posisi teks rata kiri */
+    font-style: bold;
+    margin-left: 240px; /* Jarak kiri */
+
+}
+.nosurat {
+    font-size: 18px; /* Ukuran teks */
+    text-align: center; /* Teks di tengah */
+    font-family: "Times New Roman", Times, serif;
+}
+.isisurat {
+    font-size: 17px; /* Ukuran teks */
+    text-align: justify; /* Teks di tengah */
+    margin-left: 105px;
+    font-family: "Times New Roman", Times, serif;
+    margin-top: 10px ;
+    margin-right: 105px;
+    line-height: 1.6;
+}
+.isisurat2 {
+    font-size: 17px; /* Ukuran teks */
+    text-align: justify; /* Teks di tengah */
+    font-family: "Times New Roman", Times, serif;
+    margin-top: 20px ;
+    line-height: 1.6;
+}
+.isisurat3 {
+    font-size: 17px; /* Ukuran teks */
+    text-align: left; /* Teks di tengah */
+    font-family: "Times New Roman", Times, serif;
+    margin-top: 100px ;
+    margin-left: 453px;
+    line-height: 1.6;
+}
+
+.isisurat4 {
+    font-size: 17px; /* Ukuran teks */
+    text-align: left; /* Teks di tengah */
+    font-family: "Times New Roman", Times, serif;
+    margin-top: 100px ;
+    margin-right: 10px;
+    margin-left: 475px;
+    line-height: 1.6;
+}
+
+
+.tujuansurat {
+    font-size: 17px; /* Ukuran teks */
+    text-align: justify; /* Teks di tengah */
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    line-height: 1.6;
+}
+.normal-text {
+    font-weight: normal; /* Mengesampingkan font-weight dari parent */
+}
+.detailsurat {
+    font-size: 17px; /* Ukuran teks */
+    text-align: justify; /* Teks di tengah */
+    margin-left: 105px;
+    font-family: "Times New Roman", Times, serif;
+    margin-top: -10px ;
+    margin-right: 105px;
+    line-height: 1;
+    
+    
+}
+
+@media (max-width: 768px) {
+
+    .isisurat3 {
+    font-size: 17px; /* Ukuran teks */
+    text-align: right; /* Teks di tengah */
+    font-family: "Times New Roman", Times, serif;
+    margin-top: 100px ;
+    
+    line-height: 1.6;
+}
+
+.isisurat4 {
+    font-size: 17px; /* Ukuran teks */
+    text-align: right; /* Teks di tengah */
+    font-family: "Times New Roman", Times, serif;
+    margin-top: 100px ;
+    
+    line-height: 1.6;
+}
+     .container {
+            width: 220mm;
+            margin: auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+       h1 {
+    text-align: center; /* Mengatur teks agar berada di tengah secara horizontal */
+    margin-top: 0px;  
+    font-size: 20px;
+    font-family: "Times New Roman", Times, serif;
+      /* Jarak dari atas */
+    /* margin-right: 230px;   */
+    margin-bottom: 0;    /* Jarak dari bawah */
+    margin-left: 30px;   /* Jarak dari kiri */
+}
+
+       
+        .header, .footer {
+            text-align: left;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 20px;
+            margin-top: 17px;
+            padding-left: 240px;
+        }
+        .header p, .footer p {
+            margin: 0;
+            font-weight: bold;
+        }
+        .line {
+            border-top: 1px solid #000;
+            margin: 20px 0;
+        }
+        .content p {
+            margin: 10px 0;
+        }
+        .signature {
+            margin-top: 40px;
+            text-align: center;
+        }
+        .signature canvas {
+            border: 1px solid #000;
+            width: 300px;
+            height: 100px;
+        }
+        .signature-buttons {
+            margin-top: 10px;
+        }
+        .signature-buttons button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .signature-buttons button:hover {
+            background-color: #0056b3;
+        }
+        .line {
+            border-top: none; /* Hilangkan border default */
+            background-color: #000; /* Warna garis */
+            height: 7px; /* Ketebalan garis */
+            width: 75%; /* Panjang garis (ubah sesuai kebutuhan) */
+            margin:10px auto; /* Posisi tengah dan jarak atas bawah */
+            
+        }
+         .line2 {
+            border-top: none; /* Hilangkan border default */
+            background-color: #000; /* Warna garis */
+            height: 2px; /* Ketebalan garis */
+            width: 25%; /* Panjang garis (ubah sesuai kebutuhan) */
+            margin:5px auto; /* Posisi tengah dan jarak atas bawah */
+            
+        }
+       .content {
+    display: flex;
+    margin-left: 80px;
+    flex-direction: column; /* Untuk tata letak vertikal */
+    align-items: flex-start; /* Untuk rata kiri */
+}
+
+.content p {
+    margin: 5px 0; /* Jarak antar elemen */
+}
+.judul {
+    font-size: 18px; /* Ukuran teks */
+    text-align: center; /* Teks di tengah */
+    margin-top: 30px; /* Mengatur jarak dari atas */
+    font-family: "Times New Roman", Times, serif;
+    font-weight: bold;
+}
+.sekretariat {
+    font-family: "Times New Roman", Times, serif; /* Gaya font */
+    font-size: 18px; /* Ukuran font */
+    text-align: left; /* Posisi teks rata kiri */
+    font-style: bold;
+    margin-left: 240px; /* Jarak kiri */
+
+}
+.nosurat {
+    font-size: 18px; /* Ukuran teks */
+    text-align: center; /* Teks di tengah */
+    font-family: "Times New Roman", Times, serif;
+}
+.isisurat {
+    font-size: 17px; /* Ukuran teks */
+    text-align: justify; /* Teks di tengah */
+    margin-left: 105px;
+    font-family: "Times New Roman", Times, serif;
+    margin-top: 35px ;
+    margin-right: 105px;
+    line-height: 1.6;
+}
+.isisurat2 {
+    font-size: 17px; /* Ukuran teks */
+    text-align: justify; /* Teks di tengah */
+    font-family: "Times New Roman", Times, serif;
+    margin-top: 20px ;
+    line-height: 1.6;
+}
+
+.tujuansurat {
+    font-size: 17px; /* Ukuran teks */
+    text-align: justify; /* Teks di tengah */
+    font-weight: bold;
+    font-family: "Times New Roman", Times, serif;
+    line-height: 1.6;
+}
+.normal-text {
+    font-weight: normal; /* Mengesampingkan font-weight dari parent */
+}
+.detailsurat {
+    font-size: 17px; /* Ukuran teks */
+    text-align: justify; /* Teks di tengah */
+    margin-left: 105px;
+    font-family: "Times New Roman", Times, serif;
+    margin-top: 20px ;
+    margin-right: 105px;
+    line-height: 1;
+    
+}
+}
+       p {
+            display: flex;
+            flex-wrap: wrap; /* Memungkinkan nilai turun ke baris berikutnya jika terlalu panjang */
+            margin-bottom: 10px; /* Tambahkan jarak antar paragraf jika diperlukan */
+        }
+
+        span.label {
+            flex: 0 0 160px; /* Lebar label tetap (misalnya 150px) */
+            white-space: nowrap; /* Mencegah pembungkusan teks label */
+        }
+
+        span.value {
+            flex: 1; /* Nilai bisa mengisi sisa ruang yang tersedia */
+            word-break: break-word; /* Memecah kata jika terlalu panjang */
+            vertical-align: top; /* Agar nilai sejajar dengan bagian atas label */
+        }
+
+        /* Media query untuk mobile */
+        @media (max-width: 1080px) {
+            span.label {
+                flex: 0 0 195px; /* Sesuaikan lebar label pada layar kecil */
+            }
+
+            span.value {
+                margin-left: 25px;
+                flex: 1; /* Tetap biarkan nilai mengisi sisa ruang yang tersedia */
+            }
+        }
+.status-container {
+    display: flex;
+    flex-direction: column; /* Mengatur item di dalamnya agar berbaris ke bawah */
+    margin-left: 0; /* Sejajarkan dengan teks di atas */
+}
+
+.status {
+    cursor: pointer;
+    display: inline-block;
+    margin: 0; /* Menghapus margin untuk memastikan teks sejajar */
+}
+
+
+.status.strikethrough {
+    text-decoration: line-through; /* Menambahkan garis tengah */
+}
+
+.separator {
+    margin: 0 2px; /* Tambahkan margin horizontal untuk spasi di sekitar separator */
+}
+.clickable {
+    cursor: pointer;
+}
+
+.strike-through {
+    text-decoration: line-through;
+}
+
+ .radio-group {
+            margin-top: 10px;
+            margin-left: 155px;
+            margin-bottom: 30px;
+        }
+        .radio-item {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .radio-item input {
+            margin-right: 10px;
+        }
+          /* Media query untuk perangkat mobile */
+        @media (max-width: 1080px) {
+            .radio-group {
+                margin-left: 210px; /* Kurangi margin kiri untuk perangkat lebih kecil */
+            }
+            .radio-item {
+                margin-bottom: 8px; /* Kurangi margin bawah jika diperlukan */
+            }
+            .radio-item input {
+                margin-right: 5px; /* Sesuaikan jarak untuk perangkat lebih kecil */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="pdfContent">
+        <div class="logo">
+            <!-- Ganti dengan logo yang sesuai -->
+          
+
+            
+<!-- <img src="{{ url_for('static', filename='depok.png') }}" alt="Logo" class="logo"> -->
+
+
+        </div>
+        <div class="header">
+          <p style="margin-left: 0px;">RUKUN TETANGGA 08 RUKUN WARGA 01</p>
+          <p style="margin-left: 50px;">PEMERINTAH KOTA DEPOK</p>
+          <p style="margin-left: 60px;">KECAMATAN CIMANGGIS</p>
+          <p>KELURAHAN PASIR GUNUNG SELATAN</p>     
+        </div>
+
+        <div class="line"></div>
+       <div class="judul">
+            SURAT PENGANTAR
+        </div>
+        <div class="line2"></div>
+        <div class="nosurat" id="noSurat">
+             Nomor: <span id="nomorSurat">/RT-08/01/2024</span>
+        </div>
+
+        <div class="isisurat">
+        <p style="text-indent: 30px;">Yang bertanda tangan di bawah ini, kami pengurus RT 08 RW 01 Kelurahan Pasir Gunung Selatan Kecamatan Cimanggis, Kota Depok 16451. Dengan ini menerangkan bahwa :</p>
+        </div>
+        <div class="detailsurat">
+         <p>
+        <span class="label">Nama</span>
+        <span class="value">:&nbsp;&nbsp;{{ surat.nama }}</span>
+    </p>
+    <p>
+        <span class="label">Tempat, Tanggal Lahir</span>
+        <span class="value">:&nbsp;&nbsp;{{ surat.tempatlahir }}, {{ surat.tanggal }}</span>
+    </p>
+    <p>
+        <span class="label">Jenis Kelamin</span>
+        <span class="value">:&nbsp;&nbsp;{{ surat.jeniskelamin }}</span>
+    </p>
+    <p>
+        <span class="label">Agama</span>
+        <span class="value">:&nbsp;&nbsp;{{ surat.agama }}</span>
+    </p>
+    <p>
+        <span class="label">Pekerjaan</span>
+        <span class="value">:&nbsp;&nbsp;{{ surat.pekerjaan }}</span>
+    </p>
+    <p>
+        <span class="label">NO KTP/KK</span>
+        <span class="value">:&nbsp;&nbsp;{{ surat.ktp }}</span>
+    </p>
+    <p> 
+        <span class="label">Kewarganegaraan</span>
+    <span class="value" data-status="WNI/WNA">: 
+        <span class="clickable" onclick="toggleStrikeThrough(this)">WNI</span> / 
+        <span class="clickable" onclick="toggleStrikeThrough(this)">WNA</span>
+    </span>
+    <p>
+        <span class="label">Alamat Sesuai KTP</span>
+        <span class="value">:&nbsp;&nbsp;{{ surat.alamatktp }}</span>
+    </p>
+        
+    <p>
+        <span class="label">Maksud / Keperluan</span>
+        <span class="value">:&nbsp;&nbsp;</span>
+    </p>
+
+    <div class="radio-group">
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Membuat KTP">
+            Membuat KTP
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Membuat KK">
+            Membuat KK
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Lapor diri dari daerah">
+            Lapor diri dari daerah
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Pindah alamat">
+            Pindah Alamat
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Laporan Kematian">
+            Laporan Kematian
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Membuat Akte Kelahiran">
+            Membuat Akte Kelahiran
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Membuat SKCK">
+            Membuat SKCK
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Membuat Keterangan TIdak Mampu">
+            Membuat Keterangan Tidak Mampu
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Membuat Keterangan Belum Pernah Menikah">
+            Membuat Keterangan Belum Pernah Menikah
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Keterangan Numpang Nikah">
+            Keterangan Numpang Nikah
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Keterangan Menikah">
+            Keterangan Menikah
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Surat Keterangan Domisili">
+            Surat Keterangan Domisili
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Rekomendasi IMB">
+            Rekomendasi IMB
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Rekomendasi SKDU">
+            Rekomendasi SKDU
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Membuat SKU">
+            Membuat SKU
+        </label>
+        <label class="radio-item">
+            <input type="radio" name="keperluan" value="Keterangan Numpang Nikah">
+            Keperluan Lainnya
+        </label>
+    </div>
+    
+     
+  <div style="display: flex; justify-content: space-between; font-family: 'Times New Roman', Times, serif; margin: 50px;">
+    <!-- Bagian Kiri -->
+    <div style="display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center;">
+            <p style="margin-right: 10px;margin-top: -20px; margin-left: -25px;">Mengetahui</p>
+        </div>
+        <p style="margin-top: 5px;margin-left: -30px;">Ketua RW 01</p>
+        <p style="margin-top: 100px; margin-left: -50px;">(ENCUP SUPARDI)</p>
+    </div>
+        
+    <div style="display: flex; flex-direction: column; align-items: flex-end; margin-right: -50px; margin-bottom: 100px; margin-top: -40px;">
+        <p id="tanggal">Pasir Gunung Selatan, <span id="currentDate"></span></p>
+        <!-- <p style="margin-top: 0px; margin-right: 50px;">2024</p> -->
+        <p style="margin-top: 10px; margin-right: 30px;">Ketua RT 08</p>
+         <img src="{{ url_for('static', filename='img/logo/ttd2.png') }}" alt="Foto Ketua RT" style="width: 120px; height: 100px;">
+        <p style="margin-top: 0px; margin-right: 25px;">(SURATMO)</p>
+    </div>
+</div>
+
+     <div class="signature">
+        <!-- <p style="margin-left: 255px;">Tanda Tangan</p>
+        <canvas id="signatureCanvas"></canvas> -->
+        <div class="signature-buttons">
+            <!-- <button onclick="clearSignature()">Clear</button> -->
+            <button onclick="downloadPDF('{{ surat.nama }}')">Download PDF</button>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+       function toggleStrikeThrough(element) {
+    // Remove strike-through from all elements
+    const elements = document.querySelectorAll('.clickable');
+    elements.forEach(el => el.classList.remove('strike-through'));
+    
+    // Toggle strike-through on the clicked element
+    element.classList.toggle('strike-through');
+}
+
+    // Mendapatkan tanggal hari ini
+    const today = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const currentDate = today.toLocaleDateString('id-ID', options);
+
+    // Menampilkan tanggal di elemen HTML
+    document.getElementById('currentDate').textContent = currentDate;
+
+
+    async function downloadPDF(nama) {
+    const { jsPDF } = window.jspdf;
+    const container = document.querySelector('.container');
+    const signatureSection = document.querySelector('.signature');
+
+    // Cek apakah pengguna menggunakan perangkat mobile atau desktop
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+    // Sembunyikan elemen tanda tangan
+    signatureSection.style.display = 'none';
+
+    // Tangkap elemen dengan html2canvas
+    html2canvas(container, {
+        scale: 2, // Tingkatkan skala untuk resolusi lebih tinggi
+        useCORS: true // Mengizinkan gambar lintas domain jika diperlukan
+    }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+
+        // Ukuran halaman PDF A4
+        const pdfWidth = 210; // Lebar A4 dalam mm
+        const pdfHeight = 297; // Tinggi A4 dalam mm
+
+        // Kurangi sedikit tinggi gambar agar tidak terpotong
+        const imgWidth = pdfWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // Buat dokumen PDF dengan ukuran A4
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        // Tambahkan gambar ke PDF dengan sedikit margin di bagian atas dan bawah
+        const yOffset = 5; // Margin atas kecil
+        const marginBottom = 10; // Margin bawah untuk menghindari pemotongan
+
+        // Jika tinggi gambar lebih besar dari tinggi PDF, skala gambar
+        const finalImgHeight = imgHeight > pdfHeight - marginBottom ? pdfHeight - marginBottom : imgHeight;
+
+        // Tambahkan gambar ke PDF
+        doc.addImage(imgData, 'PNG', 0, yOffset, imgWidth, finalImgHeight);
+
+        // Tambahkan logo ke PDF
+        const logoURL = "{{ url_for('static', filename='img/logo/depok.png') }}"; // URL logo
+        const logoX = isMobile ? 43 : 37;
+        const logoY = isMobile ? 13 : 13;
+        const logoWidth = isMobile ? 16 : 18;
+        const logoHeight = isMobile ? 17 : 18;
+        doc.addImage(logoURL, 'PNG', logoX, logoY, logoWidth, logoHeight);
+
+        // Simpan PDF
+        const encodedNama = encodeURIComponent(nama);
+        const fileName = `surat_pengantar${encodedNama}.pdf`;
+        doc.save(fileName);
+
+        // Kembalikan tampilan elemen tanda tangan
+        signatureSection.style.display = 'block';
+
+        // Redirect setelah unduh
+        window.location.href = "{{ url_for('surat') }}";
+    });
+}
+
+ function getNextNumber() {
+        // Ambil nomor terakhir dari localStorage
+        let lastNumber = localStorage.getItem('lastNumber') || '00';
+        // Ubah string ke angka, tambahkan 1, lalu format ke dua digit
+        let nextNumber = (parseInt(lastNumber, 10) + 1).toString().padStart(2, '0');
+        // Simpan nomor berikutnya ke localStorage
+        localStorage.setItem('lastNumber', nextNumber);
+        return nextNumber;
+    }
+
+    function updateNoSurat() {
+        let nomorSurat = `SP-${getNextNumber()}/RT-08/01/2024`;
+        document.getElementById('nomorSurat').textContent = nomorSurat;
+    }
+
+    // Panggil fungsi untuk memperbarui nomor surat saat halaman dimuat
+    window.onload = updateNoSurat;
+document.addEventListener('DOMContentLoaded', function() {
+        // Ambil semua elemen dengan kelas .status
+        var statusElements = document.querySelectorAll('.status');
+
+        statusElements.forEach(function(element) {
+            element.addEventListener('click', function() {
+                // Toggle kelas 'strikethrough' pada elemen yang diklik
+                this.classList.toggle('strikethrough');
+            });
+        });
+    });
+    </script>
+</body>
+</html>

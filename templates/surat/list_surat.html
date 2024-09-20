@@ -264,7 +264,7 @@
                     <th>Tujuan</th>
                     <th>Status Surat</th>
                     <th>Aksi</th>
-                    <th>Unduh Surat</th>
+                    <th>Lihat Surat</th>
                   </tr>
                 </thead>
                           <tbody>
@@ -284,8 +284,8 @@
                 {% endif %}
               </td>
               <td>
-               <a href="{{ url_for('download_surat_pdf', surat_id=surat.id) }}" class="btn btn-primary">
-                  Unduh 
+               <a href="{{ url_for('lihat_surat', sid=surat.id) }}" class="btn btn-primary">
+                  Lihat Surat 
               </a>
 
               </td>
