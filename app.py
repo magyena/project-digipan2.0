@@ -33,7 +33,6 @@ from werkzeug.security import check_password_hash
 import re
 from flask import Flask, send_from_directory, send_file, abort
 import io
-from docx import Document
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
@@ -1134,7 +1133,7 @@ def laporan():
     # Ambil semua data iuran dari database
     iuran_list = Iuran.query.all()
     return render_template(
-        "laporan/laporan.html",
+        "laporan/Laporan.html",
         iuran_list=iuran_list,
         messages=message_list_to_display,
     )
