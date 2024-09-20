@@ -8,7 +8,7 @@
   <meta name="description" content="">
   <meta name="author" content="">
   <link href="static/img/logo/2.png" rel="icon">
-  <title>Digipan | Laporan</title>
+  <title>Digipan | Pengguna</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
@@ -72,7 +72,7 @@
       <div class="sidebar-heading">
         Examples
       </div>
-     <li class="nav-item">
+      <li class="nav-item">
         <a class="nav-link" href="{{ url_for('pengguna') }}">
           <i class="fab fa-fw fa-wpforms"></i>
           <span>Pengguna</span>
@@ -245,44 +245,40 @@
           </ul>
         </nav>
         <!-- Topbar -->
-       <!-- Container Fluid-->
-
+   <!-- Container Fluid-->
 <div class="container-fluid" id="container-wrapper">
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Laporan</h1>
+    <h1 class="h3 mb-0 text-gray-800">Pengguna</h1>
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Laporan</li>
+      <li class="breadcrumb-item active" aria-current="page">Pengguna</li>
     </ol>
   </div>
+<!-- Pesan Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div>
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
   
-  <h4>Download Laporan</h4>
-  
-  <form method="POST" action="/generate_report">
-    <div class="form-row mb-3">
-      <div class="col">
-        <label for="report_type">Pilih Jenis Laporan</label>
-        <select class="form-control" id="report_type" name="report_type" required>
-          <option value="">-- Pilih Laporan --</option>
-          <option value="keluarga">Laporan Keluarga</option>
-          <option value="keuangan">Laporan Keuangan</option>
-        </select>
+  <h4>Tambahkan Pengguna</h4>
+  <form method="POST" action="/add_user">
+      <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" class="form-control" id="username" name="username" required>
       </div>
-
-      <div class="col" id="status-container" style="display:none;">
-        <label for="status_pembayaran">Pilih Status Pembayaran</label>
-        <select class="form-control" id="status_pembayaran" name="status_pembayaran">
-          <option value="">Pilih status</option>
-          <option value="Diterima">Diterima</option>
-          <option value="Menunggu">Menunggu</option>
-        </select>
+      <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" class="form-control" id="password" name="password" required>
       </div>
-    </div>
-    <button type="submit" class="btn btn-primary">Download Laporan</button>
+      <button type="submit" class="btn btn-primary">Tambah Pengguna</button>
   </form>
-</div>
-
-</div>
+  
+      </div>
       </div>
           <!-- Modal Logout -->
           <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabelLogout"
@@ -347,7 +343,13 @@
       $('#dataTableHover').DataTable(); // ID From dataTable with Hover
     });
 
-  
+   // Mengatur waktu untuk menghilangkan pesan flash setelah 3 detik
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            alert.style.display = 'none'; // Menghilangkan elemen
+        });
+    }, 3000); // Waktu dalam milidetik
 
   </script>
 

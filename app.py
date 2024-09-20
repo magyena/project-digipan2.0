@@ -15,6 +15,7 @@ from flask import (
     send_file,
     make_response,
 )
+from werkzeug.security import check_password_hash, generate_password_hash
 from flask import current_app
 from weasyprint import HTML
 from reportlab.lib.units import inch
@@ -1062,7 +1063,7 @@ def statistik_iuran_data():
     return jsonify(data)
 
 
-# Route untuk halaman verifikasi iuran
+# Route untuk halaman Laporan
 @app.route("/laporan")
 def laporan():
     if "username" not in session:
@@ -1156,6 +1157,51 @@ def generate_financial_report():
         as_attachment=True,
         download_name="laporan_keuangan.xlsx",
     )
+
+
+# Route untuk halaman Pengguna
+@app.route("/pengguna")
+def pengguna():
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("login"))
+
+    # Ambil semua data iuran dari database
+    iuran_list = Iuran.query.all()
+    return render_template("pengguna.html", iuran_list=iuran_list)
+
+
+@app.route("/add_user", methods=["GET", "POST"])
+def add_user():
+    # Pastikan hanya pengguna yang sudah login yang dapat mengakses halaman ini
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu untuk mengakses halaman ini.", "error")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
+        # Cek apakah username sudah ada di database
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+
+            flash("Username sudah terdaftar", "warning")
+
+        else:
+            hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+
+            # Buat pengguna baru dengan hashed password
+            new_user = User(username=username, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+
+            # Beri tahu pengguna bahwa user telah berhasil ditambahkan
+            flash("User berhasil ditambahkan!", "success")
+            return redirect(
+                url_for("add_user")
+            )  # Tetap di halaman yang sama setelah user berhasil ditambahkan
+
+    return render_template("pengguna.html")
 
 
 if __name__ == "__main__":
