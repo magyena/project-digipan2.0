@@ -943,10 +943,28 @@ def verifikasi_iuran():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
 
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": msg.nomor_whatsapp,
+            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
     # Ambil semua data iuran dari database
     iuran_list = Iuran.query.all()
-    return render_template("iuran/verifikasi_iuran.html", iuran_list=iuran_list)
+    return render_template(
+        "iuran/verifikasi_iuran.html",
+        iuran_list=iuran_list,
+        messages=message_list_to_display,
+    )
 
 
 @app.route("/update_status_iuran/<int:iuran_id>", methods=["POST"])
@@ -965,6 +983,21 @@ def statistik_iuran():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": msg.nomor_whatsapp,
+            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
     # Mendapatkan parameter tahun dari query string (atau gunakan tahun ini secara default)
     year = request.args.get("year", default=datetime.today().year, type=int)
 
@@ -1045,6 +1078,7 @@ def statistik_iuran():
         current_datetime=current_datetime,
         selected_year=year,  # Mengirim tahun yang dipilih ke template
         available_years=available_years,  # Mengirim daftar tahun yang tersedia ke template
+        messages=message_list_to_display,
     )
 
 
@@ -1069,10 +1103,28 @@ def laporan():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
 
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": msg.nomor_whatsapp,
+            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
     # Ambil semua data iuran dari database
     iuran_list = Iuran.query.all()
-    return render_template("laporan/laporan.html", iuran_list=iuran_list)
+    return render_template(
+        "laporan/laporan.html",
+        iuran_list=iuran_list,
+        messages=message_list_to_display,
+    )
 
 
 @app.route("/generate_report", methods=["POST"])
@@ -1165,10 +1217,28 @@ def pengguna():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
 
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": msg.nomor_whatsapp,
+            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
     # Ambil semua data iuran dari database
     iuran_list = Iuran.query.all()
-    return render_template("pengguna.html", iuran_list=iuran_list)
+    return render_template(
+        "pengguna.html",
+        iuran_list=iuran_list,
+        messages=message_list_to_display,
+    )
 
 
 @app.route("/add_user", methods=["GET", "POST"])
