@@ -474,12 +474,12 @@
     </p>
     <p>
         <span class="label">Alamat Sesuai KTP</span>
-        <span class="value">:&nbsp;&nbsp;{{ surat.alamatktp }}</span>
+        <span class="value">:&nbsp;{{ surat.alamatktp }}</span>
     </p>
     <br>
     <div class="isisurat2">
     <p style="text-indent: 50px;">Dengan ini menyatakan dengan sebenarnya dan sesungguhnya tanpa paksaan dari pihak manapun serta dalam kondisi sehat jasmani/rohani , bahwa sampai saat ini saya belum pernah menikah/kawin dengan siapapun
-        , baik secara resmi melalui instansi yang berwenang maupun secara adat dengn agama yang saya anut.
+        , baik secara resmi melalui instansi yang berwenang maupun secara adat dengan agama yang saya anut.
     </p>
 </div>
 
@@ -502,7 +502,7 @@
             <p style="margin-right: 10px;margin-top: 40px; margin-left: 0px;">Saksi - Saksi</p>
         </div>
         <p style="margin-top: 0px;">Ketua RT</p>
-         <img src="{{ url_for('static', filename='ttd2.png') }}" alt="Foto Ketua RT" style="width: 120px; height: 100px;">
+         <img src="{{ url_for('static', filename='img/logo/ttd2.png') }}" alt="Foto Ketua RT" style="width: 120px; height: 100px;">
         <p style="margin-top: 10px; margin-left: 0px;">Ketua RW</p>
     </div>
     
@@ -598,7 +598,7 @@
         signatureSection.style.display = 'block';
 
         // Redirect setelah unduh
-        window.location.href = "{{ url_for('list_surat_menikah') }}";
+        window.location.href = "{{ url_for('surat') }}";
     });
 }
       

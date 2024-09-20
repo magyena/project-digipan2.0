@@ -17,7 +17,6 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask import current_app
-from weasyprint import HTML
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import Paragraph
@@ -943,7 +942,10 @@ def lihat_surat(sid):
 
     if surat.jenissurat == "surat_pengantar":
         return render_template("surat/surat_download_pengantar.html", surat=surat)
-    # Tambahkan kondisi untuk jenis surat lainnya jika diperlukan
+    elif surat.jenissurat == "surat_pernyataan_belum_menikah":
+        return render_template("surat/surat_download_belum_menikah.html", surat=surat)
+    elif surat.jenissurat == "surat_pernyataan_tidak_mampu":
+        return render_template("surat/surat_download_tidak_mampu.html", surat=surat)
     else:
         return render_template("surat/surat_download.html", surat=surat)
 
