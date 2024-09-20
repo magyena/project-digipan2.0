@@ -937,6 +937,17 @@ def download_surat_pdf(surat_id):
     return response
 
 
+@app.route("/lihat_surat/<int:sid>")
+def lihat_surat(sid):
+    surat = SuratPengantar.query.get(sid)
+
+    if surat.jenissurat == "surat_pengantar":
+        return render_template("surat/surat_download_pengantar.html", surat=surat)
+    # Tambahkan kondisi untuk jenis surat lainnya jika diperlukan
+    else:
+        return render_template("surat/surat_download.html", surat=surat)
+
+
 # Route untuk halaman verifikasi iuran
 @app.route("/verifikasi-iuran")
 def verifikasi_iuran():
