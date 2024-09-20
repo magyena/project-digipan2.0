@@ -311,7 +311,12 @@ def dashboard():
         {
             "message": msg.message,
             "user": msg.user,
-            "nomor_whatsapp": msg.nomor_whatsapp,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
             "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
@@ -657,7 +662,12 @@ def keluarga():
         {
             "message": msg.message,
             "user": msg.user,
-            "nomor_whatsapp": msg.nomor_whatsapp,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
             "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
@@ -783,15 +793,20 @@ def surat():
     # Mengambil semua pesan terbaru
     all_messages = Message.query.order_by(Message.timestamp.desc()).all()
 
-    # Batasi pesan yang ditampilkan
+    # Batasi pesan yang ditampilkan (menampilkan 3 pesan terbaru)
     messages_to_display = all_messages[:3]
 
-    # Format pesan untuk template
+    # Format pesan untuk template dengan mengganti awalan '0' menjadi '62'
     message_list_to_display = [
         {
             "message": msg.message,
             "user": msg.user,
-            "nomor_whatsapp": msg.nomor_whatsapp,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
             "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
@@ -814,13 +829,14 @@ def surat():
             "alamatktp": surat.alamatktp,
             "statusperkawinan": surat.statusperkawinan,
             "tujuan": surat.tujuan,
-            # Mengganti underscore dengan spasi
+            # Mengganti underscore dengan spasi pada jenissurat
             "jenissurat": surat.jenissurat.replace("_", " "),
             "statussurat": surat.statussurat,
         }
         for surat in all_surat
     ]
 
+    # Kirim data ke template HTML
     return render_template(
         "surat/list_surat.html",
         messages=message_list_to_display,
@@ -849,92 +865,92 @@ def read_image_as_base64(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-nomor_surat_counter = 1
-nomor_surat_pengantar_counter = 1
+# nomor_surat_counter = 1
+# nomor_surat_pengantar_counter = 1
 
 
-@app.route("/download_surat_pdf/<int:surat_id>", methods=["GET"])
-def download_surat_pdf(surat_id):
-    # Ambil data surat berdasarkan surat_id
-    surat = SuratPengantar.query.get(surat_id)
-    if not surat:
-        return "Surat tidak ditemukan", 404
+# @app.route("/download_surat_pdf/<int:surat_id>", methods=["GET"])
+# def download_surat_pdf(surat_id):
+#     # Ambil data surat berdasarkan surat_id
+#     surat = SuratPengantar.query.get(surat_id)
+#     if not surat:
+#         return "Surat tidak ditemukan", 404
 
-    # Cetak nilai jenissurat untuk debugging
-    # print(f"Jenis surat: {surat.jenissurat}")
+#     # Cetak nilai jenissurat untuk debugging
+#     # print(f"Jenis surat: {surat.jenissurat}")
 
-    # Tentukan jalur absolut gambar
-    logo_url = os.path.join(current_app.root_path, "static/img/logo/depok.png")
-    ttd_url = os.path.join(current_app.root_path, "static/img/logo/ttd2.png")
-    today = datetime.now().strftime("Pasir Gunung Selatan, %d %B %Y")
-    global nomor_surat_counter
-    global nomor_surat_pengantar_counter
+#     # Tentukan jalur absolut gambar
+#     logo_url = os.path.join(current_app.root_path, "static/img/logo/depok.png")
+#     ttd_url = os.path.join(current_app.root_path, "static/img/logo/ttd2.png")
+#     today = datetime.now().strftime("Pasir Gunung Selatan, %d %B %Y")
+#     global nomor_surat_counter
+#     global nomor_surat_pengantar_counter
 
-    # Buat format nomor surat otomatis
-    nomor_surat = f"SKD-{nomor_surat_counter:02d}/RT-08/01/2024"
+#     # Buat format nomor surat otomatis
+#     nomor_surat = f"SKD-{nomor_surat_counter:02d}/RT-08/01/2024"
 
-    # Setelah nomor dibuat, increment counter
-    nomor_surat_counter += 1
+#     # Setelah nomor dibuat, increment counter
+#     nomor_surat_counter += 1
 
-    nomor_surat_pengantar = f"SP-{nomor_surat_pengantar_counter:02d}/RT-08/01/2024"
+#     nomor_surat_pengantar = f"SP-{nomor_surat_pengantar_counter:02d}/RT-08/01/2024"
 
-    # Setelah nomor dibuat, increment counter
-    nomor_surat_pengantar_counter += 1
+#     # Setelah nomor dibuat, increment counter
+#     nomor_surat_pengantar_counter += 1
 
-    # Tentukan template berdasarkan jenis surat
-    if surat.jenissurat == "surat_keterangan_domisili":
-        template = "surat/template_surat_domisili.html"
-    elif surat.jenissurat == "surat_pengantar":
-        template = "surat/template_surat_pengantar.html"
-    elif surat.jenissurat == "surat_pernyataan_tidak_mampu":
-        template = "surat/template_surat_tidak_mampu.html"
-    elif surat.jenissurat == "surat_pernyataan_belum_menikah":
-        template = "surat/template_surat_belum_menikah.html"
-    else:
-        # app.logger.error(f"Jenis surat tidak dikenal: {surat.jenissurat}")
-        return "Jenis surat tidak dikenal", 400
+#     # Tentukan template berdasarkan jenis surat
+#     if surat.jenissurat == "surat_keterangan_domisili":
+#         template = "surat/template_surat_domisili.html"
+#     elif surat.jenissurat == "surat_pengantar":
+#         template = "surat/template_surat_pengantar.html"
+#     elif surat.jenissurat == "surat_pernyataan_tidak_mampu":
+#         template = "surat/template_surat_tidak_mampu.html"
+#     elif surat.jenissurat == "surat_pernyataan_belum_menikah":
+#         template = "surat/template_surat_belum_menikah.html"
+#     else:
+#         # app.logger.error(f"Jenis surat tidak dikenal: {surat.jenissurat}")
+#         return "Jenis surat tidak dikenal", 400
 
-    # Cetak template yang akan digunakan
-    # print(f"Template yang digunakan: {template}")
+#     # Cetak template yang akan digunakan
+#     # print(f"Template yang digunakan: {template}")
 
-    try:
-        # Render template HTML dengan data surat
-        rendered_template = render_template(
-            template,
-            nama=surat.nama,
-            tempat_lahir=surat.tempatlahir,
-            tanggal=surat.tanggal,
-            jeniskelamin=surat.jeniskelamin,
-            agama=surat.agama,
-            pekerjaan=surat.pekerjaan,
-            ktp=surat.ktp,
-            alamat=surat.alamatktp,
-            statusperkawinan=surat.statusperkawinan,
-            tujuan=surat.tujuan,
-            logo_url=logo_url,
-            ttd_url=ttd_url,
-            today=today,
-            nomor_surat=nomor_surat,
-            nomor_surat_pengantar=nomor_surat_pengantar,
-        )
-    except NotFound:
-        # app.logger.error(f"Template tidak ditemukan: {template}")
-        return "Template tidak ditemukan", 500
+#     try:
+#         # Render template HTML dengan data surat
+#         rendered_template = render_template(
+#             template,
+#             nama=surat.nama,
+#             tempat_lahir=surat.tempatlahir,
+#             tanggal=surat.tanggal,
+#             jeniskelamin=surat.jeniskelamin,
+#             agama=surat.agama,
+#             pekerjaan=surat.pekerjaan,
+#             ktp=surat.ktp,
+#             alamat=surat.alamatktp,
+#             statusperkawinan=surat.statusperkawinan,
+#             tujuan=surat.tujuan,
+#             logo_url=logo_url,
+#             ttd_url=ttd_url,
+#             today=today,
+#             nomor_surat=nomor_surat,
+#             nomor_surat_pengantar=nomor_surat_pengantar,
+#         )
+#     except NotFound:
+#         # app.logger.error(f"Template tidak ditemukan: {template}")
+#         return "Template tidak ditemukan", 500
 
-    # Tentukan base_url
-    base_url = os.path.abspath(current_app.root_path)
+#     # Tentukan base_url
+#     base_url = os.path.abspath(current_app.root_path)
 
-    # Konversi HTML ke PDF menggunakan WeasyPrint
-    pdf_file = HTML(string=rendered_template, base_url=base_url).write_pdf()
+#     # Konversi HTML ke PDF menggunakan WeasyPrint
+#     pdf_file = HTML(string=rendered_template, base_url=base_url).write_pdf()
 
-    # Mengirim file sebagai unduhan, nama file mengikuti jenis surat
-    response = make_response(pdf_file)
-    response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = (
-        f"attachment; filename={surat.jenissurat}_{surat.nama}.pdf"
-    )
+#     # Mengirim file sebagai unduhan, nama file mengikuti jenis surat
+#     response = make_response(pdf_file)
+#     response.headers["Content-Type"] = "application/pdf"
+#     response.headers["Content-Disposition"] = (
+#         f"attachment; filename={surat.jenissurat}_{surat.nama}.pdf"
+#     )
 
-    return response
+#     return response
 
 
 @app.route("/lihat_surat/<int:sid>")
@@ -967,7 +983,12 @@ def verifikasi_iuran():
         {
             "message": msg.message,
             "user": msg.user,
-            "nomor_whatsapp": msg.nomor_whatsapp,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
             "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
@@ -1007,7 +1028,12 @@ def statistik_iuran():
         {
             "message": msg.message,
             "user": msg.user,
-            "nomor_whatsapp": msg.nomor_whatsapp,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
             "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
@@ -1127,7 +1153,12 @@ def laporan():
         {
             "message": msg.message,
             "user": msg.user,
-            "nomor_whatsapp": msg.nomor_whatsapp,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
             "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
@@ -1241,7 +1272,12 @@ def pengguna():
         {
             "message": msg.message,
             "user": msg.user,
-            "nomor_whatsapp": msg.nomor_whatsapp,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
             "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
