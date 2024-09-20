@@ -9,4 +9,3 @@ apscheduler==3.10.1
 pandas
 openpyxl
 supabase
-weasyprint==62.3

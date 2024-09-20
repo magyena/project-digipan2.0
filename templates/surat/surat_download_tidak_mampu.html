@@ -474,7 +474,7 @@
     </p>
     <p>
         <span class="label">Alamat Sesuai KTP</span>
-        <span class="value">:&nbsp;&nbsp;{{ surat.alamatktp }}</span>
+        <span class="value">:&nbsp;{{ surat.alamatktp }}</span>
     </p>
     <br>
     <div class="isisurat2">
@@ -495,7 +495,7 @@
             <p style="margin-right: 10px;margin-top: 40px; margin-left: -10px;">Saksi - Saksi</p>
         </div>
         <p style="margin-top: 75px;margin-left: -10px;">Ketua RT 08 RW 01</p>
-          <img src="{{ url_for('static', filename='ttd2.png') }}" alt="Foto Ketua RT" style="width: 120px; height: 100px;">
+          <img src="{{ url_for('static', filename='img/logo/ttd2.png') }}" alt="Foto Ketua RT" style="width: 120px; height: 100px;">
         <p style="margin-top: 20px; margin-left: -10px;">Ketua RW</p>
     </div>
     
@@ -638,7 +638,7 @@
         signatureSection.style.display = 'block';
 
         // Redirect setelah unduh
-        window.location.href = "{{ url_for('list_surat_tidak_mampu') }}";
+        window.location.href = "{{ url_for('surat') }}";
     });
 }
     </script>
