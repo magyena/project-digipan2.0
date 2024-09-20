@@ -15,6 +15,7 @@ from flask import (
     send_file,
     make_response,
 )
+from urllib.parse import unquote
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask import current_app
 from reportlab.lib.units import inch
@@ -669,23 +670,24 @@ def keluarga():
 
 @app.route("/get_family_details/<nama_keluarga>")
 def get_family_details(nama_keluarga):
-    # Menghapus spasi tambahan di nama keluarga
-    nama_keluarga = nama_keluarga.strip()
+    # Menghilangkan encoding URL (%20) untuk memastikan spasi diterjemahkan dengan benar
+    nama_keluarga = unquote(nama_keluarga).strip()
 
-    # Query dengan menghapus spasi ekstra di database
+    # Query dengan memastikan spasi tambahan dihilangkan
     family_details = Family.query.filter(
         func.trim(Family.nama_keluarga) == nama_keluarga
     ).all()
 
+    if not family_details:
+        return jsonify({"error": "Family not found"}), 404
+
     family_data = [
         {
-            "id": member.id,  # Tambahkan ID untuk pengeditan
+            "id": member.id,
             "nama_keluarga": member.nama_keluarga,
             "nama": member.nama,
             "tempat_lahir": member.tempat_lahir,
-            "tanggal_lahir": member.tanggal_lahir.strftime(
-                "%Y-%m-%d"
-            ),  # Formatkan tanggal
+            "tanggal_lahir": member.tanggal_lahir.strftime("%Y-%m-%d"),
             "nomor_keluarga": member.nomor_keluarga,
             "hubungan_keluarga": member.hubungan_keluarga,
         }
