@@ -51,20 +51,20 @@
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTable" aria-expanded="true"
           aria-controls="collapseTable">
           <i class="fas fa-fw fa-table"></i>
-          <span>Tables</span>
+          <span>Iuran</span>
         </a>
         <div id="collapseTable" class="collapse" aria-labelledby="headingTable" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Tables</h6>
-            <a class="collapse-item" href="simple-tables.html">Simple Tables</a>
-            <a class="collapse-item" href="datatables.html">DataTables</a>
+            <h6 class="collapse-header">Iuran</h6>
+            <a class="collapse-item" href="/verifikasi-iuran">Verifikasi Iuran</a>
+            <a class="collapse-item" href="/statistik-iuran">Statistik Iuran</a>
           </div>
         </div>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="ui-colors.html">
-          <i class="fas fa-fw fa-palette"></i>
-          <span>UI Colors</span>
+        <a class="nav-link" href="{{ url_for('laporan') }}">
+          <i class="fab fa-fw fa-wpforms"></i>
+          <span>Laporan</span>
         </a>
       </li>
       <hr class="sidebar-divider">
@@ -366,7 +366,7 @@
                   <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                       <div class="text-xs font-weight-bold text-uppercase mb-1">Total Iuran</div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800">{{total_iuran}}</div>
+                      <div class="h5 mb-0 font-weight-bold text-gray-800">Rp {{total_iuran}}</div>
                       <div class="mt-2 mb-0 text-muted text-xs">
                         <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> Update Terakhir</span>
                         <span>{{ current_datetime }}</span>

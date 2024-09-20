@@ -43,7 +43,10 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 import textwrap
 import base64
-
+from sqlalchemy import extract
+from dateutil.relativedelta import relativedelta
+import calendar
+import pandas as pd
 
 pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", "static/font/Times-Bold.TTF"))
 
@@ -250,6 +253,11 @@ def format_rupiah(value):
     return f"{value:,.0f}".replace(
         ",", "."
     )  # Menggunakan format koma sebagai titik pemisah ribuan
+
+    # Daftarkan filter format rupiah di Flask
+
+
+app.jinja_env.filters["rupiah"] = format_rupiah
 
 
 @app.route("/dashboard")
@@ -926,6 +934,228 @@ def download_surat_pdf(surat_id):
     )
 
     return response
+
+
+# Route untuk halaman verifikasi iuran
+@app.route("/verifikasi-iuran")
+def verifikasi_iuran():
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("login"))
+
+    # Ambil semua data iuran dari database
+    iuran_list = Iuran.query.all()
+    return render_template("iuran/verifikasi_iuran.html", iuran_list=iuran_list)
+
+
+@app.route("/update_status_iuran/<int:iuran_id>", methods=["POST"])
+def update_status_iuran(iuran_id):
+    iuran = Iuran.query.get_or_404(iuran_id)  # Dapatkan data iuran berdasarkan ID
+    if iuran.status_pembayaran == "Menunggu":
+        iuran.status_pembayaran = "Diterima"  # Ubah status menjadi "Lunas"
+        db.session.commit()  # Simpan perubahan ke database
+        flash("Iuran telah Diterima!", "success")
+    return redirect(url_for("verifikasi_iuran"))  # Arahkan ulang ke halaman verifikasi
+
+
+# Route untuk halaman verifikasi iuran
+@app.route("/statistik-iuran")
+def statistik_iuran():
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("login"))
+    # Mendapatkan parameter tahun dari query string (atau gunakan tahun ini secara default)
+    year = request.args.get("year", default=datetime.today().year, type=int)
+
+    # Menghasilkan daftar tahun 3 tahun ke belakang dan 3 tahun ke depan
+    available_years = [
+        datetime.today().year - 3 + i for i in range(7)
+    ]  # Daftar tahun dari 3 tahun ke belakang hingga 3 tahun ke depan
+
+    # Query data dengan status pembayaran 'Diterima' untuk tahun yang dipilih
+    data_iuran = Iuran.query.filter(
+        extract("year", Iuran.tanggal) == year, Iuran.status_pembayaran == "Diterima"
+    ).all()
+    # Menghitung total iuran
+    total_iuran = (
+        db.session.query(func.sum(Iuran.jumlah_iuran))
+        .filter(Iuran.status_pembayaran == "Diterima")
+        .scalar()
+    )
+    total_iuran = total_iuran or 0
+
+    # Format total iuran ke dalam format '60.000'
+    total_iuran_diterima_formatted = format_rupiah(total_iuran)
+    current_datetime = datetime.now().strftime("%m/%d/%Y, %I:%M %p")
+    # Memformat data agar bisa digunakan di chart
+    iuran_per_bulan = {
+        bulan: 0
+        for bulan in [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember",
+        ]
+    }
+
+    # Mengisi data iuran ke dictionary iuran_per_bulan
+    for iuran in data_iuran:
+        bulan = iuran.tanggal.strftime(
+            "%B"
+        )  # Mendapatkan nama bulan dalam bahasa Inggris
+        # Ubah nama bulan menjadi bahasa Indonesia
+        bulan_indonesia = {
+            "January": "Januari",
+            "February": "Februari",
+            "March": "Maret",
+            "April": "April",
+            "May": "Mei",
+            "June": "Juni",
+            "July": "Juli",
+            "August": "Agustus",
+            "September": "September",
+            "October": "Oktober",
+            "November": "November",
+            "December": "Desember",
+        }.get(
+            bulan
+        )  # Mengambil nama bulan dalam bahasa Indonesia
+
+        if bulan_indonesia:
+            iuran_per_bulan[bulan_indonesia] += iuran.jumlah_iuran
+
+    # Mengambil labels dan values dari dictionary
+    iuran_labels = list(iuran_per_bulan.keys())
+    iuran_values = list(iuran_per_bulan.values())
+
+    return render_template(
+        "iuran/statistik_iuran.html",
+        iuran_labels=iuran_labels,
+        iuran_values=iuran_values,
+        total_iuran=total_iuran_diterima_formatted,
+        current_datetime=current_datetime,
+        selected_year=year,  # Mengirim tahun yang dipilih ke template
+        available_years=available_years,  # Mengirim daftar tahun yang tersedia ke template
+    )
+
+
+@app.route("/statistik-iuran-data")
+def statistik_iuran_data():
+    year = request.args.get("year", type=int)
+    # Ambil data berdasarkan tahun dari database
+    iuran_list = Iuran.query.filter(extract("year", Iuran.tanggal) == year).all()
+
+    # Siapkan data untuk grafik
+    labels = [iuran.nama_keluarga for iuran in iuran_list]
+    values = [iuran.jumlah_iuran for iuran in iuran_list]
+
+    data = {"labels": labels, "values": values}
+
+    return jsonify(data)
+
+
+# Route untuk halaman verifikasi iuran
+@app.route("/laporan")
+def laporan():
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("login"))
+
+    # Ambil semua data iuran dari database
+    iuran_list = Iuran.query.all()
+    return render_template("laporan/laporan.html", iuran_list=iuran_list)
+
+
+@app.route("/generate_report", methods=["POST"])
+def generate_report():
+    report_type = request.form.get("report_type")
+    status_pembayaran = request.form.get("status_pembayaran")
+
+    if report_type == "keluarga":
+        return generate_family_report()
+    elif report_type == "keuangan":
+        return generate_financial_report()
+    else:
+        # Tangani kasus jika tidak ada laporan yang dipilih
+        return "Invalid report type", 400
+
+
+@app.route("/generate_family_report", methods=["POST"])
+def generate_family_report():
+    query = db.session.query(Family).all()
+
+    # Menambahkan hubungan_keluarga ke data laporan
+    laporan_data = [
+        {
+            "Nama Keluarga": family.nama_keluarga,
+            "Nama Anggota": family.nama,
+            "Hubungan Keluarga": family.hubungan_keluarga,
+        }
+        for family in query
+    ]
+
+    df = pd.DataFrame(laporan_data)
+
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        df.to_excel(writer, sheet_name="Laporan Keluarga", index=False)
+
+    output.seek(0)
+
+    return send_file(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name="laporan_keluarga.xlsx",
+    )
+
+
+@app.route("/generate_financial_report", methods=["POST"])
+def generate_financial_report():
+    # Ambil status pembayaran dari form, tetapi kita akan fokus pada "Diterima"
+    status_pembayaran = "Diterima"
+
+    # Query untuk mengambil data dari tabel Iuran dengan status "Diterima"
+    query = db.session.query(Iuran).filter(Iuran.status_pembayaran == status_pembayaran)
+
+    data = query.all()
+
+    laporan_data = []
+
+    for iuran in data:
+        laporan_data.append(
+            {
+                "Nama Keluarga": iuran.nama_keluarga,
+                "Jumlah Iuran": iuran.jumlah_iuran,
+                "Tanggal Pembayaran": iuran.tanggal,
+            }
+        )
+
+    # Buat DataFrame dengan kolom yang diperlukan
+    df = pd.DataFrame(
+        laporan_data, columns=["Nama Keluarga", "Jumlah Iuran", "Tanggal Pembayaran"]
+    )
+
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        df.to_excel(writer, sheet_name="Laporan Keuangan", index=False)
+
+    output.seek(0)
+
+    return send_file(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name="laporan_keuangan.xlsx",
+    )
 
 
 if __name__ == "__main__":
