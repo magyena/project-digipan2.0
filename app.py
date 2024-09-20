@@ -1170,7 +1170,7 @@ def generate_family_report():
     df = pd.DataFrame(laporan_data)
 
     output = BytesIO()
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df.to_excel(writer, sheet_name="Laporan Keluarga", index=False)
 
     output.seek(0)
@@ -1210,7 +1210,7 @@ def generate_financial_report():
     )
 
     output = BytesIO()
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df.to_excel(writer, sheet_name="Laporan Keuangan", index=False)
 
     output.seek(0)
