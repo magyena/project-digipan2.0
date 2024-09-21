@@ -46,6 +46,7 @@ import base64
 from sqlalchemy import extract
 from dateutil.relativedelta import relativedelta
 import calendar
+import pytz
 import pandas as pd
 
 pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", "static/font/Times-Bold.TTF"))
@@ -147,7 +148,9 @@ class Message(db.Model):
     user = db.Column(db.String(150), nullable=False)
     nomor_whatsapp = db.Column(db.String(15), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(
+        db.DateTime, default=lambda: datetime.now(pytz.timezone("Asia/Jakarta"))
+    )
 
     def __init__(
         self,
@@ -202,7 +205,9 @@ class Message(db.Model):
         self.user = user
         self.nomor_whatsapp = nomor_whatsapp
         self.message = message
-        self.timestamp = timestamp if timestamp else datetime.now()
+        self.timestamp = (
+            timestamp if timestamp else datetime.now(pytz.timezone("Asia/Jakarta"))
+        )
 
 
 def __init__(self, username, password):
@@ -317,7 +322,9 @@ def dashboard():
                 if msg.nomor_whatsapp.startswith("0")
                 else msg.nomor_whatsapp
             ),
-            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
     ]
@@ -331,8 +338,8 @@ def dashboard():
         }
         for msg in more_messages
     ]
-
-    current_datetime = datetime.now().strftime(
+    jakarta_tz = pytz.timezone("Asia/Jakarta")
+    current_datetime = datetime.now(jakarta_tz).strftime(
         "%m/%d/%Y, %I:%M %p"
     )  # Formatkan sesuai kebutuhan
 
@@ -668,7 +675,9 @@ def keluarga():
                 if msg.nomor_whatsapp.startswith("0")
                 else msg.nomor_whatsapp
             ),
-            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
     ]
@@ -807,7 +816,9 @@ def surat():
                 if msg.nomor_whatsapp.startswith("0")
                 else msg.nomor_whatsapp
             ),
-            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
     ]
@@ -989,7 +1000,9 @@ def verifikasi_iuran():
                 if msg.nomor_whatsapp.startswith("0")
                 else msg.nomor_whatsapp
             ),
-            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
     ]
@@ -1034,7 +1047,9 @@ def statistik_iuran():
                 if msg.nomor_whatsapp.startswith("0")
                 else msg.nomor_whatsapp
             ),
-            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
     ]
@@ -1060,7 +1075,10 @@ def statistik_iuran():
 
     # Format total iuran ke dalam format '60.000'
     total_iuran_diterima_formatted = format_rupiah(total_iuran)
-    current_datetime = datetime.now().strftime("%m/%d/%Y, %I:%M %p")
+    jakarta_tz = pytz.timezone("Asia/Jakarta")
+    current_datetime = datetime.now(jakarta_tz).strftime(
+        "%m/%d/%Y, %I:%M %p"
+    )  # Formatkan sesuai kebutuhan
     # Memformat data agar bisa digunakan di chart
     iuran_per_bulan = {
         bulan: 0
@@ -1159,7 +1177,9 @@ def laporan():
                 if msg.nomor_whatsapp.startswith("0")
                 else msg.nomor_whatsapp
             ),
-            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
     ]
@@ -1278,7 +1298,9 @@ def pengguna():
                 if msg.nomor_whatsapp.startswith("0")
                 else msg.nomor_whatsapp
             ),
-            "timestamp": msg.timestamp.strftime("%d %b %Y · %H:%M"),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
         }
         for msg in messages_to_display
     ]
