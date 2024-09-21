@@ -84,4 +84,57 @@ document.querySelectorAll('.customer-message').forEach(function(item) {
         });
  });
     
- 
+ function fetchNotifications() {
+        fetch('/get_latest_iuran_notifications')
+            .then(response => response.json())
+            .then(data => {
+                const notificationList = document.getElementById('notification-items');
+                notificationList.innerHTML = ''; // Clear previous notifications
+                let count = 0;
+
+                data.forEach(item => {
+                    const alertItem = `
+                        <a class="dropdown-item d-flex align-items-center" href="${item.url}">
+                            <div class="mr-3">
+                                <div class="icon-circle bg-success">
+                                    <i class="fas fa-donate text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="small text-gray-500">${item.tanggal}</div>
+                                <span class="font-weight-bold">${item.nama_keluarga} telah melakukan pembayaran sebesar Rp.${item.jumlah_iuran}. Status: ${item.status}</span>
+                            </div>
+                        </a>`;
+                    notificationList.innerHTML += alertItem;
+                    count++;
+                });
+
+                // Update the notification count
+                document.getElementById('notification-count').innerText = count > 0 ? count : '';
+            });
+ }
+    
+ // Fungsi untuk mengambil jumlah notifikasi
+    function fetchNotificationCount() {
+        fetch('/get_notification_count')
+            .then(response => response.json())
+            .then(data => {
+                const notificationCountElement = document.getElementById('notification-count');
+                const count = data.count;
+                
+                // Jika ada notifikasi, tampilkan jumlah, jika tidak, kosongkan
+                if (count > 0) {
+                    notificationCountElement.innerText = count > 9 ? "9+" : count; // Maksimal tampilkan "9+"
+                } else {
+                    notificationCountElement.innerText = ''; // Kosongkan jika tidak ada notifikasi
+                }
+            });
+    }
+
+    // Panggil fungsi ini saat halaman dimuat
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchNotificationCount();
+    });
+
+    // Panggil fungsi ini secara berkala (misalnya, setiap 30 detik untuk memeriksa notifikasi baru)
+    setInterval(fetchNotificationCount, 5000); // 30 detik

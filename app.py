@@ -1346,5 +1346,37 @@ def add_user():
     return render_template("pengguna.html")
 
 
+@app.route("/get_latest_iuran_notifications", methods=["GET"])
+def get_latest_iuran_notifications():
+    # Filter data iuran dengan status pembayaran "Menunggu"
+    latest_iuran = (
+        Iuran.query.filter_by(status_pembayaran="Menunggu")
+        .order_by(Iuran.tanggal.desc())
+        .limit(5)
+        .all()
+    )
+
+    notifications = []
+
+    for iuran in latest_iuran:
+        notifications.append(
+            {
+                "nama_keluarga": iuran.nama_keluarga,
+                "jumlah_iuran": iuran.jumlah_iuran,
+                "tanggal": iuran.tanggal.strftime("%B %d, %Y"),
+                "status": iuran.status_pembayaran,
+                "url": url_for("verifikasi_iuran"),
+            }
+        )
+
+    return jsonify(notifications)
+
+
+@app.route("/get_notification_count", methods=["GET"])
+def get_notification_count():
+    count = Iuran.query.filter_by(status_pembayaran="Menunggu").count()
+    return jsonify({"count": count})
+
+
 if __name__ == "__main__":
     app.run(debug=True)
