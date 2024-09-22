@@ -253,6 +253,31 @@ def logout():
     return redirect(url_for("login"))
 
 
+# schduler setiap hari
+@app.route("/run-scheduler", methods=["GET"])
+def run_scheduler():
+    try:
+        # Hitung jumlah nama keluarga
+        count_nama_keluarga = db.session.query(Family.nama_keluarga).distinct().count()
+
+        # Buat log entri
+        log_entry = SchedulerLog(
+            execution_time=datetime.utcnow(),
+            status="success",
+            message=f"Jumlah nama keluarga: {count_nama_keluarga}",
+        )
+        db.session.add(log_entry)
+        db.session.commit()
+
+        return (
+            jsonify({"status": "success", "message": "Scheduler ran successfully."}),
+            200,
+        )
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 def format_rupiah(value):
     """Format nilai menjadi rupiah dengan pemisah ribuan (misalnya, 60000 menjadi '60.000')."""
     return f"{value:,.0f}".replace(
