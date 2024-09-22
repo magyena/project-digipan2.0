@@ -2,7 +2,7 @@ name: Scheduler
 
 on:
   schedule:
-    - cron: "15 7 * * *" # Setiap hari pada jam 14:10 waktu Jakarta (UTC+7), yaitu jam 07:10 pagi UTC
+    - cron: "20 13 * * *" # Setiap hari pada jam 14:10 waktu Jakarta (UTC+7), yaitu jam 07:10 pagi UTC
 
 jobs:
   run-scheduler:
