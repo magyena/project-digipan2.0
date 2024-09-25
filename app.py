@@ -287,6 +287,11 @@ def format_rupiah(value):
     # Daftarkan filter format rupiah di Flask
 
 
+@app.route("/google9f984f41c701cb34.html")
+def verify_google():
+    return send_from_directory("templates", "google9f984f41c701cb34.html")
+
+
 app.jinja_env.filters["rupiah"] = format_rupiah
 
 
