@@ -113,28 +113,30 @@ document.querySelectorAll('.customer-message').forEach(function(item) {
                 document.getElementById('notification-count').innerText = count > 0 ? count : '';
             });
  }
-    
- // Fungsi untuk mengambil jumlah notifikasi
-    function fetchNotificationCount() {
-        fetch('/get_notification_count')
-            .then(response => response.json())
-            .then(data => {
-                const notificationCountElement = document.getElementById('notification-count');
-                const count = data.count;
-                
-                // Jika ada notifikasi, tampilkan jumlah, jika tidak, kosongkan
-                if (count > 0) {
-                    notificationCountElement.innerText = count > 9 ? "9+" : count; // Maksimal tampilkan "9+"
-                } else {
-                    notificationCountElement.innerText = ''; // Kosongkan jika tidak ada notifikasi
-                }
-            });
-    }
+    // Fungsi untuk mengambil jumlah notifikasi
+function fetchNotificationCount() {
+    fetch('/get_notification_count')
+        .then(response => response.json())
+        .then(data => {
+            const notificationCountElement = document.getElementById('notification-count');
+            const count = data.count;
 
-    // Panggil fungsi ini saat halaman dimuat
-    document.addEventListener("DOMContentLoaded", function() {
-        fetchNotificationCount();
-    });
+            // Batasi tampilan jumlah notifikasi hingga maksimum 5
+            const displayCount = count > 5 ? "5" : count;
+            
+            // Jika ada notifikasi, tampilkan jumlah, jika tidak, kosongkan
+            if (count > 0) {
+                notificationCountElement.innerText = displayCount; // Tampilkan jumlah yang dibatasi
+            } else {
+                notificationCountElement.innerText = ''; // Kosongkan jika tidak ada notifikasi
+            }
+        });
+}
 
-    // Panggil fungsi ini secara berkala (misalnya, setiap 30 detik untuk memeriksa notifikasi baru)
-    setInterval(fetchNotificationCount, 5000); // 30 detik
+// Panggil fungsi ini saat halaman dimuat
+document.addEventListener("DOMContentLoaded", function() {
+    fetchNotificationCount();
+});
+
+// Panggil fungsi ini secara berkala (misalnya, setiap 30 detik untuk memeriksa notifikasi baru)
+setInterval(fetchNotificationCount, 30000); // 30 detik
