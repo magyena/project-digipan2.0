@@ -27,7 +27,8 @@ $(document).ready(function() {
             detailsHtml += '<div class="family-detail"><strong>Tempat Lahir:</strong> ' + member.tempat_lahir + '</div>';
             detailsHtml += '<div class="family-detail"><strong>Tanggal Lahir:</strong> ' + member.tanggal_lahir + '</div>';
             detailsHtml += '<div class="family-detail"><strong>Nomor Keluarga:</strong> ' + member.nomor_keluarga + '</div>';
-            detailsHtml += '<div class="family-detail"><strong>Hubungan Keluarga:</strong> ' + member.hubungan_keluarga + '</div>';
+            var hubunganKeluargaFormatted = member.hubungan_keluarga.replace('_', ' ');
+            detailsHtml += '<div class="family-detail"><strong>Hubungan Keluarga:</strong> ' + hubunganKeluargaFormatted + '</div>';
             detailsHtml += '<hr>';
           } else {
             // Menyembunyikan detail yang lebih dari 2
@@ -36,7 +37,8 @@ $(document).ready(function() {
             detailsHtml += '<div class="family-detail d-none"><strong>Tempat Lahir:</strong> ' + member.tempat_lahir + '</div>';
             detailsHtml += '<div class="family-detail d-none"><strong>Tanggal Lahir:</strong> ' + member.tanggal_lahir + '</div>';
             detailsHtml += '<div class="family-detail d-none"><strong>Nomor Keluarga:</strong> ' + member.nomor_keluarga + '</div>';
-            detailsHtml += '<div class="family-detail d-none"><strong>Hubungan Keluarga:</strong> ' + member.hubungan_keluarga + '</div>';
+             var hubunganKeluargaFormatted = member.hubungan_keluarga.replace('_', ' ');
+            detailsHtml += '<div class="family-detail d-none"><strong>Hubungan Keluarga:</strong> ' + hubunganKeluargaFormatted + '</div>';
             detailsHtml += '<hr>';
           }
         });
