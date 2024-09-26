@@ -25,7 +25,7 @@ from textwrap import fill, wrap
 from werkzeug.exceptions import NotFound
 from io import BytesIO
 from urllib.parse import unquote
-from sqlalchemy import func
+from sqlalchemy import func, case
 from werkzeug.utils import secure_filename
 from supabase import create_client, Client
 import logging
@@ -686,8 +686,24 @@ def keluarga():
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
 
-    # Mengambil nama keluarga unik (distinct) setelah mengabaikan spasi
-    families = db.session.query(func.trim(Family.nama_keluarga)).distinct().all()
+    # Mengambil nama keluarga unik dengan jumlah anak dan istri
+    families = (
+        db.session.query(
+            func.trim(Family.nama_keluarga).label(
+                "nama_keluarga"
+            ),  # Menghapus spasi dari nama keluarga
+            func.sum(case((Family.hubungan_keluarga == "anak", 1), else_=0)).label(
+                "jumlah_anak"
+            ),  # Hanya hitung anak
+            func.sum(case((Family.hubungan_keluarga == "istri", 1), else_=0)).label(
+                "jumlah_istri"
+            ),  # Hanya hitung istri
+        )
+        .group_by(
+            func.trim(Family.nama_keluarga)
+        )  # Mengelompokkan berdasarkan nama keluarga yang telah di-trim
+        .all()
+    )
 
     all_messages = Message.query.order_by(Message.timestamp.desc()).all()
 
