@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
     <title>DIGIPAN | Formulir Iuran </title>
     <!-- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <link href="static/img/logo/2.png" rel="icon">
     <style>
         body {
@@ -161,19 +164,24 @@
     min-width: 80px; /* Pastikan lebar tombol cukup */
     border-radius: 5px; /* Sesuaikan radius border jika perlu */
 }
+.no-results-message {
+    color: red; /* Ganti dengan warna yang Anda inginkan */
+    font-weight: bold; /* Opsional: mengubah ketebalan teks */
+}
 
     </style>
 </head>
 <body>
   <form id="family-form" method="post" action="{{ url_for('kirim_iuran') }}" enctype="multipart/form-data">
     <h1>Formulir Iuran</h1>
-    <label for="nama_keluarga">Nama Keluarga:</label>
+   <label for="nama_keluarga">Nama Keluarga:</label>
     <select name="nama_keluarga" id="nama_keluarga" required>
-    <option value="">Pilih Nama Keluarga</option>
-    {% for item in nama_keluarga %}
-        <option value="{{ item[0] }}">{{ item[0] }}</option>
-    {% endfor %}
+        <option value="">Pilih Nama Keluarga</option>
+        {% for item in nama_keluarga %}
+            <option value="{{ item[0] }}">{{ item[0] }}</option>
+        {% endfor %}
     </select>
+
 
     <label for="jumlah">Jumlah Iuran:</label>
     <input type="text" id="jumlah" name="jumlah" placeholder="Jumlah Iuran" required>
@@ -192,6 +200,21 @@
 </form>
 
     <script>
+
+  $(document).ready(function() {
+    $('#nama_keluarga').select2({
+        placeholder: "Pilih Nama Keluarga",  // Placeholder dropdown sebelum dipilih
+        language: {
+            searchPlaceholder: "Cari Nama Keluarga",  // Placeholder di kotak pencarian dropdown
+            noResults: function() {
+                return $("<div class='no-results-message'>Data keluarga tidak ditemukan !!</div>");  // Pesan yang ditampilkan jika tidak ada hasil pencarian
+            }
+        },
+        allowClear: true
+    });
+});
+
+
         document.getElementById('jumlah').addEventListener('input', function (e) {
     let value = e.target.value;
     // Hapus karakter selain angka
