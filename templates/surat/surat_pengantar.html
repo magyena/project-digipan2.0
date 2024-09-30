@@ -506,10 +506,10 @@ document.querySelector('form').addEventListener('submit', function(event) {
 });
 
 
-//  //hide klik kanan
-// document.addEventListener("contextmenu", function(e){
-//     e.preventDefault();
-// }, false);
+ //hide klik kanan
+document.addEventListener("contextmenu", function(e){
+    e.preventDefault();
+}, false);
 
 document.onkeydown = function(e) {
     if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {

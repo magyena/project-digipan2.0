@@ -252,61 +252,80 @@
     </style>
 </head>
 <body>
-    <form id="family-form" action="{{ url_for('input_data') }}" method="POST">
-        <h1>Formulir Data Keluarga</h1>
-         <div class="form-group">
+   <form id="family-form" action="{{ url_for('input_data') }}" method="POST">
+    <h1>Formulir Data Keluarga</h1>
+    <div class="form-group">
         <label for="nama_keluarga">Nama Keluarga:</label>
-        <input type="text" id="nama_keluarga" name="nama_keluarga" placeholder="*contoh : Keluarga Sitompul" required style="text-transform: uppercase;">
+        <input type="text" id="nama_keluarga" name="nama_keluarga" placeholder="*contoh : Keluarga Sitompul" style="text-transform: uppercase;">
         <small class="note">*Catatan: Nama Keluarga harus sama untuk setiap anggota keluarga</small>
     </div>
     <div id="error-message" style="display: none; color: red;"></div>
 
-        <div class="form-group">
-            <label for="nama">Nama Lengkap:</label>
-            <input type="text" id="nama" name="nama" placeholder="*contoh : Joko Widodo" required>
-        </div>
-        <div class="form-group">
-            <label for="tempat_lahir">Tempat Lahir:</label>
-            <input type="text" id="tempat_lahir" name="tempat_lahir" placeholder="*contoh : Bogor" required>
-        </div>
-        <div class="form-group">
-    <label for="tanggal_lahir">Tanggal Lahir:</label>
-    <input type="date" id="tanggal_lahir" name="tanggal_lahir" required onclick="this.showPicker();" onkeydown="return false;">
-        </div>
-        <div class="form-group">
-            <label for="nomor_keluarga">Nomor Keluarga:</label>
-            <input type="text" id="nomor_keluarga" name="nomor_keluarga" pattern="\d*" placeholder="*contoh : 0899992999">
-        </div>
-        <div class="form-group">
-            <label for="hubungan_keluarga">Hubungan Keluarga:</label>
-            <select id="hubungan_keluarga" name="hubungan_keluarga" required>
-                <option value="" disabled selected>Pilih Hubungan</option>
-                <option value="kepala_keluarga">KepalaKeluarga</option>
-                <option value="istri">Istri</option>
-                <option value="anak">Anak</option>
-            </select>
-        </div>
-        <button type="submit">
-            Kirim
-        </button>
-    </form>
+    <div class="form-group">
+        <label for="nama">Nama Lengkap:</label>
+        <input type="text" id="nama" name="nama" placeholder="*contoh : Joko Widodo">
+    </div>
+    <div class="form-group">
+        <label for="tempat_lahir">Tempat Lahir:</label>
+        <input type="text" id="tempat_lahir" name="tempat_lahir" placeholder="*contoh : Bogor">
+    </div>
+    <div class="form-group">
+        <label for="tanggal_lahir">Tanggal Lahir:</label>
+        <input type="date" id="tanggal_lahir" name="tanggal_lahir" onclick="this.showPicker();" onkeydown="return false;">
+    </div>
+    <div class="form-group">
+        <label for="nomor_keluarga">Nomor Keluarga:</label>
+        <input type="text" id="nomor_keluarga" name="nomor_keluarga" pattern="\d*" placeholder="*contoh : 0899992999">
+    </div>
+    <div class="form-group">
+        <label for="hubungan_keluarga">Hubungan Keluarga:</label>
+        <select id="hubungan_keluarga" name="hubungan_keluarga">
+            <option value="" disabled selected>Pilih Hubungan</option>
+            <option value="kepala_keluarga">Kepala Keluarga</option>
+            <option value="istri">Istri</option>
+            <option value="anak">Anak</option>
+        </select>
+    </div>
+    <button type="submit">Kirim</button>
+</form>
 
-    <!-- Spinner -->
-    <div class="spinner" id="loading-spinner"></div>
-    <div class="spinner-text" id="loading-text">Mengirim data, harap tunggu...</div>
+<!-- Spinner -->
+<div class="spinner" id="loading-spinner"></div>
+<div class="spinner-text" id="loading-text">Mengirim data, harap tunggu...</div>
 
-   <script>
-  document.getElementById('family-form').addEventListener('submit', function(event) {
+<script>
+document.getElementById('family-form').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission
-    let formData = new FormData(this);
+    let form = this;
+    let formData = new FormData(form);
     let spinner = document.getElementById('loading-spinner');
     let spinnerText = document.getElementById('loading-text');
+
+    // Validasi input sebelum submit
+    let namaKeluarga = document.getElementById('nama_keluarga').value.trim();
+    let nama = document.getElementById('nama').value.trim();
+    let tempatLahir = document.getElementById('tempat_lahir').value.trim();
+    let tanggalLahir = document.getElementById('tanggal_lahir').value;
+    let hubunganKeluarga = document.getElementById('hubungan_keluarga').value;
+
+    if (!namaKeluarga || !nama || !tempatLahir || !tanggalLahir || !hubunganKeluarga) {
+        Swal.fire({
+            title: 'Peringatan',
+            text: 'Semua field harus diisi!',
+            icon: 'warning',
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'swal2-confirm-custom'
+            }
+        });
+        return; // Stop form submission if validation fails
+    }
 
     // Show spinner and text
     spinner.style.display = 'block';
     spinnerText.style.display = 'block';
 
-    fetch(this.action, {
+    fetch(form.action, {
         method: 'POST',
         body: formData
     }).then(response => {
@@ -326,7 +345,7 @@
                     window.location.href = 'https://digiwarga.vercel.app/';
                 }
             });
-            this.reset(); // Reset the form
+            form.reset(); // Reset the form
         } else {
             return response.json().then(data => {
                 Swal.fire({
@@ -358,16 +377,14 @@
     });
 });
 
- //hide klik kanan
-document.addEventListener("contextmenu", function(e){
-    e.preventDefault();
-}, false);
+// // Hide right-click menu
+// document.addEventListener("contextmenu", function(e){
+//     e.preventDefault();
+// }, false);
 
 document.onkeydown = function(e) {
     if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {
         e.preventDefault();
     }
 };
-    </script>
-</body>
-</html>
+</script>
