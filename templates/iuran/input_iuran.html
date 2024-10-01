@@ -169,6 +169,82 @@
     font-weight: bold; /* Opsional: mengubah ketebalan teks */
 }
 
+/* Tampilan overlay yang transparan untuk fokus pada loading */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    display: none;
+}
+
+/* Styling untuk pop-up loading */
+#loading-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #1e1e1e;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    text-align: center;
+    z-index: 1000;
+    display: none; /* Tersembunyi secara default */
+    color: white;
+}
+
+/* Animasi gradient pada progress bar */
+#progress-bar-container {
+    width: 100%;
+    background: #333;
+    border-radius: 50px;
+    overflow: hidden;
+    height: 25px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-top: 20px;
+}
+
+#progress-bar {
+    height: 100%;
+    background: linear-gradient(270deg, #ffb703, #4CAF50);
+    background-size: 200% 200%;
+    width: 0; /* Mulai dari 0% */
+    transition: width 0.4s ease-in-out;
+    animation: gradientShift 3s ease infinite; /* Animasi bergerak */
+}
+
+/* Animasi pergerakan gradasi */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Styling untuk teks progres */
+#progress-text {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffb703;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Header teks loading */
+#loading-popup h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+
     </style>
 </head>
 <body>
@@ -198,24 +274,33 @@
     <div id="error-message" style="color: red;">{{ error }}</div>
     {% endif %}
 </form>
+<div id="loading-popup">
+    <h3>Sedang Memproses...</h3>
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
+    <div id="progress-text">0%</div>
+</div>
+<div id="overlay"></div>
+
+<!-- Optional: Overlay for Popup Background -->
+<div id="overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
 
     <script>
-
-  $(document).ready(function() {
+$(document).ready(function() {
     $('#nama_keluarga').select2({
-        placeholder: "Pilih Nama Keluarga",  // Placeholder dropdown sebelum dipilih
+        placeholder: "Pilih Nama Keluarga",
         language: {
-            searchPlaceholder: "Cari Nama Keluarga",  // Placeholder di kotak pencarian dropdown
+            searchPlaceholder: "Cari Nama Keluarga",
             noResults: function() {
-                return $("<div class='no-results-message'>Data keluarga tidak ditemukan !!</div>");  // Pesan yang ditampilkan jika tidak ada hasil pencarian
+                return $("<div class='no-results-message'>Data keluarga tidak ditemukan !!</div>");
             }
         },
         allowClear: true
     });
 });
 
-
-        document.getElementById('jumlah').addEventListener('input', function (e) {
+document.getElementById('jumlah').addEventListener('input', function(e) {
     let value = e.target.value;
     // Hapus karakter selain angka
     value = value.replace(/\D/g, '');
@@ -223,37 +308,78 @@
     value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     e.target.value = 'Rp ' + value;
 });
-        document.getElementById('family-form').addEventListener('submit', function(event) {
-            event.preventDefault(); // Mencegah pengiriman form secara default
-            let formData = new FormData(this);
-            let spinner = document.getElementById('loading-spinner');
-            let spinnerText = document.getElementById('loading-text');
 
-            // Tampilkan spinner dan teks loading
-            spinner.style.display = 'block';
-            spinnerText.style.display = 'block';
+document.getElementById('family-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Mencegah pengiriman form secara default
+    let formData = new FormData(this);
 
-            fetch(this.action, {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                if (response.ok) {
-                    Swal.fire({
-                        title: 'Sukses!',
-                        text: 'Terima Kasih Telah Mengisi Data',
-                        icon: 'success',
-                        confirmButtonText: 'OK',
-                        customClass: {
-                            confirmButton: 'swal2-confirm-custom'
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = 'https://digiwarga.vercel.app/';
-                        }
-                    });
-                    this.reset(); // Reset form setelah sukses
-                } else {
-                    return response.json().then(data => {
+    // Validasi input
+    const jumlahValue = document.getElementById('jumlah').value.replace('Rp ', '').replace(/\./g, '');
+    if (!jumlahValue || isNaN(jumlahValue)) {
+        Swal.fire({
+            title: 'Kesalahan',
+            text: 'Jumlah iuran harus diisi dengan benar.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            customClass: {
+                confirmButton: 'swal2-confirm-custom'
+            }
+        });
+        return; // Hentikan eksekusi jika validasi gagal
+    }
+
+    // Show loading popup and progress bar
+    const loadingPopup = document.getElementById('loading-popup');
+    const overlay = document.getElementById('overlay');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+
+    loadingPopup.style.display = 'block'; // Show popup
+    overlay.style.display = 'block'; // Show overlay
+
+    let progressValue = 0;
+
+    // Start the progress
+    let interval = setInterval(() => {
+        if (progressValue < 100) {
+            progressValue += 5; // Increase the progress by 5%
+            progressBar.style.width = progressValue + '%'; // Update the width of the progress bar
+            progressText.textContent = progressValue + '%'; // Update the text
+            if (progressValue >= 90) {
+                progressBar.style.background = '#4CAF50'; // Change to green when nearing completion
+            }
+        } else {
+            clearInterval(interval); // Clear the interval when reaching 100%
+
+            // Delay sebelum mengirim data
+            setTimeout(() => {
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    console.log('Response status:', response.status); // Log status code
+                    return response.json(); // Ambil respons sebagai JSON
+                }).then(data => {
+                    console.log('Response data:', data); // Log respons untuk debugging
+                    if (data && data.success) { // Periksa apakah respons berhasil
+                        this.reset(); // Reset the form
+
+                        // Tampilkan Swal sukses
+                        Swal.fire({
+                            title: 'Sukses!',
+                            text: 'Terima Kasih Telah Mengisi Data',
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'swal2-confirm-custom'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = 'https://digiwarga.vercel.app/'; // Redirect jika diinginkan
+                            }
+                        });
+                    } else {
+                        // Jika gagal, tampilkan pesan kesalahan
                         Swal.fire({
                             title: 'Gagal',
                             text: data.message || 'Gagal mengirim data',
@@ -263,31 +389,32 @@
                                 confirmButton: 'swal2-confirm-custom'
                             }
                         });
-                    });
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    title: 'Kesalahan',
-                    text: 'Terjadi kesalahan',
-                    icon: 'error',
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        confirmButton: 'swal2-confirm-custom'
                     }
+                }).catch(error => {
+                    console.error('Error during fetch:', error); // Log error fetching
+                    Swal.fire({
+                        title: 'Kesalahan',
+                        text: 'Terjadi kesalahan saat mengirim data.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'swal2-confirm-custom'
+                        }
+                    });
+                }).finally(() => {
+                    // Hide progress bar after fetching
+                    loadingPopup.style.display = 'none'; // Hide popup
+                    overlay.style.display = 'none'; // Hide overlay
                 });
-            }).finally(() => {
-                // Sembunyikan spinner dan teks loading
-                spinner.style.display = 'none';
-                spinnerText.style.display = 'none';
-            });
-        });
+            }, 500); // Delay sebelum mengirim data (500 ms)
+        }
+    }, 200); // Update every 200 ms
+});
 
-
- //hide klik kanan s
-document.addEventListener("contextmenu", function(e){
-    e.preventDefault();
-}, false);
+//  //hide klik kanan s
+// document.addEventListener("contextmenu", function(e){
+//     e.preventDefault();
+// }, false);
 
 document.onkeydown = function(e) {
     if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {

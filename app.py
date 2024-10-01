@@ -565,25 +565,38 @@ def kirim_iuran():
                     db.session.add(iuran_baru)
                     db.session.commit()
 
-                    return redirect(url_for("input_iuran"))
+                    # Kembalikan respons JSON yang sukses
+                    return jsonify(
+                        {"success": True, "message": "Data berhasil dikirim"}
+                    )
                 else:
                     logging.error(f"Upload failed: {upload_response.text}")
-                    return redirect(
-                        url_for(
-                            "input_iuran", error="Gagal mengupload bukti pembayaran"
-                        )
+                    return (
+                        jsonify(
+                            {
+                                "success": False,
+                                "message": "Gagal mengupload bukti pembayaran",
+                            }
+                        ),
+                        400,
                     )
 
             except Exception as e:
                 logging.error(f"Exception: {e}")
                 db.session.rollback()
-                return redirect(
-                    url_for("input_iuran", error="Terjadi kesalahan saat mengupload")
+                return (
+                    jsonify(
+                        {
+                            "success": False,
+                            "message": "Terjadi kesalahan saat mengupload",
+                        }
+                    ),
+                    500,
                 )
         else:
-            return redirect(url_for("input_iuran", error="File tidak ditemukan"))
+            return jsonify({"success": False, "message": "File tidak ditemukan"}), 400
 
-    return redirect(url_for("input_iuran"))
+    return jsonify({"success": False, "message": "Metode tidak valid"}), 405
 
 
 @app.route("/kirim-surat", methods=["POST"])
