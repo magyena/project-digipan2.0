@@ -249,6 +249,80 @@
     min-width: 80px; /* Pastikan lebar tombol cukup */
     border-radius: 5px; /* Sesuaikan radius border jika perlu */
 }
+/* Styling untuk pop-up loading */
+#loading-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #1e1e1e;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    text-align: center;
+    z-index: 1001; /* Pastikan lebih tinggi dari overlay */
+    display: none; /* Tersembunyi secara default */
+    color: white;
+}
+
+/* Optional: Overlay for Popup Background */
+#overlay {
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.7); /* Meningkatkan transparansi agar lebih gelap */
+    z-index: 1000; /* Pastikan di bawah popup */
+}
+
+/* Animasi gradient pada progress bar */
+#progress-bar-container {
+    width: 100%;
+    background: #333;
+    border-radius: 50px;
+    overflow: hidden;
+    height: 25px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-top: 20px;
+}
+
+#progress-bar {
+    height: 100%;
+    background: linear-gradient(270deg, #ffb703, #4CAF50);
+    background-size: 200% 200%;
+    width: 0; /* Mulai dari 0% */
+    transition: width 0.4s ease-in-out;
+    animation: gradientShift 3s ease infinite; /* Animasi bergerak */
+}
+
+/* Animasi pergerakan gradasi */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Styling untuk teks progres */
+#progress-text {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffb703;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Header teks loading */
+#loading-popup h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
 
     </style>
 </head>
@@ -328,18 +402,24 @@
             </div>
             <!-- <button type="button" class="btn" onclick="generateSurat()">Lihat Surat</button> -->
             <button type="button" class="btn" onclick="kirimSurat()">Kirim Surat</button>
-             <div class="spinner" id="loading-spinner"></div>
-    <div class="spinner-text" id="loading-text">Mengirim data, harap tunggu...</div>
-
+            
         </form>
+     
+    <div id="overlay"></div> <!-- Pindahkan ini di atas #loading-popup -->
 
-   
+    <div id="loading-popup">
+        <h3>Sedang Memproses...</h3>
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
         </div>
+        <div id="progress-text">0%</div>
     </div>
     
+<!-- Optional: Overlay for Popup Background -->
+<div id="overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
+
     <script>
-        
-function kirimSurat() {
+   function kirimSurat() {
     var nama = document.getElementById('nama').value.trim();
     var tanggal = document.getElementById('tanggal').value.trim();
     var tempatlahir = document.getElementById('tempatlahir').value.trim();
@@ -365,151 +445,106 @@ function kirimSurat() {
         return;
     }
 
-    var spinner = document.getElementById('loading-spinner');
-    var spinnerText = document.getElementById('loading-text');
+    // Show loading popup and progress bar
+    const loadingPopup = document.getElementById('loading-popup');
+    const overlay = document.getElementById('overlay');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
 
-    // Show spinner and text
-    spinner.style.display = 'block';
-    spinnerText.style.display = 'block';
+    loadingPopup.style.display = 'block'; // Show popup
+    overlay.style.display = 'block'; // Show overlay
 
-    var data = {
-        nama: nama,
-        tanggal: tanggal,
-        tempatlahir: tempatlahir,
-        jeniskelamin: jeniskelamin,
-        agama: agama,
-        pekerjaan: pekerjaan,
-        ktp: ktp,
-        alamatktp: alamatktp,
-        statusperkawinan: statusperkawinan,
-        tujuan: tujuan,
-        jenissurat: jenissurat
-    };
+    let progressValue = 0;
 
-    fetch('/kirim-surat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    }).then(response => {
-        if (response.ok) {
-            // If response is ok, parse JSON and display success message
-            return response.json().then(data => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: data.message, // Use message from backend
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        confirmButton: 'swal2-confirm-custom'
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = 'https://digiwarga.vercel.app/';
-                    }
-                });
-            });
+    let interval = setInterval(() => {
+        if (progressValue < 100) {
+            progressValue += 5; // Increase the progress by 5%
+            progressBar.style.width = progressValue + '%'; // Update the width of the progress bar
+            progressText.textContent = progressValue + '%'; // Update the text
+            if (progressValue >= 90) {
+                progressBar.style.background = '#4CAF50'; // Change to green when nearing completion
+            }
         } else {
-            // If response is not ok, display error message
-            return response.json().then(data => {
+            clearInterval(interval); // Clear the interval when reaching 100%
+            
+            // Prepare data for submission
+            var data = {
+                nama: nama,
+                tanggal: tanggal,
+                tempatlahir: tempatlahir,
+                jeniskelamin: jeniskelamin,
+                agama: agama,
+                pekerjaan: pekerjaan,
+                ktp: ktp,
+                alamatktp: alamatktp,
+                statusperkawinan: statusperkawinan,
+                tujuan: tujuan,
+                jenissurat: jenissurat
+            };
+
+            fetch('/kirim-surat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(response => {
+                if (response.ok) {
+                    return response.json().then(data => {
+                        // Tambahkan delay sebelum menampilkan SweetAlert
+                        setTimeout(() => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: data.message,
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    confirmButton: 'swal2-confirm-custom'
+                                }
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = 'https://digiwarga.vercel.app/';
+                                }
+                            });
+                        }, 500); // Delay selama 1 detik (1000 ms)
+                        
+                    });
+                } else {
+                    return response.json().then(data => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: data.message,
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'swal2-confirm-custom'
+                            }
+                        });
+                    });
+                }
+            }).catch(error => {
+                console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Gagal',
-                    text: data.message, // Use message from backend
+                    title: 'Kesalahan',
+                    text: 'Terjadi kesalahan saat mengirim surat.',
                     confirmButtonText: 'OK',
                     customClass: {
                         confirmButton: 'swal2-confirm-custom'
                     }
                 });
+            }).finally(() => {
+                loadingPopup.style.display = 'none'; // Hide the popup once the request completes
+                overlay.style.display = 'none'; // Hide the overlay
             });
         }
-    }).catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Kesalahan',
-            text: 'Terjadi kesalahan saat mengirim surat.',
-            confirmButtonText: 'OK',
-            customClass: {
-                confirmButton: 'swal2-confirm-custom'
-            }
-        });
-    }).finally(() => {
-        // Hide spinner and text
-        spinner.style.display = 'none';
-        spinnerText.style.display = 'none';
-    });
+    }, 200); // Update progress every 200ms
 }
 
-document.querySelector('form').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent the default form submission
-    let formData = new FormData(this);
-    let spinner = document.getElementById('loading-spinner');
-    let spinnerText = document.getElementById('loading-text');
-
-    // Show spinner and text
-    spinner.style.display = 'block';
-    spinnerText.style.display = 'block';
-
-    fetch(this.action, {
-        method: 'POST',
-        body: formData
-    }).then(response => {
-        // Check if response is ok (status 200-299)
-        if (response.ok) {
-            // Convert response to JSON and show success message
-            return response.json().then(data => {
-                Swal.fire({
-                    title: 'Sukses!',
-                    text: data.message, // Display server message
-                    icon: 'success',
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        confirmButton: 'swal2-confirm-custom'
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        setTimeout(() => {
-                            window.location.href = 'https://digiwarga.vercel.app/';
-                        }, 500);
-                    }
-                });
-            });
-        } else {
-            // If the response is not ok, display error message
-            return response.json().then(data => {
-                Swal.fire({
-                    title: 'Gagal!',
-                    text: data.message, // Display server message
-                    icon: 'error',
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        confirmButton: 'swal2-confirm-custom'
-                    }
-                });
-            });
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-        Swal.fire('Kesalahan', 'Terjadi kesalahan saat mengirim surat.', 'error', {
-            confirmButtonText: 'OK',
-            customClass: {
-                confirmButton: 'swal2-confirm-custom'
-            }
-        });
-    }).finally(() => {
-        // Hide spinner and text
-        spinner.style.display = 'none';
-        spinnerText.style.display = 'none';
-    });
-});
-
-
- //hide klik kanan
-document.addEventListener("contextmenu", function(e){
-    e.preventDefault();
-}, false);
+//  //hide klik kanan
+// document.addEventListener("contextmenu", function(e){
+//     e.preventDefault();
+// }, false);
 
 document.onkeydown = function(e) {
     if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {

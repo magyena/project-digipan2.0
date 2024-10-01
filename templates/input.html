@@ -249,6 +249,82 @@
     border-radius: 5px; /* Sesuaikan radius border jika perlu */
 }
 
+/* Tampilan overlay yang transparan untuk fokus pada loading */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    display: none;
+}
+
+/* Styling untuk pop-up loading */
+#loading-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #1e1e1e;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    text-align: center;
+    z-index: 1000;
+    display: none; /* Tersembunyi secara default */
+    color: white;
+}
+
+/* Animasi gradient pada progress bar */
+#progress-bar-container {
+    width: 100%;
+    background: #333;
+    border-radius: 50px;
+    overflow: hidden;
+    height: 25px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-top: 20px;
+}
+
+#progress-bar {
+    height: 100%;
+    background: linear-gradient(270deg, #ffb703, #4CAF50);
+    background-size: 200% 200%;
+    width: 0; /* Mulai dari 0% */
+    transition: width 0.4s ease-in-out;
+    animation: gradientShift 3s ease infinite; /* Animasi bergerak */
+}
+
+/* Animasi pergerakan gradasi */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Styling untuk teks progres */
+#progress-text {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffb703;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Header teks loading */
+#loading-popup h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+
     </style>
 </head>
 <body>
@@ -285,21 +361,105 @@
             <option value="istri">Istri</option>
             <option value="anak">Anak</option>
         </select>
-    </div>
+    </div>    
     <button type="submit">Kirim</button>
 </form>
+<div id="loading-popup">
+    <h3>Sedang Memproses...</h3>
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
+    <div id="progress-text">0%</div>
+</div>
+<div id="overlay"></div>
 
-<!-- Spinner -->
-<div class="spinner" id="loading-spinner"></div>
-<div class="spinner-text" id="loading-text">Mengirim data, harap tunggu...</div>
 
+<!-- Optional: Overlay for Popup Background -->
+<div id="overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
 <script>
 document.getElementById('family-form').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission
     let form = this;
     let formData = new FormData(form);
-    let spinner = document.getElementById('loading-spinner');
-    let spinnerText = document.getElementById('loading-text');
+
+    // Show loading popup and progress bar
+    const loadingPopup = document.getElementById('loading-popup');
+    const overlay = document.getElementById('overlay');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    loadingPopup.style.display = 'block'; // Show popup
+    overlay.style.display = 'block'; // Show overlay
+
+    let progressValue = 0;
+
+    // Start the progress
+    let interval = setInterval(() => {
+        if (progressValue < 100) {
+            progressValue += 5; // Increase the progress by 5%
+            progressBar.style.width = progressValue + '%'; // Update the width of the progress bar
+            progressText.textContent = progressValue + '%'; // Update the text
+            if (progressValue >= 90) {
+                progressBar.style.background = '#4CAF50'; // Change to green when nearing completion
+            }
+        } else {
+            clearInterval(interval); // Clear the interval when reaching 100%
+            // Send data with fetch after 100% progress
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    form.reset(); // Reset the form
+                    
+                    // Tambahkan delay sebelum menampilkan Swal sukses
+                    setTimeout(() => {
+                        Swal.fire({
+                            title: 'Sukses!',
+                            text: 'Terima Kasih Telah Mengisi Data',
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'swal2-confirm-custom'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = 'https://digiwarga.vercel.app/';
+                            }
+                        });
+                    }, 500); // Delay selama 1 detik (1000 ms)
+                    
+                } else {
+                    return response.json().then(data => {
+                        Swal.fire({
+                            title: 'Gagal',
+                            text: data.message || 'Gagal mengirim data',
+                            icon: 'error',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'swal2-confirm-custom'
+                            }
+                        });
+                    });
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Kesalahan',
+                    text: 'Terjadi kesalahan saat mengirim data',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'swal2-confirm-custom'
+                    }
+                });
+            }).finally(() => {
+                // Hide progress bar after fetching
+                loadingPopup.style.display = 'none'; // Hide popup
+                overlay.style.display = 'none'; // Hide overlay
+            });
+        }
+    }, 200); // Update every 200 ms
 
     // Validasi input sebelum submit
     let namaKeluarga = document.getElementById('nama_keluarga').value.trim();
@@ -318,64 +478,13 @@ document.getElementById('family-form').addEventListener('submit', function(event
                 confirmButton: 'swal2-confirm-custom'
             }
         });
+        clearInterval(interval); // Stop the progress interval if validation fails
+        loadingPopup.style.display = 'none'; // Hide popup
+        overlay.style.display = 'none'; // Hide overlay
         return; // Stop form submission if validation fails
     }
-
-    // Show spinner and text
-    spinner.style.display = 'block';
-    spinnerText.style.display = 'block';
-
-    fetch(form.action, {
-        method: 'POST',
-        body: formData
-    }).then(response => {
-        if (response.ok) {
-            // Show the SweetAlert popup for success
-            Swal.fire({
-                title: 'Sukses!',
-                text: 'Terima Kasih Telah Mengisi Data',
-                icon: 'success',
-                confirmButtonText: 'OK',
-                customClass: {
-                    confirmButton: 'swal2-confirm-custom'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Redirect to the page after clicking OK
-                    window.location.href = 'https://digiwarga.vercel.app/';
-                }
-            });
-            form.reset(); // Reset the form
-        } else {
-            return response.json().then(data => {
-                Swal.fire({
-                    title: 'Gagal',
-                    text: data.message || 'Gagal mengirim data',
-                    icon: 'error',
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        confirmButton: 'swal2-confirm-custom'
-                    }
-                });
-            });
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            title: 'Kesalahan',
-            text: 'Terjadi kesalahan',
-            icon: 'error',
-            confirmButtonText: 'OK',
-            customClass: {
-                confirmButton: 'swal2-confirm-custom'
-            }
-        });
-    }).finally(() => {
-        // Hide spinner and text
-        spinner.style.display = 'none';
-        spinnerText.style.display = 'none';
-    });
 });
+
 
 // // Hide right-click menu
 // document.addEventListener("contextmenu", function(e){
