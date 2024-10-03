@@ -13,6 +13,64 @@
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
    <meta http-equiv="refresh" content="3600">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <style>
+         .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            width: 150px;
+            font-weight: bold;
+        }
+
+        .progress-wrapper {
+            flex-grow: 1;
+            margin: 0 20px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: #f3f3f3;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: linear-gradient(to right, #1654f0, #80d0c7);
+            line-height: 20px;
+            color: white;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .progress-info {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #888;
+        }
+
+        .change-indicator {
+            font-size: 14px;
+            font-weight: bold;
+            color: green; /* Default for positive */
+        }
+
+        .change-indicator.negative {
+            color: red;
+        }
+
+        .progress-item {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+    </style>
 </head>
 
 <body id="page-top">
@@ -322,7 +380,8 @@
                 <div class="card-body">
                   <div class="chart-area">
                     <!-- <canvas id="myAreaChart"></canvas> -->
-                     <canvas id="familyPieChartLeft"></canvas>
+                     <canvas id="familyChart" width="400" height="200"></canvas>
+
                   </div>
                 </div>
               </div>
@@ -339,6 +398,7 @@
                  <p style="margin-left: 20px;"><strong>Jumlah Surat Selesai :</strong> {{ selesai_count }} Surat</p>
                  <p style="margin-left: 20px;"><strong>Jumlah Surat Proses :</strong> {{ none_count }} Surat</p>
                 <div class="card-body" id="productsSold">
+                   <div id="progress-bars"></div>
                 </div>
                 <div class="card-footer text-center">
                 </div>
@@ -487,10 +547,154 @@
   <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="static/js/ruang-admin.min.js"></script>
-  <script src="static/vendor/chart.js/Chart.min.js"></script>
+  <!-- <script src="static/vendor/chart.js/Chart.min.js"></script> -->
   <script src="static/js/demo/chart-area-demo.js"></script>  
   <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->
-  
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+  <script>
+  fetch('/get_family_relationships')
+    .then(response => response.json())
+    .then(data => {
+        // Tentukan urutan yang diinginkan
+        const order = ['Kepala Keluarga', 'Istri', 'Anak'];
+
+        // Mengurutkan data sesuai dengan urutan yang ditentukan
+        const labels = order.filter(label => label in data);
+        const values = labels.map(label => data[label]);
+
+        const ctx = document.getElementById('familyChart').getContext('2d');
+        const familyChart = new Chart(ctx, {
+            type: 'bar', // Jenis chart (bar, pie, line, dll)
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Jumlah',
+                    data: values,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)', // Merah
+                        'rgba(54, 162, 235, 0.6)', // Biru
+                        'rgba(75, 192, 192, 0.6)', // Cyan
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)', // Merah
+                        'rgba(54, 162, 235, 1)', // Biru
+                        'rgba(75, 192, 192, 1)', // Cyan
+                    ],
+                    borderWidth: 2,
+                    hoverBackgroundColor: [
+                        'rgba(255, 99, 132, 0.8)', // Merah saat hover
+                        'rgba(54, 162, 235, 0.8)', // Biru saat hover
+                        'rgba(75, 192, 192, 0.8)', // Cyan saat hover
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Untuk responsivitas
+                animation: {
+                    duration: 1000, // Durasi animasi
+                    easing: 'easeInOutBounce' // Jenis animasi
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Jumlah', // Judul sumbu Y
+                        },
+                        ticks: {
+                            color: '#333' // Warna teks sumbu Y
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#333' // Warna teks sumbu X
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#333', // Warna label legend
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Warna latar belakang tooltip
+                        titleColor: '#fff', // Warna judul tooltip
+                        bodyColor: '#fff', // Warna isi tooltip
+                        borderColor: '#fff', // Warna border tooltip
+                        borderWidth: 1 // Ketebalan border tooltip
+                    }
+                }
+            }
+        });
+    });
+
+  fetch('/get_surat_progress')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('progress-bars');
+
+                const totalSurat = Object.values(data).reduce((total, count) => total + count, 0); // Total surat untuk menghitung persentase
+                
+                Object.keys(data).forEach(suratType => {
+                    const count = data[suratType];
+
+                    // Membuat container progress bar
+                    const progressContainer = document.createElement('div');
+                    progressContainer.classList.add('progress-container');
+
+                    // Membuat label untuk jenis surat
+                    const progressLabel = document.createElement('div');
+                    progressLabel.classList.add('progress-label');
+                    progressLabel.innerText = suratType;
+
+                    // Wrapper untuk progress bar dan informasi tambahan
+                    const progressWrapper = document.createElement('div');
+                    progressWrapper.classList.add('progress-wrapper');
+
+                    // Membuat div untuk progress bar
+                    const progressBarContainer = document.createElement('div');
+                    progressBarContainer.classList.add('progress-bar-container');
+
+                    const progressBar = document.createElement('div');
+                    progressBar.classList.add('progress-bar');
+                    
+                    const percentage = (count / totalSurat) * 100;  // Persentase
+                    
+                    progressBar.innerText = `${count} surat`; // Menampilkan jumlah surat dalam bar
+
+                    // Menambahkan progress bar ke progressBarContainer
+                    progressBarContainer.appendChild(progressBar);
+
+                    // Informasi tambahan (jumlah surat)
+                    const progressInfo = document.createElement('div');
+                    progressInfo.classList.add('progress-info');
+                    
+
+                    // Menambahkan progress bar dan info ke progressWrapper
+                    progressWrapper.appendChild(progressBarContainer);
+                    progressWrapper.appendChild(progressInfo);
+
+                    // Indikator perubahan (jika ada data perubahan di masa mendatang)
+                    const changeIndicator = document.createElement('div');
+                    changeIndicator.classList.add('change-indicator');
+                    // Tidak ada data perubahan, jadi hanya tampilkan 0
+                    
+
+                    // Append semua elemen ke dalam progressContainer
+                    progressContainer.appendChild(progressLabel);
+                    progressContainer.appendChild(progressWrapper);
+                    progressContainer.appendChild(changeIndicator);
+
+                    // Append progressContainer ke DOM
+                    container.appendChild(progressContainer);
+                });
+            })
+            .catch(error => console.error('Error fetching progress data:', error));
+    
+    </script>
 </body>
 
 </html>

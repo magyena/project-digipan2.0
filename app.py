@@ -387,6 +387,29 @@ def dashboard():
     )
 
 
+from collections import Counter
+
+
+@app.route("/get_family_relationships")
+def get_family_relationships():
+    # Ambil semua data keluarga dari database
+    families = Family.query.all()
+
+    # Hitung hubungan keluarga
+    relationships = [family.hubungan_keluarga for family in families]
+
+    # Menghitung jumlah setiap hubungan
+    relationship_counts = Counter(relationships)
+
+    # Ubah label untuk ditampilkan di frontend
+    formatted_counts = {
+        rel.replace("_", " ").title(): count
+        for rel, count in relationship_counts.items()
+    }
+
+    return jsonify(formatted_counts)
+
+
 @app.route("/api/family-stats", methods=["GET"])
 def get_family_stats():
     kepala_keluarga_count = (
@@ -427,6 +450,25 @@ def get_family_stats():
             "total_surat": total_surat,
         }
     )
+
+
+@app.route("/get_surat_progress")
+def get_surat_progress():
+    # Ambil semua data surat dari database
+    surat_list = SuratPengantar.query.all()
+
+    # Hitung jenis surat berdasarkan field 'jenissurat'
+    jenis_surat = [surat.jenissurat for surat in surat_list]
+
+    # Hitung jumlah setiap jenis surat
+    surat_counts = Counter(jenis_surat)
+
+    # Format jenis surat untuk menghilangkan underscore
+    formatted_counts = {
+        jenis.replace("_", " ").title(): count for jenis, count in surat_counts.items()
+    }
+
+    return jsonify(formatted_counts)
 
 
 @app.route("/api/product_sold_data")
