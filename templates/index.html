@@ -356,8 +356,52 @@ footer {
     text-decoration: underline;
 }
 
+ 
+        .guestbook-section {
+            margin-top: 30px;
+            text-align: center;
+        }
 
+        .guestbook-info {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 15px;
+        }
 
+        .guestbook-button {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #f4880b;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .guestbook-button:hover {
+            background-color: #3461c1;
+            transform: scale(1.05);
+            box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Responsif untuk perangkat mobile */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .guestbook-button {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+
+            .guestbook-info {
+                font-size: 1rem;
+            }
+        }
 </style>
 </head>
 <body>
@@ -375,10 +419,16 @@ footer {
                 <a href="https://wa.me/62811949275?text=Halo%20pengurus%20RT%2C%20ada%20yang%20ingin%20saya%20tanyakan" target="_blank" class="social-icon">
     <i class="fab fa-whatsapp"></i>
 </a>
-
 </div>
+          <!-- Tambahkan tombol buku tamu di sini -->
+            <div class="guestbook-section">
+                <!-- Keterangan -->
+                <p class="guestbook-info">Anda tamu atau pendatang? klik tombol dibawah ini</p>
+                
+                <!-- Tombol buku tamu -->
+                <a href="/buku-tamu" class="guestbook-button">Buku Tamu</a>
+            </div>
         </div>
-
    <!-- Bagian Kanan -->
 <div class="right-section">
 
@@ -413,20 +463,19 @@ footer {
             <h2>Tentang</h2>
         </div>
     </a>
-    
 </div>
 
 <script>
- //hide klik kanan
-document.addEventListener("contextmenu", function(e){
-    e.preventDefault();
-}, false);
+//  //hide klik kanan
+// document.addEventListener("contextmenu", function(e){
+//     e.preventDefault();
+// }, false);
 
-document.onkeydown = function(e) {
-    if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {
-        e.preventDefault();
-    }
-};
+// document.onkeydown = function(e) {
+//     if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {
+//         e.preventDefault();
+//     }
+// };
 
 // Tampilkan splash screen selama 3 detik
         window.addEventListener("load", function() {

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIGIPAN | Tamu</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <!-- SweetAlert JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+
+    <style>
+        /* Styling untuk halaman dan form buku tamu */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .left-section {
+            padding: 50px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #3461c1;
+            margin-bottom: 10px;
+        }
+
+        h1 span {
+            color: #f4880b;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .guestbook-form-section {
+            margin-top: 30px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .guestbook-form h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .guestbook-info {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .guestbook-form label {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .guestbook-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .submit-button {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #f4880b;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background-color: #3461c1;
+            transform: scale(1.05);
+            box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Responsif untuk perangkat mobile */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .guestbook-form-section {
+                padding: 15px;
+            }
+
+            .submit-button {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+        }
+
+label {
+    display: block; /* Membuat label tampil di baris baru */
+    margin-bottom: 5px; /* Jarak antara label dan input */
+    font-weight: bold; /* Tebalkan teks label */
+}
+
+input[type="text"],
+select {
+    width: 100%; /* Lebar penuh */
+    padding: 10px; /* Padding di dalam input */
+    border: 1px solid #ccc; /* Batas abu-abu */
+    border-radius: 5px; /* Sudut melengkung */
+}
+.swal2-confirm-custom {
+    padding: 10px 20px; /* Sesuaikan padding */
+    font-size: 1rem; /* Sesuaikan ukuran font */
+    min-width: 80px; /* Pastikan lebar tombol cukup */
+    border-radius: 5px; /* Sesuaikan radius border jika perlu */
+}
+
+/* Tampilan overlay yang transparan untuk fokus pada loading */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    display: none;
+}
+
+/* Styling untuk pop-up loading */
+#loading-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #1e1e1e;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    text-align: center;
+    z-index: 1000;
+    display: none; /* Tersembunyi secara default */
+    color: white;
+}
+
+/* Animasi gradient pada progress bar */
+#progress-bar-container {
+    width: 100%;
+    background: #333;
+    border-radius: 50px;
+    overflow: hidden;
+    height: 25px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-top: 20px;
+}
+
+#progress-bar {
+    height: 100%;
+    background: linear-gradient(270deg, #ffb703, #4CAF50);
+    background-size: 200% 200%;
+    width: 0; /* Mulai dari 0% */
+    transition: width 0.4s ease-in-out;
+    animation: gradientShift 3s ease infinite; /* Animasi bergerak */
+}
+
+/* Animasi pergerakan gradasi */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Styling untuk teks progres */
+#progress-text {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffb703;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Header teks loading */
+#loading-popup h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+</style>
+</head>
+<body>
+    <div class="left-section">
+        <!-- Form Buku Tamu -->
+        <div class="guestbook-form-section">
+            <h2>Formulir Buku Tamu</h2>
+            <p class="guestbook-info">
+                Jika Anda seorang tamu atau pendatang, silakan isi detail Anda di bawah ini:
+            </p>
+
+            <form action="/tambah_buku_tamu" method="POST" class="guestbook-form" id="guestbook-form">
+                <div class="form-group">
+                    <label for="name">Nama Lengkap:</label>
+                    <input type="text" id="name" name="name" placeholder="Masukkan nama lengkap" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Alamat:</label>
+                    <input type="text" id="address" name="address" placeholder="Masukkan alamat Anda" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="purpose">Tujuan Kunjungan:</label>
+                    <select id="purpose" name="purpose" required>
+                        <option value="" disabled selected>Pilih tujuan kunjungan</option>
+                        <option value="Menetap">Menetap</option>
+                        <option value="Sementara">Sementara</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+
+               <div class="form-group">
+    <label for="contact">Nomor Kontak (HP/Telepon):</label>
+    <input type="tel" id="contact" name="contact" placeholder="Masukkan nomor kontak" required pattern="[0-9]+" title="Hanya angka yang diizinkan">
+</div>
+
+
+                <button type="submit" class="submit-button">Kirim</button>
+            </form>
+        </div>
+    </div>
+<div id="loading-popup">
+    <h3>Sedang Memproses...</h3>
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
+    <div id="progress-text">0%</div>
+</div>
+<div id="overlay"></div>
+
+
+<!-- Optional: Overlay for Popup Background -->
+<div id="overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      document.getElementById('guestbook-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+    let form = this;
+    let formData = new FormData(form);
+
+    // Mendapatkan elemen loading dan overlay
+    const loadingPopup = document.getElementById('loading-popup');
+    const overlay = document.getElementById('overlay');
+
+    // Cek apakah elemen ada
+    if (!loadingPopup || !overlay) {
+        console.error('Loading popup or overlay not found!');
+        return; // Stop execution if elements are not found
+    }
+
+    loadingPopup.style.display = 'block'; // Show popup
+    overlay.style.display = 'block'; // Show overlay
+
+    let progressBar = document.getElementById('progress-bar');
+    let progressText = document.getElementById('progress-text');
+    let progressValue = 0;
+
+    // Start the progress
+    let interval = setInterval(() => {
+        if (progressValue < 100) {
+            progressValue += 5; // Increase the progress by 5%
+            progressBar.style.width = progressValue + '%'; // Update the width of the progress bar
+            progressText.textContent = progressValue + '%'; // Update the text
+            if (progressValue >= 90) {
+                progressBar.style.background = '#4CAF50'; // Change to green when nearing completion
+            }
+        } else {
+            clearInterval(interval); // Clear the interval when reaching 100%
+            // Send data with fetch after 100% progress
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    form.reset(); // Reset the form
+
+                    // Delay before showing success Swal
+                    setTimeout(() => {
+                        Swal.fire({
+                            title: 'Sukses!',
+                            text: 'Terima Kasih Telah Mengisi Data',
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'swal2-confirm-custom'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = 'https://digiwarga.vercel.app/';
+                            }
+                        });
+                    }, 500); // Delay for 0.5 seconds
+                } else {
+                    return response.json().then(data => {
+                        Swal.fire({
+                            title: 'Gagal',
+                            text: data.message || 'Gagal mengirim data',
+                            icon: 'error',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'swal2-confirm-custom'
+                            }
+                        });
+                    });
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Kesalahan',
+                    text: 'Terjadi kesalahan saat mengirim data',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'swal2-confirm-custom'
+                    }
+                });
+            }).finally(() => {
+                // Hide progress bar after fetching
+                loadingPopup.style.display = 'none'; // Hide popup
+                overlay.style.display = 'none'; // Hide overlay
+            });
+        }
+    }, 200); // Update every 200 ms
+});
+
+    </script>
+</body>
+</html>
