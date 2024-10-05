@@ -9,3 +9,5 @@ apscheduler==3.10.1
 pandas
 openpyxl
 supabase
+requests
+
