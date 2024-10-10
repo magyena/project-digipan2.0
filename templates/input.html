@@ -357,9 +357,9 @@
         <label for="hubungan_keluarga">Hubungan Keluarga:</label>
         <select id="hubungan_keluarga" name="hubungan_keluarga">
             <option value="" disabled selected>Pilih Hubungan</option>
-            <option value="kepala_keluarga">Kepala Keluarga</option>
-            <option value="istri">Istri</option>
-            <option value="anak">Anak</option>
+            <option value="Kepala Keluarga">Kepala Keluarga</option>
+            <option value="Istri">Istri</option>
+            <option value="Anak">Anak</option>
         </select>
     </div>    
     <button type="submit">Kirim</button>
@@ -380,7 +380,15 @@
 document.getElementById('family-form').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission
     let form = this;
-    let formData = new FormData(form);
+    let formData = {
+    nama_keluarga: document.getElementById('nama_keluarga').value.trim().toUpperCase(),
+    nama: document.getElementById('nama').value.trim(),
+    tempat_lahir: document.getElementById('tempat_lahir').value.trim(),
+    tanggal_lahir: document.getElementById('tanggal_lahir').value,
+    nomor_keluarga: document.getElementById('nomor_keluarga').value.trim(),
+    hubungan_keluarga: document.getElementById('hubungan_keluarga').value,
+};
+
 
     // Show loading popup and progress bar
     const loadingPopup = document.getElementById('loading-popup');
@@ -405,9 +413,13 @@ document.getElementById('family-form').addEventListener('submit', function(event
         } else {
             clearInterval(interval); // Clear the interval when reaching 100%
             // Send data with fetch after 100% progress
-            fetch(form.action, {
+                    fetch(form.action, {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json', // Set the Content-Type to application/json
+                },
+                body: JSON.stringify(formData) // Send data as JSON
+        
             }).then(response => {
                 if (response.ok) {
                     form.reset(); // Reset the form
@@ -468,7 +480,8 @@ document.getElementById('family-form').addEventListener('submit', function(event
     let tanggalLahir = document.getElementById('tanggal_lahir').value;
     let hubunganKeluarga = document.getElementById('hubungan_keluarga').value;
 
-    if (!namaKeluarga || !nama || !tempatLahir || !tanggalLahir || !hubunganKeluarga) {
+    if (!formData.nama_keluarga || !formData.nama || !formData.tempat_lahir || !formData.tanggal_lahir || !formData.hubungan_keluarga) {
+ 
         Swal.fire({
             title: 'Peringatan',
             text: 'Semua field harus diisi!',
