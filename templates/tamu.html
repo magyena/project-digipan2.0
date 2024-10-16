@@ -298,8 +298,16 @@ select {
             clearInterval(interval); // Clear the interval when reaching 100%
             // Send data with fetch after 100% progress
             fetch(form.action, {
-                method: 'POST',
-                body: formData
+                    method: 'POST',
+                     headers: {'Content-Type': 'application/json' // Mengatur Content-Type ke application/json
+                    },
+                    body: JSON.stringify({
+        nama: formData.get('name'),       // Sesuaikan nama field dengan yang diharapkan di API
+        alamat: formData.get('address'),
+        tujuan: formData.get('purpose'),
+        kontak: formData.get('contact')
+    })
+
             }).then(response => {
                 if (response.ok) {
                     form.reset(); // Reset the form
