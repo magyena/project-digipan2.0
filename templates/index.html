@@ -402,6 +402,41 @@ footer {
                 font-size: 1rem;
             }
         }
+ /* Aturan umum untuk link Terms of Use dan Privacy Policy */
+.terms-privacy-links {
+    text-align: center;
+    margin-top: 280px;
+    font-size: 0.9rem; /* Sesuaikan ukuran font */
+}
+
+.terms-privacy-links a {
+    color: #666; /* Warna teks hijau */
+    text-decoration: none; /* Menghilangkan garis bawah */
+    padding: 0 10px; /* Memberi jarak antara link */
+}
+
+/* Responsif untuk layar dengan lebar 800px atau lebih kecil */
+@media (max-width: 800px) {
+    .terms-privacy-links {
+        position: fixed; /* Menetapkan posisi tetap sebagai footer */
+        bottom: 0; /* Tempatkan di bagian bawah layar */
+        left: 0;
+        right: 0;
+        background-color: #f8f8f8; /* Warna background untuk footer */
+        padding: 10px 0; /* Ruang padding vertikal */
+        text-align: center; /* Teks rata tengah */
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Efek bayangan untuk memberikan batas */
+        z-index: 1000; /* Menjaga agar footer selalu di atas elemen lain */
+    }
+
+    .terms-privacy-links a {
+        color: #666; /* Warna teks biru untuk mobile */
+        text-decoration: none; /* Tidak ada underline pada mobile */
+    }
+}
+
+
+
 </style>
 </head>
 <body>
@@ -419,17 +454,22 @@ footer {
                 <a href="https://wa.me/62811949275?text=Halo%20pengurus%20RT%2C%20ada%20yang%20ingin%20saya%20tanyakan" target="_blank" class="social-icon">
     <i class="fab fa-whatsapp"></i>
 </a>
+</div><!-- Tambahkan tombol buku tamu di sini -->
+<div class="guestbook-section">
+    <!-- Keterangan -->
+    <p class="guestbook-info">Anda tamu atau pendatang? klik tombol dibawah ini</p>
+    
+    <!-- Tombol buku tamu -->
+    <a href="/buku-tamu" class="guestbook-button">Buku Tamu</a>
 </div>
-          <!-- Tambahkan tombol buku tamu di sini -->
-            <div class="guestbook-section">
-                <!-- Keterangan -->
-                <p class="guestbook-info">Anda tamu atau pendatang? klik tombol dibawah ini</p>
-                
-                <!-- Tombol buku tamu -->
-                <a href="/buku-tamu" class="guestbook-button">Buku Tamu</a>
-            </div>
+
+<!-- Tambahkan link untuk Terms of Use dan Privacy Policy di bawah tombol buku tamu -->
+<div class="terms-privacy-links">
+        <a href="https://www.termsfeed.com/live/bbec1de1-63f9-4b26-b6d3-6f80305d5add" target="_blank">Syarat Penggunaan</a>|<a href="https://www.termsfeed.com/live/e1ef9f6f-bfff-4320-af2e-fe16cba0e2cc" target="_blank">Kebijakan Privasi</a>
+    </div>
         </div>
    <!-- Bagian Kanan -->
+   
 <div class="right-section">
 
     <!-- Menu Item untuk Keluarga -->
