@@ -234,6 +234,7 @@
 
     .left-section h1 {
         font-size: 2rem; /* Ukuran font lebih kecil untuk judul */
+        margin-top: 130px;
         margin-bottom: 10px; /* Jarak bawah lebih kecil */
     }
 
@@ -414,19 +415,23 @@ footer {
     text-decoration: none; /* Menghilangkan garis bawah */
     padding: 0 10px; /* Memberi jarak antara link */
 }
-
 /* Responsif untuk layar dengan lebar 800px atau lebih kecil */
 @media (max-width: 800px) {
+    .right-section {
+        padding-bottom: 60px; /* Menambahkan ruang agar tidak bertabrakan dengan footer */
+    }
+
     .terms-privacy-links {
         position: fixed; /* Menetapkan posisi tetap sebagai footer */
         bottom: 0; /* Tempatkan di bagian bawah layar */
         left: 0;
         right: 0;
+        margin-top: 500px;
         background-color: #f8f8f8; /* Warna background untuk footer */
         padding: 10px 0; /* Ruang padding vertikal */
         text-align: center; /* Teks rata tengah */
         box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Efek bayangan untuk memberikan batas */
-        z-index: 1000; /* Menjaga agar footer selalu di atas elemen lain */
+        
     }
 
     .terms-privacy-links a {
@@ -434,8 +439,6 @@ footer {
         text-decoration: none; /* Tidak ada underline pada mobile */
     }
 }
-
-
 
 </style>
 </head>
