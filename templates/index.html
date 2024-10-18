@@ -418,7 +418,8 @@ footer {
 /* Responsif untuk layar dengan lebar 800px atau lebih kecil */
 @media (max-width: 800px) {
     .right-section {
-        padding-bottom: 60px; /* Menambahkan ruang agar tidak bertabrakan dengan footer */
+        padding-bottom: 60px;
+        z-index: 999; /* Menambahkan ruang agar tidak bertabrakan dengan footer */
     }
 
     .terms-privacy-links {
@@ -431,6 +432,7 @@ footer {
         padding: 10px 0; /* Ruang padding vertikal */
         text-align: center; /* Teks rata tengah */
         box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Efek bayangan untuk memberikan batas */
+        z-index: 1000;
         
     }
 
