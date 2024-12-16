@@ -1223,11 +1223,11 @@ def read_image_as_base64(image_path):
 def lihat_surat(sid):
     surat = SuratPengantar.query.get(sid)
 
-    if surat.jenissurat == "surat_pengantar":
+    if surat.jenissurat == "Surat Pengantar":
         return render_template("surat/surat_download_pengantar.html", surat=surat)
-    elif surat.jenissurat == "surat_pernyataan_belum_menikah":
+    elif surat.jenissurat == "Surat Pernyataan Belum Menikah":
         return render_template("surat/surat_download_belum_menikah.html", surat=surat)
-    elif surat.jenissurat == "surat_pernyataan_tidak_mampu":
+    elif surat.jenissurat == "Surat Pernyataan Tidak Mampu":
         return render_template("surat/surat_download_tidak_mampu.html", surat=surat)
     else:
         return render_template("surat/surat_download.html", surat=surat)
@@ -1631,7 +1631,6 @@ def get_latest_iuran_notifications():
 def get_notification_count():
     count = Iuran.query.filter_by(status_pembayaran="Menunggu").count()
     return jsonify({"count": count})
-
 
 
 @app.route("/buku-tamu")
