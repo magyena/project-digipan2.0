@@ -1222,7 +1222,6 @@ def read_image_as_base64(image_path):
 @app.route("/lihat_surat/<int:sid>")
 def lihat_surat(sid):
     surat = SuratPengantar.query.get(sid)
-    print(f"Surat dengan ID {sid} diakses. Jenis surat: {surat.jenissurat}")
 
     if surat.jenissurat == "Surat Pengantar":
         return render_template("surat/surat_download_pengantar.html", surat=surat)
