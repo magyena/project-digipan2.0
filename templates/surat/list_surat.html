@@ -255,9 +255,12 @@
                 {% endif %}
               </td>
               <td>
-               <a href="{{ url_for('lihat_surat', sid=surat.id) }}" class="btn btn-primary">
-                  Lihat 
-              </a>
+            <a href="{{ url_for('lihat_surat', sid=surat.id) }}" 
+   class="btn btn-primary" 
+   data-jenissurat="{{ surat.jenissurat }}" 
+   onclick="lihatSurat(event)">
+   Lihat
+</a>
 
               </td>
               
@@ -378,6 +381,20 @@
       $('#dataTable').DataTable(); // ID From dataTable 
       $('#dataTableHover').DataTable(); // ID From dataTable with Hover
     });
+
+    function lihatSurat(event) {
+      // Mencegah link untuk melakukan navigasi
+      event.preventDefault();
+
+      // Ambil jenis surat dari atribut data-jenissurat
+      var jenisSurat = event.target.getAttribute('data-jenissurat');
+
+      // Tampilkan jenis surat di console
+      console.log('Jenis surat yang diklik:', jenisSurat);
+
+      // Jika ingin melanjutkan ke URL setelah menampilkan ke console, Anda bisa:
+      window.location.href = event.target.href;
+   }
   </script>
 
 </body>
