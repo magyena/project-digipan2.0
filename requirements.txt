@@ -1,16 +1,17 @@
-Flask==3.1.0
-python_dateutil==2.8.2
-pytz==2023.3.post1
-peewee==3.14.4
-psycopg2-binary
-flask_sqlalchemy==3.1.1
-SQLAlchemy==2.0.16
-reportlab==4.2.2
-apscheduler==3.10.1  
-pandas==2.2.3
-Werkzeug==3.1.3
-supabase==2.10.0
-Requests==2.32.3
+# Flask==3.1.0
+# python_dateutil==2.8.2
+# pytz==2023.3.post1
+# gunicorn==20.1.0
+# peewee==3.14.4
+# psycopg2-binary
+# flask_sqlalchemy==3.1.1
+# SQLAlchemy==2.0.16
+# reportlab==4.2.2
+# apscheduler==3.10.1  
+# pandas==2.2.3
+# Werkzeug==3.1.3
+# supabase==2.10.0
+# Requests==2.32.3
 
 
 # Flask==2.2.5
@@ -28,15 +29,15 @@ Requests==2.32.3
 
 
 # dan ini requirements.txt saya
-# Flask==2.2.5
-# gunicorn==20.1.0
-# peewee==3.14.4
-# psycopg2-binary
-# Flask-SQLAlchemy==3.1.1
-# SQLAlchemy==2.0.16
-# reportlab
-# apscheduler==3.10.1  
-# pandas
+Flask==2.2.5
+gunicorn==20.1.0
+peewee==3.14.4
+psycopg2-binary
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.16
+reportlab
+apscheduler==3.10.1  
+pandas
 # openpyxl
-# supabase
-# requests
+supabase
+requests

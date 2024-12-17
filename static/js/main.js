@@ -1,15 +1,22 @@
-// static/assets/js/main.js
 document.addEventListener('DOMContentLoaded', function() {
   // Ambil data keluarga terbaru
   fetch('/api/latest_families')
     .then(response => response.json())
     .then(data => {
       const tableBody = document.getElementById('familyTableBody');
-      tableBody.innerHTML = '';
+      
+      // Pastikan elemen tableBody ditemukan
+      if (!tableBody) {
+        console.error('Elemen dengan ID "familyTableBody" tidak ditemukan.');
+        return;
+      }
+
+      // Clear isi tabel sebelum menambah data
+      let rows = '';
 
       // Loop melalui data dan tambahkan ke tabel
       data.forEach(family => {
-        const row = `
+        rows += `
           <tr>
             <td>${family.id}</td>
             <td>${family.nama_keluarga}</td>
@@ -18,11 +25,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <td>${family.nomor_keluarga}</td>
           </tr>
         `;
-        tableBody.innerHTML += row;
       });
+
+      // Setelah semua baris ditambahkan, masukkan ke dalam tabel
+      tableBody.innerHTML = rows;
     })
     .catch(error => console.error('Error fetching family data:', error));
 });
+
 
 //tutup flash login
  $(document).ready(function() {
