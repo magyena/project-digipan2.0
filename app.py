@@ -1782,5 +1782,146 @@ def get_nama_keluarga():
     return jsonify(result)
 
 
+@app.route("/lokasi_keluarga")
+def lokasi_keluarga():
+    # Periksa apakah pengguna sudah login melalui session
+    if "user_id" not in session:
+        # Jika pengguna belum login, arahkan ke halaman login
+        return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+    # Data dummy lokasi keluarga
+    lokasi_keluarga = [
+        {"nama": "Keluarga A", "lat": -6.340802, "lng": 106.846949},
+        {"nama": "Keluarga Abah", "lat": -6.341380, "lng": 106.847689},
+        {"nama": "Keluarga Pak RT", "lat": -6.340499, "lng": 106.847635},
+    ]
+
+    # Dapatkan username dari session untuk menampilkan nama pengguna di halaman
+    username = session.get("username")
+    iuran_list = Iuran.query.all()
+
+    return render_template(
+        "lokasi_keluarga.html",
+        iuran_list=iuran_list,
+        messages=message_list_to_display,
+        lokasi_keluarga=lokasi_keluarga,
+        username=username,
+    )
+
+
+@app.route("/manual_iuran")
+def manual_iuran():
+    # Periksa apakah pengguna sudah login melalui session
+    if "user_id" not in session:
+        # Jika pengguna belum login, arahkan ke halaman login
+        return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+
+    username = session.get("username")
+    return render_template(
+        "iuran/manual_iuran.html",
+        messages=message_list_to_display,
+        username=username,
+    )
+
+
+@app.route("/kirim_manual_iuran", methods=["POST"])
+def kirim_manual_iuran():
+    if request.method == "POST":
+        nama_keluarga = request.form.get("nama_keluarga")
+        jumlah_iuran = request.form.get("jumlah")
+        file = request.files.get("bukti_pembayaran")
+
+        file_url = None  # Default nilai untuk bukti pembayaran
+        if file:
+            try:
+                # Tambahkan timestamp ke nama file
+                timestamp = int(time.time())
+                original_filename = secure_filename(file.filename)
+                filename = f"{timestamp}_{original_filename}"
+                # Simpan file ke Supabase Storage
+                bucket_name = "digipan"
+                file_path = f"bukti_pembayaran/{filename}"
+                upload_response = supabase.storage.from_(bucket_name).upload(
+                    file_path, file.read()
+                )
+
+                if upload_response.status_code == 200:
+                    file_url = supabase.storage.from_(bucket_name).get_public_url(
+                        file_path
+                    )
+                else:
+                    logging.warning(f"Upload failed: {upload_response.text}")
+            except Exception as e:
+                logging.error(f"Exception: {e}")
+
+        try:
+            # Simpan data ke database
+            iuran_baru = Iuran(
+                nama_keluarga=nama_keluarga,
+                jumlah_iuran=float(
+                    jumlah_iuran.replace("Rp ", "").replace(".", "").replace(",", ".")
+                ),
+                bukti_pembayaran=file_url,  # Bisa None jika tidak ada file
+                status_pembayaran="Menunggu",
+            )
+            db.session.add(iuran_baru)
+            db.session.commit()
+
+            # Tambahkan notifikasi menggunakan Flash
+            flash("Iuran berhasil ditambahkan!", "success")
+            return redirect(url_for("manual_iuran"))  # Redirect ke halaman manual_iuran
+        except Exception as e:
+            logging.error(f"Database error: {e}")
+            db.session.rollback()
+            flash("Terjadi kesalahan saat menambahkan iuran.", "danger")
+            return redirect(url_for("manual_iuran"))
+
+    flash("Metode tidak valid.", "warning")
+    return redirect(url_for("manual_iuran"))
+
+
 if __name__ == "__main__":
     app.run(debug=True)
