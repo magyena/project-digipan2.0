@@ -8,11 +8,29 @@
   <meta name="description" content="">
   <meta name="author" content="">
   <link href="static/img/logo/2.png" rel="icon">
-  <title>Digipan | Verifikasi Iuran</title>
+  <title>Digipan | Lokasi</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
   <link href="static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+         #family-list li {
+        margin-bottom: 10px;
+    }
+
+    #family-list button:hover {
+        background-color: #f0f0f0;
+    }
+
+    #map {
+        height: 350px;
+        width: 100%;
+        z-index: 900;
+        margin-top: 20px;
+    }
+    </style>
 </head>
 
 <body id="page-top">
@@ -58,7 +76,7 @@
             <h6 class="collapse-header">Iuran</h6>
             <a class="collapse-item" href="/verifikasi-iuran">Verifikasi Iuran</a>
             <a class="collapse-item" href="/statistik-iuran">Statistik Iuran</a>
-            <a class="collapse-item" href="/manual_iuran">Iuran Manual</a>
+             <a class="collapse-item" href="/manual_iuran">Iuran Manual</a>
           </div>
         </div>
       </li>
@@ -84,13 +102,13 @@
       <div class="sidebar-heading">
         Examples
       </div>
-      <li class="nav-item">
+     <li class="nav-item">
         <a class="nav-link" href="{{ url_for('pengguna') }}">
           <i class="fab fa-fw fa-wpforms"></i>
           <span>Pengguna</span>
         </a>
       </li>
-      
+     
       <hr class="sidebar-divider">
       <div class="version" id="version-ruangadmin"></div>
     </ul>
@@ -217,101 +235,44 @@
           </ul>
         </nav>
         <!-- Topbar -->
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Data Iuran</h1>
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Data Iuran</li>
-            </ol>
-          </div> 
-                 <!-- DataTables with Unique Iuran List -->
-<div class="col-lg-12">
-  <div class="card mb-4">
-    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-      <h6 class="m-0 font-weight-bold text-primary">Daftar Iuran</h6>
-    </div>
-    <div class="table-responsive p-3">
-      <table class="table align-items-center table-flush table-hover" id="dataTableHover">
-        <thead class="thead-light">
-          <tr>
-            <th>Nama Keluarga</th>
-            <th>Jumlah Iuran</th>
-            <th>Bukti Pembayaran</th>
-            <th>Status Pembayaran</th>
-            <th>Tanggal</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for iuran in iuran_list %}
-          <tr>
-            <td>{{ iuran.nama_keluarga }}</td>
-            <td>Rp. {{ iuran.jumlah_iuran|rupiah }}</td>
-            <td>
-              {% if iuran.bukti_pembayaran %}
-                <a href="#" class="btn btn-info" data-toggle="modal" data-target="#modalBuktiPembayaran" data-bukti="{{ iuran.bukti_pembayaran }}">Lihat Bukti</a>
-              {% else %}
-                Tidak Ada Bukti
-              {% endif %}
-            </td>
-            <td>{{ iuran.status_pembayaran }}</td>
-            <td>{{ iuran.tanggal }}</td>
-            <td>
-              {% if iuran.status_pembayaran == 'Menunggu' %}
-              <form action="{{ url_for('update_status_iuran', iuran_id=iuran.id) }}" method="POST">
-                  <button type="submit" class="btn btn-success">Tandai Lunas</button>
-              </form>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      
-<div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="alert alert-{{ messages[0][0] }}">
-                    {{ messages[0][1] }}
-                </div>
-            {% endif %}
-        {% endwith %}
-</table>
-    </div>
+       <!-- Container Fluid-->
+
+<div class="container-fluid" id="container-wrapper">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Denah</h1>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Laporan</li>
+    </ol>
   </div>
-</div>
-        <!-- Konten lainnya di sini -->
-
-
-       
-        
-
-
-          </div>
-          <!--Row-->
-
-         </div>
-   <!-- Modal -->
-<div class="modal fade" id="modalBuktiPembayaran" tabindex="-1" role="dialog" aria-labelledby="modalBuktiLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalBuktiLabel">Bukti Pembayaran</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body" id="modalBuktiContent">
-        <!-- Isi bukti pembayaran akan ditampilkan di sini -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-      </div>
+  <div style="display: flex; flex-direction: row; gap: 20px;">
+    <!-- Daftar keluarga -->
+    <div style="width: 30%;">
+        <h4>Daftar Keluarga</h4>
+        <ul id="family-list" style="list-style: none; padding: 0;">
+            {% for keluarga in lokasi_keluarga %}
+            <li>
+                <button 
+                    class="family-item" 
+                    data-lat="{{ keluarga.lat }}" 
+                    data-lng="{{ keluarga.lng }}" 
+                    data-nama="{{ keluarga.nama }}"
+                    style="background: none; border: 1px solid #ccc; padding: 8px 12px; cursor: pointer; width: 100%; text-align: left;">
+                    {{ keluarga.nama }}
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
-  </div>
-</div>
 
+    <!-- Peta -->
+    <div style="width: 70%;">
+        <h4>Lokasi Warga</h4>
+        <div id="map"></div>
+    </div>
+
+
+      </div>
           <!-- Modal Logout -->
           <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabelLogout"
             aria-hidden="true">
@@ -356,16 +317,18 @@
   <a class="scroll-to-top rounded" href="#page-top">
     <i class="fas fa-angle-up"></i>
   </a>
-
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="static/vendor/jquery/jquery.min.js"></script>
   <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="static/js/ruang-admin.min.js"></script>
-  <script src="static/js/surat.js"></script>
+  <script src="static/js/iuran.js"></script>
   <!-- Page level plugins -->
   <script src="static/vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->
+
+
   <!-- Page level custom scripts -->
   <script>
     $(document).ready(function () {
@@ -373,13 +336,84 @@
       $('#dataTableHover').DataTable(); // ID From dataTable with Hover
     });
 
-    $('#modalBuktiPembayaran').on('show.bs.modal', function (event) {
-    var button = $(event.relatedTarget); // Tombol yang diklik
-    var buktiPembayaran = button.data('bukti'); // Ambil URL bukti dari tombol
+      // Ikon kustom menggunakan gambar
+    var customIcon = L.icon({
+        iconUrl: "{{ url_for('static', filename='img/boy.png') }}",  // Path gambar
+        iconSize: [20, 20],  // Ukuran ikon
+        iconAnchor: [16, 32],  // Titik jangkar ikon
+        popupAnchor: [0, -32]  // Posisi popup relatif terhadap ikon
+    });
 
-    var modal = $(this);
-    modal.find('.modal-body').html('<img src="' + buktiPembayaran + '" class="img-fluid" alt="Bukti Pembayaran">');
-  });
+    // Data lokasi keluarga dari Flask
+    var lokasiKeluarga = JSON.parse('{{ lokasi_keluarga | tojson | safe }}');
+
+    // Koordinat titik pusat
+    var centerCoordinates = [-6.341110, 106.847104];
+
+    // Inisialisasi peta
+    var map = L.map('map', {
+        center: centerCoordinates,  // Titik pusat peta
+        zoom: 20,  // Level zoom awal
+        minZoom: 17,  // Menetapkan zoom minimum
+        maxZoom: 18,  // Menetapkan zoom maksimum
+        dragging: false,  // Menonaktifkan geser peta
+        touchZoom: false,  // Menonaktifkan zoom sentuh
+        scrollWheelZoom: false,  // Menonaktifkan zoom dengan roda mouse
+        doubleClickZoom: false  // Menonaktifkan zoom dengan klik ganda
+    });
+
+    // Tambahkan tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Tentukan batas peta (maxBounds) untuk mencegah zoom ke luar dari area ini
+    var bounds = [
+        [-6.345, 106.844],  // Batas bawah kiri
+        [-6.336, 106.850]   // Batas kanan atas
+    ];
+    map.setMaxBounds(bounds);  // Membatasi peta hanya dalam area ini
+
+    // Menjaga peta tetap di dalam batas saat di geser
+    map.on('drag', function() {
+        map.panInsideBounds(bounds);
+    });
+
+    // Tambahkan marker dengan ikon kustom
+    lokasiKeluarga.forEach(item => {
+        L.marker([item.lat, item.lng], { icon: customIcon })
+         .addTo(map)
+         .bindPopup(`<b>${item.nama}</b>`);
+    });
+
+// Simpan marker ke dalam objek untuk memudahkan akses
+var markers = {};
+
+// Tambahkan marker ke peta dan simpan dalam objek markers
+lokasiKeluarga.forEach(item => {
+    const marker = L.marker([item.lat, item.lng], { icon: customIcon })
+        .addTo(map)
+        .bindPopup(`<b>${item.nama}</b>`);
+
+    // Simpan marker berdasarkan nama keluarga
+    markers[item.nama] = marker;
+});
+
+// Event listener untuk tombol daftar keluarga
+document.querySelectorAll('.family-item').forEach(button => {
+    button.addEventListener('click', function () {
+        const lat = parseFloat(this.getAttribute('data-lat'));
+        const lng = parseFloat(this.getAttribute('data-lng'));
+        const nama = this.getAttribute('data-nama');
+
+        // Fokus pada marker dan buka popup
+        map.setView([lat, lng], 18); // Zoom ke lokasi
+        if (markers[nama]) {
+            markers[nama].openPopup();
+        }
+    });
+});
+
   </script>
 
 </body>

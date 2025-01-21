@@ -49,6 +49,8 @@ from dateutil.relativedelta import relativedelta
 import calendar
 import pytz
 import pandas as pd
+from functools import wraps
+from flask import session, redirect, url_for, flash, abort
 
 pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", "static/font/Times-Bold.TTF"))
 
@@ -102,6 +104,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default="user")
 
 
 class SchedulerLog(db.Model):
@@ -245,18 +248,38 @@ def __init__(self, username, password):
     self.password = password  # Menyimpan password sebagai plaintext
 
 
+import logging
+
+
+def role_required(allowed_roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if "role" not in session or session["role"] not in allowed_roles:
+                # Flash message untuk tidak memiliki akses
+                return render_template(
+                    "unauthorized.html",  # Menampilkan halaman unauthorized
+                    original_url=request.path,
+                    role=session.get("role"),
+                )
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 # Route untuk halaman user
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-# Route untuk login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
+        username = request.form.get("username").strip()
+        password = request.form.get("password").strip()
 
         if not username or not password:
             flash("Username dan password harus diisi.", "warning")
@@ -267,8 +290,11 @@ def login():
 
         # Validasi username dan password
         if user and check_password_hash(user.password, password):
-            session["user_id"] = user.id  # Simpan user id di session
-            session["username"] = user.username  # Simpan username di session
+            # Simpan data pengguna ke session
+            session["user_id"] = user.id
+            session["username"] = user.username
+            session["role"] = user.role  # Tambahkan role pengguna ke session
+
             return redirect(url_for("dashboard"))
         else:
             flash("Username atau password salah. Silakan coba lagi.", "danger")
@@ -890,6 +916,7 @@ def message_center():
 
 #  route menu keluarga
 @app.route("/keluarga")
+@role_required(["ketua"])
 def keluarga():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
@@ -1049,6 +1076,7 @@ def edit_family():
 
 # route untuk menu surat
 @app.route("/surat")
+@role_required(["ketua"])
 def surat():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
@@ -1533,10 +1561,12 @@ def generate_financial_report():
 
 # Route untuk halaman Pengguna
 @app.route("/pengguna")
+@role_required(["ketua"])
 def pengguna():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
+
     all_messages = Message.query.order_by(Message.timestamp.desc()).all()
 
     # Batasi pesan yang ditampilkan
@@ -1559,8 +1589,10 @@ def pengguna():
         }
         for msg in messages_to_display
     ]
+
     # Ambil semua data iuran dari database
     iuran_list = Iuran.query.all()
+
     return render_template(
         "pengguna.html",
         iuran_list=iuran_list,
@@ -1570,7 +1602,6 @@ def pengguna():
 
 @app.route("/add_user", methods=["GET", "POST"])
 def add_user():
-    # Pastikan hanya pengguna yang sudah login yang dapat mengakses halaman ini
     if "username" not in session:
         flash("Anda harus login terlebih dahulu untuk mengakses halaman ini.", "error")
         return redirect(url_for("login"))
@@ -1578,25 +1609,22 @@ def add_user():
     if request.method == "POST":
         username = request.form["username"].strip()
         password = request.form["password"].strip()
+        role = request.form["role"]  # Ambil peran pengguna dari form
+
         # Cek apakah username sudah ada di database
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-
             flash("Username sudah terdaftar", "warning")
-
         else:
             hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
 
-            # Buat pengguna baru dengan hashed password
-            new_user = User(username=username, password=hashed_password)
+            # Tambahkan pengguna baru dengan role
+            new_user = User(username=username, password=hashed_password, role=role)
             db.session.add(new_user)
             db.session.commit()
 
-            # Beri tahu pengguna bahwa user telah berhasil ditambahkan
             flash("User berhasil ditambahkan!", "success")
-            return redirect(
-                url_for("add_user")
-            )  # Tetap di halaman yang sama setelah user berhasil ditambahkan
+            return redirect(url_for("add_user"))
 
     return render_template("pengguna.html")
 

@@ -18,6 +18,15 @@
 
 <body id="page-top">
   <div id="wrapper">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    <div>
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
     <!-- Sidebar -->
     <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar">
       <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
@@ -75,6 +84,12 @@
           <span>Pendatang</span>
         </a>
       </li>
+      <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('lokasi_keluarga') }}">
+        <i class="fas fa-fw fa-map-marker-alt fa-lg"></i> <!-- Tambahkan fa-lg -->
+        <span>Denah</span>
+    </a>
+</li>
       <hr class="sidebar-divider">
       <div class="sidebar-heading">
         Examples
@@ -221,29 +236,30 @@
       <li class="breadcrumb-item active" aria-current="page">Pengguna</li>
     </ol>
   </div>
-<!-- Pesan Flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div>
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
+
+
   
+    
   <h4>Tambahkan Pengguna</h4>
-  <form method="POST" action="/add_user">
-      <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" class="form-control" id="username" name="username" required>
-      </div>
-      <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" class="form-control" id="password" name="password" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Tambah Pengguna</button>
-  </form>
+<form method="POST" action="/add_user">
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <div class="form-group">
+        <label for="role">Peran</label>
+        <select class="form-control" id="role" name="role" required>
+            <option value="ketua">Ketua RT</option>
+            <option value="kader">Kader RT</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Tambah Pengguna</button>
+</form>
+
   
       </div>
       </div>
@@ -272,6 +288,26 @@
         </div>
         <!---Container Fluid-->
       </div>
+      <!-- Popup Notifikasi -->
+<div id="notification-popup" class="modal" tabindex="-1" role="dialog" style="display:none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notifikasi</h5>
+                <button type="button" class="close" onclick="closePopup()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="notification-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="closePopup()">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
       <!-- Footer -->
       <footer class="sticky-footer bg-white">
@@ -301,7 +337,7 @@
   <script src="static/vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <!-- Page level custom scripts -->
   <script>
@@ -318,6 +354,17 @@
         });
     }, 3000); // Waktu dalam milidetik
 
+   document.addEventListener("DOMContentLoaded", function () {
+
+
+    const flashContainer = document.querySelector(".alert");
+    if (flashContainer) {
+
+      alert(flashContainer.textContent.trim());
+    } else {
+    }
+  });
+  
   </script>
 
 </body>
