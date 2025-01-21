@@ -914,30 +914,27 @@ def message_center():
     return render_template("tentang.html")
 
 
-#  route menu keluarga
 @app.route("/keluarga")
-@role_required(["ketua"])
 def keluarga():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
 
+    # Mendapatkan role dari session (misalnya 'kader', 'admin', dll)
+    user_role = session.get("role", "")
+
     # Mengambil nama keluarga unik dengan jumlah anak dan istri
     families = (
         db.session.query(
-            func.trim(Family.nama_keluarga).label(
-                "nama_keluarga"
-            ),  # Menghapus spasi dari nama keluarga
+            func.trim(Family.nama_keluarga).label("nama_keluarga"),
             func.sum(case((Family.hubungan_keluarga == "Anak", 1), else_=0)).label(
                 "jumlah_anak"
-            ),  # Hanya hitung anak
+            ),
             func.sum(case((Family.hubungan_keluarga == "Istri", 1), else_=0)).label(
                 "jumlah_istri"
-            ),  # Hanya hitung istri
+            ),
         )
-        .group_by(
-            func.trim(Family.nama_keluarga)
-        )  # Mengelompokkan berdasarkan nama keluarga yang telah di-trim
+        .group_by(func.trim(Family.nama_keluarga))
         .all()
     )
 
@@ -964,8 +961,12 @@ def keluarga():
         for msg in messages_to_display
     ]
 
+    # Mengirim data role ke template
     return render_template(
-        "datatables.html", families=families, messages=message_list_to_display
+        "datatables.html",
+        families=families,
+        messages=message_list_to_display,
+        user_role=user_role,  # Menambahkan role ke context template
     )
 
 
@@ -1016,6 +1017,7 @@ def delete_family_member(member_id):
 
 
 @app.route("/edit_family", methods=["POST"])
+@role_required(["ketua"])
 def edit_family():
     data = request.form
     member_id = data.get("member_id")
