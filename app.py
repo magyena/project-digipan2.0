@@ -1078,7 +1078,6 @@ def edit_family():
 
 # route untuk menu surat
 @app.route("/surat")
-@role_required(["ketua"])
 def surat():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
@@ -1137,6 +1136,7 @@ def surat():
         "surat/list_surat.html",
         messages=message_list_to_display,
         surat_list=surat_list_to_display,
+        user_role=session.get("role"),
     )
 
 

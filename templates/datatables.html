@@ -16,9 +16,9 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <style>
-  /* Menambahkan border dan animasi pada SweetAlert */
+ /* Menambahkan border dan animasi pada SweetAlert */
 .swal2-popup {
-  border: 5px solid #6777ef; /* Border tebal dengan warna merah */
+  border: 5px solid #6777ef; /* Border tebal dengan warna biru */
   border-radius: 15px; /* Sudut melengkung yang lebih besar */
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2); /* Menambahkan bayangan halus */
   animation: slideIn 0.5s ease-out; /* Menambahkan animasi slide-in */
@@ -30,7 +30,7 @@
   font-family: 'Arial', sans-serif; /* Mengubah font judul */
   font-size: 22px; /* Ukuran font lebih besar */
   text-transform: uppercase; /* Membuat teks menjadi huruf kapital */
-  animation: fadeIn 1s ease-out; /* Animasi fade-in */
+  animation: fadeInTitle 1s ease-out; /* Animasi fade-in */
 }
 
 /* Tombol confirm dengan efek hover */
@@ -41,7 +41,7 @@
   font-size: 18px; /* Ukuran font tombol */
   padding: 10px 20px; /* Padding tombol agar lebih besar */
   border-radius: 30px; /* Sudut tombol lebih melengkung */
-  transition: background-color 0.3s ease-in-out; /* Efek transisi pada hover */
+  transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out; /* Efek transisi pada hover */
 }
 
 /* Efek hover pada tombol */
@@ -50,7 +50,7 @@
   transform: scale(1.1); /* Efek zoom in saat hover */
 }
 
-/* Animasi Fade-In untuk popup */
+/* Animasi Slide-In untuk popup */
 @keyframes slideIn {
   0% {
     opacity: 0;
@@ -63,7 +63,7 @@
 }
 
 /* Animasi Fade-In untuk judul */
-@keyframes fadeIn {
+@keyframes fadeInTitle {
   0% {
     opacity: 0;
   }
@@ -71,6 +71,7 @@
     opacity: 1;
   }
 }
+
 
 </style>
 <body id="page-top">
