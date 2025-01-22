@@ -60,6 +60,7 @@
             <a class="collapse-item" href="/verifikasi-iuran">Verifikasi Iuran</a>
             <a class="collapse-item" href="/statistik-iuran">Statistik Iuran</a>
             <a class="collapse-item" href="/manual_iuran">Iuran Manual</a>
+            <a class="collapse-item" href="/pengeluaran">Pengeluaran</a>
           </div>
         </div>
       </li>
@@ -241,44 +242,45 @@
         {% endwith %}
 
         <h2>Formulir Iuran Manual</h2>
-        <form action="/kirim_manual_iuran" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="nama_keluarga">Nama Keluarga</label>
-                <input
-                    type="text"
-                    id="nama_keluarga"
-                    name="nama_keluarga"
-                    class="form-control"
-                    placeholder="Masukkan nama keluarga"
-                    required
-                />
-            </div>
-          <div class="form-group">
+<form action="/kirim_manual_iuran" method="POST" id="formmanualiuran" enctype="multipart/form-data">
+  <div class="form-group">
+    <label for="nama_keluarga">Nama Keluarga</label>
+    <input
+      type="text"
+      id="nama_keluarga"
+      name="nama_keluarga"
+      class="form-control"
+      placeholder="Masukkan nama keluarga"
+      required
+    />
+  </div>
+  <div class="form-group">
     <label for="jumlah">Jumlah Iuran</label>
     <div class="input-group">
-        <span class="input-group-text">Rp</span>
-        <input
-            type="text"
-            id="jumlah"
-            name="jumlah"
-            class="form-control"
-            placeholder="Masukkan jumlah iuran"
-            required
-        />
+      <span class="input-group-text">Rp</span>
+      <input
+        type="text"
+        id="jumlah"
+        name="jumlah"
+        class="form-control"
+        placeholder="Masukkan jumlah iuran"
+        required
+      />
     </div>
-</div>
-            <div class="form-group">
-                <label for="bukti_pembayaran">Bukti Pembayaran (Opsional)</label>
-                <input
-                    type="file"
-                    id="bukti_pembayaran"
-                    name="bukti_pembayaran"
-                    class="form-control-file"
-                    accept="image/*"
-                />
-            </div>
-            <button type="submit" class="btn btn-primary">Kirim</button>
-        </form>
+  </div>
+  <div class="form-group">
+    <label for="bukti_pembayaran">Bukti Pembayaran (Opsional)</label>
+    <input
+      type="file"
+      id="bukti_pembayaran"
+      name="bukti_pembayaran"
+      class="form-control-file"
+      accept="image/*"
+    />
+  </div>
+  <button type="submit" id="btnSimpan" class="btn btn-primary btn-block">Kirim</button>
+</form>
+
     </div>
 
        </div>
@@ -340,6 +342,8 @@
   <script src="static/vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
    document.addEventListener("DOMContentLoaded", () => {
             const alerts = document.querySelectorAll(".alert");
@@ -365,6 +369,92 @@
             e.target.value = ""; // Kosongkan input jika tidak ada angka
         }
     });
+
+document.getElementById("formmanualiuran").addEventListener("submit", function (e) {
+  e.preventDefault(); // Mencegah submit default
+
+  // Menampilkan SweetAlert dengan loading
+  Swal.fire({
+    title: 'Proses...',
+    text: 'Harap tunggu, data sedang diproses.',
+    icon: 'info',
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    willOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  // Delay selama 3 detik sebelum melanjutkan proses
+  setTimeout(() => {
+    // Ambil data form
+    const formData = new FormData(this);
+
+  // Timer untuk batas waktu 5 detik
+  const timeout = setTimeout(() => {
+    Swal.fire({
+      title: 'Waktu Habis!',
+      text: 'Proses melebihi batas waktu 5 detik. Silakan coba lagi.',
+      icon: 'error',
+      confirmButtonText: 'OK'
+    });
+  }, 5000); // 5000 ms = 5 detik
+
+  // Ambil data form
+
+
+  // Kirim data via fetch
+  fetch('/kirim_manual_iuran', {
+    method: 'POST',
+    body: formData
+  })
+    .then(response => {
+      // Cek jika respons status OK
+      if (!response.ok) {
+        throw new Error('Terjadi kesalahan pada server, status: ' + response.status);
+      }
+      return response.json(); // Parsing respons sebagai JSON
+    })
+    .then(result => {
+      // Hentikan timeout jika respons diterima
+      clearTimeout(timeout);
+
+      if (result.message) {
+        // Jika berhasil, tampilkan pesan sukses
+        Swal.fire({
+          title: 'Berhasil!',
+          text: result.message,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          window.location.href = '/manual_iuran'; // Redirect setelah sukses
+        });
+      } else {
+        // Jika ada error dalam respons JSON
+        Swal.fire({
+          title: 'Gagal!',
+          text: result.error || 'Terjadi kesalahan.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    })
+    .catch(error => {
+      // Tangani kesalahan lainnya
+      clearTimeout(timeout);
+      console.error('Error:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: error.message || 'Terjadi kesalahan saat memproses data.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    });
+  },5000); // Delay 3000 ms = 3 detik
+    
+});
+
+
+
   </script>
 
 </body>

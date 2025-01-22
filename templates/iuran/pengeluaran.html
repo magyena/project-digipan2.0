@@ -8,7 +8,8 @@
   <meta name="description" content="">
   <meta name="author" content="">
   <link href="static/img/logo/2.png" rel="icon">
-  <title>Digipan | Verifikasi Iuran</title>
+  <title>Digipan | Pengeluaran</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
@@ -63,7 +64,7 @@
           </div>
         </div>
       </li>
-      <li class="nav-item">
+       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('laporan') }}">
           <i class="fab fa-fw fa-wpforms"></i>
           <span>Laporan</span>
@@ -85,13 +86,13 @@
       <div class="sidebar-heading">
         Examples
       </div>
-      <li class="nav-item">
+     <li class="nav-item">
         <a class="nav-link" href="{{ url_for('pengguna') }}">
           <i class="fab fa-fw fa-wpforms"></i>
           <span>Pengguna</span>
         </a>
       </li>
-      
+     
       <hr class="sidebar-divider">
       <div class="version" id="version-ruangadmin"></div>
     </ul>
@@ -218,99 +219,58 @@
           </ul>
         </nav>
         <!-- Topbar -->
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Data Iuran</h1>
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Data Iuran</li>
-            </ol>
-          </div> 
-                 <!-- DataTables with Unique Iuran List -->
-<div class="col-lg-12">
-  <div class="card mb-4">
-    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-      <h6 class="m-0 font-weight-bold text-primary">Daftar Iuran</h6>
-    </div>
-    <div class="table-responsive p-3">
-      <table class="table align-items-center table-flush table-hover" id="dataTableHover">
-        <thead class="thead-light">
-          <tr>
-            <th>Nama Keluarga</th>
-            <th>Jumlah Iuran</th>
-            <th>Bukti Pembayaran</th>
-            <th>Status Pembayaran</th>
-            <th>Tanggal</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for iuran in iuran_list %}
-          <tr>
-            <td>{{ iuran.nama_keluarga }}</td>
-            <td>Rp. {{ iuran.jumlah_iuran|rupiah }}</td>
-            <td>
-              {% if iuran.bukti_pembayaran %}
-                <a href="#" class="btn btn-info" data-toggle="modal" data-target="#modalBuktiPembayaran" data-bukti="{{ iuran.bukti_pembayaran }}">Lihat Bukti</a>
-              {% else %}
-                Tidak Ada Bukti
-              {% endif %}
-            </td>
-            <td>{{ iuran.status_pembayaran }}</td>
-            <td>{{ iuran.tanggal }}</td>
-            <td>
-              {% if iuran.status_pembayaran == 'Menunggu' %}
-              <form action="{{ url_for('update_status_iuran', iuran_id=iuran.id) }}" method="POST">
-                  <button type="submit" class="btn btn-success">Tandai Lunas</button>
-              </form>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      
-<div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="alert alert-{{ messages[0][0] }}">
-                    {{ messages[0][1] }}
-                </div>
-            {% endif %}
-        {% endwith %}
-</table>
+       <!-- Container Fluid-->
+<div class="container-fluid" id="container-wrapper">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Pengeluaran dan Kegiatan</h1>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Pengeluaran</li>
+    </ol>
+  </div>
+
+  <div class="container">
+    <!-- Tampilkan Flash Message -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <h2 class="mb-4">Kegiatan Pengeluaran</h2>
+   <div class="form-container">
+      <form method="POST" action="/pengeluaran" id="formPengeluaran">
+        <div class="form-group">
+          <label for="nama_kegiatan">Nama Kegiatan</label>
+          <input type="text" id="nama_kegiatan" name="nama_kegiatan" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="jenis_pengeluaran">Jenis Pengeluaran</label>
+          <input type="text" id="jenis_pengeluaran" name="jenis_pengeluaran" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="jumlah">Jumlah Pengeluaran</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Rp</span>
+            </div>
+            <input type="text" id="jumlah" name="jumlah" class="form-control" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="tanggal">Tanggal</label>
+          <input type="date" id="tanggal" name="tanggal" class="form-control" required>
+        </div>
+         <button type="submit" id="btnSimpan" class="btn btn-primary btn-block">Simpan</button>
+      </form>
     </div>
   </div>
 </div>
-        <!-- Konten lainnya di sini -->
-
-
-       
-        
-
-
-          </div>
-          <!--Row-->
-
-         </div>
-   <!-- Modal -->
-<div class="modal fade" id="modalBuktiPembayaran" tabindex="-1" role="dialog" aria-labelledby="modalBuktiLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalBuktiLabel">Bukti Pembayaran</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body" id="modalBuktiContent">
-        <!-- Isi bukti pembayaran akan ditampilkan di sini -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-      </div>
-    </div>
-  </div>
+</div>
 </div>
 
           <!-- Modal Logout -->
@@ -339,7 +299,7 @@
         <!---Container Fluid-->
       </div>
 
-      <!-- Footer -->
+     <!-- Footer -->
       <footer class="sticky-footer bg-white">
         <div class="container my-auto">
           <div class="copyright text-center my-auto">
@@ -362,25 +322,122 @@
   <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="static/js/ruang-admin.min.js"></script>
-  <script src="static/js/surat.js"></script>
+  <script src="static/js/iuran.js"></script>
   <!-- Page level plugins -->
   <script src="static/vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
-  <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->
-  <!-- Page level custom scripts -->
-  <script>
-    $(document).ready(function () {
-      $('#dataTable').DataTable(); // ID From dataTable 
-      $('#dataTableHover').DataTable(); // ID From dataTable with Hover
+  <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+   document.addEventListener("DOMContentLoaded", () => {
+            const alerts = document.querySelectorAll(".alert");
+            alerts.forEach((alert) => {
+                setTimeout(() => {
+                    alert.style.transition = "opacity 0.5s";
+                    alert.style.opacity = "0";
+                    setTimeout(() => alert.remove(), 500); // Hapus elemen setelah animasi
+                }, 3000); // 3000 ms = 3 detik
+            });
+        });
+
+          const inputJumlah = document.getElementById("jumlah");
+
+    inputJumlah.addEventListener("input", (e) => {
+        // Hapus semua karakter non-angka
+        let value = e.target.value.replace(/\./g, "").replace(/[^0-9]/g, "");
+
+        // Format angka dengan titik setiap ribuan
+        if (value) {
+            e.target.value = new Intl.NumberFormat("id-ID").format(value);
+        } else {
+            e.target.value = ""; // Kosongkan input jika tidak ada angka
+        }
     });
 
-    $('#modalBuktiPembayaran').on('show.bs.modal', function (event) {
-    var button = $(event.relatedTarget); // Tombol yang diklik
-    var buktiPembayaran = button.data('bukti'); // Ambil URL bukti dari tombol
+    document.getElementById('jumlah').addEventListener('input', function(event) {
+    let value = event.target.value;
 
-    var modal = $(this);
-    modal.find('.modal-body').html('<img src="' + buktiPembayaran + '" class="img-fluid" alt="Bukti Pembayaran">');
+    // Hapus semua karakter selain angka dan koma
+    value = value.replace(/[^\d]/g, '');
+
+    // Format dengan tanda titik untuk ribuan
+    let formattedValue = '';
+    let counter = 0;
+    
+    // Format value menjadi format 1,000,000
+    for (let i = value.length - 1; i >= 0; i--) {
+      counter++;
+      formattedValue = value[i] + formattedValue;
+      if (counter % 3 === 0 && i !== 0) {
+        formattedValue = '.' + formattedValue;
+      }
+    }
+
+    // Set input field dengan format yang benar
+    event.target.value = formattedValue;
   });
+
+
+  document.getElementById("formPengeluaran").addEventListener("submit", function (e) {
+  e.preventDefault(); // Mencegah form submit default
+
+  // Menampilkan SweetAlert dengan loading
+  Swal.fire({
+    title: 'Proses...',
+    text: 'Harap tunggu, data sedang diproses.',
+    icon: 'info',
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    willOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  // Delay selama 3 detik sebelum melanjutkan proses
+  setTimeout(() => {
+    // Ambil data form
+    const formData = new FormData(this);
+
+    // Kirim data via fetch
+    fetch('/pengeluaran', {
+      method: 'POST',
+      body: formData
+    })
+      .then(response => response.json())
+      .then(result => {
+        if (result.message) {
+          // Jika berhasil, tampilkan pesan sukses
+          Swal.fire({
+            title: 'Berhasil!',
+            text: result.message,
+            icon: 'success',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            // Arahkan ke halaman pengeluaran
+            window.location.href = '/pengeluaran';
+          });
+        } else {
+          // Jika error, tampilkan pesan error
+          Swal.fire({
+            title: 'Gagal!',
+            text: result.error || 'Terjadi kesalahan.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Terjadi kesalahan saat memproses data.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      });
+  }, 5000); // Delay 3000 ms = 3 detik
+});
+
   </script>
 
 </body>

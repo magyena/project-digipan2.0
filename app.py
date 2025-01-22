@@ -173,6 +173,16 @@ class BukuTamu(db.Model):
         ),
     )
 
+
+class Pengeluaran(db.Model):
+    __tablename__ = "pengeluaran"
+    __table_args__ = {"schema": "data_keluarga"}
+    id = db.Column(db.Integer, primary_key=True)
+    nama_kegiatan = db.Column(db.String(255), nullable=False)
+    jenis_pengeluaran = db.Column(db.String(255), nullable=False)
+    jumlah = db.Column(db.Float, nullable=False)
+    tanggal = db.Column(db.Date, nullable=False)
+
     def __init__(
         self,
         nama,
@@ -241,6 +251,12 @@ class BukuTamu(db.Model):
         self.alamat = alamat
         self.tujuan = tujuan
         self.kontak = kontak
+
+    def __init__(self, nama_kegiatan, jenis_pengeluaran, jumlah, tanggal):
+        self.nama_kegiatan = nama_kegiatan
+        self.jenis_pengeluaran = jenis_pengeluaran
+        self.jumlah = jumlah
+        self.tanggal = tanggal
 
 
 def __init__(self, username, password):
@@ -1971,17 +1987,85 @@ def kirim_manual_iuran():
             db.session.add(iuran_baru)
             db.session.commit()
 
-            # Tambahkan notifikasi menggunakan Flash
-            flash("Iuran berhasil ditambahkan!", "success")
-            return redirect(url_for("manual_iuran"))  # Redirect ke halaman manual_iuran
+            # Kembalikan respons JSON yang sukses
+            return jsonify({"message": "Iuran berhasil ditambahkan!"}), 200
+
         except Exception as e:
             logging.error(f"Database error: {e}")
             db.session.rollback()
-            flash("Terjadi kesalahan saat menambahkan iuran.", "danger")
-            return redirect(url_for("manual_iuran"))
+            # Kembalikan respons error dalam JSON
+            return jsonify({"error": "Terjadi kesalahan saat menambahkan iuran."}), 400
 
-    flash("Metode tidak valid.", "warning")
-    return redirect(url_for("manual_iuran"))
+    # Jika metode tidak valid
+    return jsonify({"error": "Metode tidak valid."}), 400
+
+
+@app.route("/pengeluaran")
+def pengeluaran():
+    # Periksa apakah pengguna sudah login melalui session
+    if "user_id" not in session:
+        # Jika pengguna belum login, arahkan ke halaman login
+        return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+
+    username = session.get("username")
+    return render_template(
+        "iuran/pengeluaran.html",
+        messages=message_list_to_display,
+        username=username,
+    )
+
+
+@app.route("/pengeluaran", methods=["POST"])
+def tambah_pengeluaran():
+    try:
+        # Ambil data dari form
+        data = request.form
+        nama_kegiatan = data.get("nama_kegiatan")
+        jenis_pengeluaran = data.get("jenis_pengeluaran")
+        jumlah = data.get("jumlah").replace(".", "")  # Hapus titik
+        tanggal = data.get("tanggal")
+
+        # Parsing jumlah
+        jumlah_float = float(jumlah)
+
+        # Buat objek pengeluaran
+        pengeluaran_baru = Pengeluaran(
+            nama_kegiatan=nama_kegiatan,
+            jenis_pengeluaran=jenis_pengeluaran,
+            jumlah=jumlah_float,
+            tanggal=tanggal,
+        )
+
+        # Simpan ke database
+        db.session.add(pengeluaran_baru)
+        db.session.commit()
+
+        return jsonify({"message": "Pengeluaran berhasil ditambahkan!"}), 200
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": f"Terjadi kesalahan: {str(e)}"}), 500
 
 
 if __name__ == "__main__":
