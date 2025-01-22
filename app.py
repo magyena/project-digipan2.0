@@ -1617,27 +1617,36 @@ def pengguna():
 
         # Cek apakah role pengguna yang login adalah 'kader'
         if user_role == "kader":
-            return render_template(
-                "pengguna.html",
-                iuran_list=iuran_list,
-                messages=message_list_to_display,
-                all_users=all_users,
-                akses_terbatas=True,  # Kirim akses terbatas sebagai True untuk tampilkan SweetAlert
+            return (
+                jsonify(
+                    {
+                        "message": None,
+                        "error": "Fitur ini hanya dapat diakses oleh Admin.",
+                    }
+                ),
+                403,
             )
 
         # Cek apakah username sudah ada di database
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            flash("Username sudah terdaftar", "warning")
-        else:
-            hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+            return (
+                jsonify({"message": None, "error": "Username sudah tersedia"}),
+                400,
+            )
 
-            # Tambahkan pengguna baru dengan role
-            new_user = User(username=username, password=hashed_password, role=role)
-            db.session.add(new_user)
-            db.session.commit()
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
 
-            return redirect(url_for("pengguna"))
+        # Tambahkan pengguna baru dengan role
+        new_user = User(username=username, password=hashed_password, role=role)
+        db.session.add(new_user)
+        db.session.commit()
+
+        # Kirimkan response sukses
+        return (
+            jsonify({"message": "Pengguna berhasil ditambahkan!", "error": None}),
+            200,
+        )
 
     return render_template(
         "pengguna.html",
