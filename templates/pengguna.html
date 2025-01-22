@@ -71,6 +71,22 @@
     opacity: 1;
   }
 }
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    text-align: left;
+    padding: 8px;
+}
+
+@media (max-width: 768px) {
+    table {
+        font-size: 14px;
+    }
+}
+
 </style>
 
 <body id="page-top">
@@ -289,9 +305,8 @@
 
 
   
-    
   <h4>Tambahkan Pengguna</h4>
-<form method="POST" action="/add_user">
+<form method="POST" action="/pengguna">
     <div class="form-group">
         <label for="username">Username</label>
         <input type="text" class="form-control" id="username" name="username" required>
@@ -319,6 +334,31 @@
     </div>
 {% endif %}
 {% endwith %}
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in all_users %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                <button class="btn btn-primary btn-sm">Edit</button>
+                <button class="btn btn-danger btn-sm">Hapus</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
       </div>
       </div>
           <!-- Modal Logout -->
@@ -422,24 +462,24 @@
     } else {
     }
   });
-  document.addEventListener("DOMContentLoaded", function () {
-    const aksesTerbatas = "{{ akses_terbatas|tojson }}";
-    if (aksesTerbatas === "true") {
-        Swal.fire({
-            icon: "error",
-            title: "Akses Terbatas",
-            text: "Fitur ini hanya dapat diakses oleh Admin.",
-            confirmButtonText: "OK",
-            confirmButtonColor: "#d33",
-            allowOutsideClick: false, // Mencegah klik di luar SweetAlert
-            allowEscapeKey: false, // Mencegah penutupan dengan tombol escape
-            timer: 0, // Tidak ada timer, akan tetap muncul sampai tombol OK diklik
-        }).then(() => {
-            window.location.href = "/dashboard"; // Arahkan kembali ke dashboard
-        });
-    }
-});
 
+ document.addEventListener("DOMContentLoaded", function () {
+        const aksesTerbatas = "{{ akses_terbatas|tojson }}";
+        if (aksesTerbatas === "true") {
+            Swal.fire({
+                icon: "error",
+                title: "Akses Terbatas",
+                text: "Fitur ini hanya dapat diakses oleh Ketua RT.",
+                confirmButtonText: "OK",
+                confirmButtonColor: "#d33",
+                allowOutsideClick: false, // Mencegah klik di luar SweetAlert
+                allowEscapeKey: false, // Mencegah penutupan dengan tombol escape
+                timer: 0, // Tidak ada timer, akan tetap muncul sampai tombol OK diklik
+            }).then(() => {
+                window.location.href = "/pengguna"; // Tetap di halaman /pengguna
+            });
+        }
+    });
   
   </script>
 

@@ -1583,6 +1583,8 @@ def pengguna():
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
 
+    user_role = session.get("role")  # Ambil role dari session
+
     # Ambil semua pesan untuk ditampilkan
     all_messages = Message.query.order_by(Message.timestamp.desc()).all()
     messages_to_display = all_messages[:3]
@@ -1605,41 +1607,44 @@ def pengguna():
     # Ambil semua data iuran
     iuran_list = Iuran.query.all()
 
-    # Periksa role pengguna dari sesi
-    user_role = session.get("role")
-    if user_role == "kader":
-        # Role kader tidak bisa menambah pengguna
-        return render_template(
-            "pengguna.html",
-            iuran_list=iuran_list,
-            messages=message_list_to_display,
-            akses_terbatas=False,
-        )
+    # Ambil semua pengguna dari tabel User
+    all_users = User.query.order_by(User.username.asc()).all()
 
     if request.method == "POST":
-        # Tambah pengguna baru
         username = request.form["username"].strip()
         password = request.form["password"].strip()
-        role = request.form["role"]
+        role = request.form["role"]  # Ambil peran pengguna dari form
 
-        # Periksa apakah username sudah ada
+        # Cek apakah role pengguna yang login adalah 'kader'
+        if user_role == "kader":
+            return render_template(
+                "pengguna.html",
+                iuran_list=iuran_list,
+                messages=message_list_to_display,
+                all_users=all_users,
+                akses_terbatas=True,  # Kirim akses terbatas sebagai True untuk tampilkan SweetAlert
+            )
+
+        # Cek apakah username sudah ada di database
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            flash("Username sudah terdaftar.", "warning")
+            flash("Username sudah terdaftar", "warning")
         else:
             hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+
+            # Tambahkan pengguna baru dengan role
             new_user = User(username=username, password=hashed_password, role=role)
             db.session.add(new_user)
             db.session.commit()
 
-            flash("User berhasil ditambahkan!", "success")
             return redirect(url_for("pengguna"))
 
     return render_template(
         "pengguna.html",
         iuran_list=iuran_list,
         messages=message_list_to_display,
-        akses_terbatas=False,
+        all_users=all_users,
+        akses_terbatas=False,  # Set ke False jika akses tidak terbatas
     )
 
 
