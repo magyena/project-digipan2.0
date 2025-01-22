@@ -1561,25 +1561,19 @@ def generate_financial_report():
     )
 
 
-# Route untuk halaman Pengguna
-@app.route("/pengguna")
-@role_required(["ketua"])
+@app.route("/pengguna", methods=["GET", "POST"])
 def pengguna():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
 
+    # Ambil semua pesan untuk ditampilkan
     all_messages = Message.query.order_by(Message.timestamp.desc()).all()
-
-    # Batasi pesan yang ditampilkan
     messages_to_display = all_messages[:3]
-
-    # Format pesan untuk template
     message_list_to_display = [
         {
             "message": msg.message,
             "user": msg.user,
-            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
             "nomor_whatsapp": (
                 "62" + msg.nomor_whatsapp[1:]
                 if msg.nomor_whatsapp.startswith("0")
@@ -1592,13 +1586,44 @@ def pengguna():
         for msg in messages_to_display
     ]
 
-    # Ambil semua data iuran dari database
+    # Ambil semua data iuran
     iuran_list = Iuran.query.all()
+
+    # Periksa role pengguna dari sesi
+    user_role = session.get("role")
+    if user_role == "kader":
+        # Role kader tidak bisa menambah pengguna
+        return render_template(
+            "pengguna.html",
+            iuran_list=iuran_list,
+            messages=message_list_to_display,
+            akses_terbatas=False,
+        )
+
+    if request.method == "POST":
+        # Tambah pengguna baru
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
+        role = request.form["role"]
+
+        # Periksa apakah username sudah ada
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            flash("Username sudah terdaftar.", "warning")
+        else:
+            hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+            new_user = User(username=username, password=hashed_password, role=role)
+            db.session.add(new_user)
+            db.session.commit()
+
+            flash("User berhasil ditambahkan!", "success")
+            return redirect(url_for("pengguna"))
 
     return render_template(
         "pengguna.html",
         iuran_list=iuran_list,
         messages=message_list_to_display,
+        akses_terbatas=False,
     )
 
 
@@ -1607,6 +1632,12 @@ def add_user():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu untuk mengakses halaman ini.", "error")
         return redirect(url_for("login"))
+
+    # Periksa role pengguna
+    user_role = session.get("role")  # Ambil role dari sesi
+    if user_role == "kader":
+        # Jika user role adalah kader, tampilkan pesan akses terbatas menggunakan SweetAlert
+        return render_template("pengguna.html", akses_terbatas=True)
 
     if request.method == "POST":
         username = request.form["username"].strip()
@@ -1628,7 +1659,7 @@ def add_user():
             flash("User berhasil ditambahkan!", "success")
             return redirect(url_for("add_user"))
 
-    return render_template("pengguna.html")
+    return render_template("pengguna.html", akses_terbatas=False)
 
 
 @app.route("/get_latest_iuran_notifications", methods=["GET"])

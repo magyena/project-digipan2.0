@@ -15,18 +15,67 @@
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
   <link href="static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 </head>
+<style>
+  /* Menambahkan border dan animasi pada SweetAlert */
+.swal2-popup {
+  border: 5px solid #6777ef; /* Border tebal dengan warna biru */
+  border-radius: 15px; /* Sudut melengkung yang lebih besar */
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2); /* Menambahkan bayangan halus */
+  animation: slideIn 0.5s ease-out; /* Menambahkan animasi slide-in */
+}
+
+/* Menambahkan animasi untuk judul */
+.swal2-title {
+  color: #d33; /* Warna teks judul */
+  font-family: 'Arial', sans-serif; /* Mengubah font judul */
+  font-size: 22px; /* Ukuran font lebih besar */
+  text-transform: uppercase; /* Membuat teks menjadi huruf kapital */
+  animation: fadeInTitle 1s ease-out; /* Animasi fade-in */
+}
+
+/* Tombol confirm dengan efek hover */
+.swal2-confirm {
+  background-color: #d33; /* Warna tombol sesuai border */
+  border-color: #d33; /* Border tombol sesuai warna */
+  color: #fff; /* Warna teks putih */
+  font-size: 18px; /* Ukuran font tombol */
+  padding: 10px 20px; /* Padding tombol agar lebih besar */
+  border-radius: 30px; /* Sudut tombol lebih melengkung */
+  transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out; /* Efek transisi pada hover */
+}
+
+/* Efek hover pada tombol */
+.swal2-confirm:hover {
+  background-color: #b3241a; /* Mengubah warna saat hover */
+  transform: scale(1.1); /* Efek zoom in saat hover */
+}
+
+/* Animasi Slide-In untuk popup */
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animasi Fade-In untuk judul */
+@keyframes fadeInTitle {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+</style>
 
 <body id="page-top">
   <div id="wrapper">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-    <div>
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
-        {% endfor %}
-    </div>
-{% endif %}
-{% endwith %}
+   
     <!-- Sidebar -->
     <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar">
       <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
@@ -260,7 +309,15 @@
     <button type="submit" class="btn btn-primary">Tambah Pengguna</button>
 </form>
 
-  
+   {% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    <div>
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
       </div>
       </div>
           <!-- Modal Logout -->
@@ -364,6 +421,24 @@
     } else {
     }
   });
+  document.addEventListener("DOMContentLoaded", function () {
+    const aksesTerbatas = "{{ akses_terbatas|tojson }}";
+    if (aksesTerbatas === "true") {
+        Swal.fire({
+            icon: "error",
+            title: "Akses Terbatas",
+            text: "Fitur ini hanya dapat diakses oleh Admin.",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#d33",
+            allowOutsideClick: false, // Mencegah klik di luar SweetAlert
+            allowEscapeKey: false, // Mencegah penutupan dengan tombol escape
+            timer: 0, // Tidak ada timer, akan tetap muncul sampai tombol OK diklik
+        }).then(() => {
+            window.location.href = "/dashboard"; // Arahkan kembali ke dashboard
+        });
+    }
+});
+
   
   </script>
 
