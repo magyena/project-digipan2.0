@@ -622,8 +622,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Klik tombol Simpan Perubahan
     saveEditButton.addEventListener("click", async function () {
-        // Ambil ID pengguna dari atribut data-id di tombol modal
-        const userId = saveEditButton.getAttribute("data-id"); 
+        const userId = saveEditButton.getAttribute("data-id");
         const username = document.getElementById("editUsername").value;
         const role = document.getElementById("editRole").value;
 
@@ -650,60 +649,52 @@ document.addEventListener('DOMContentLoaded', function () {
             },
         });
 
-      setTimeout(async () => {
-        // Kirim data ke server menggunakan Fetch API
-        try {
-            const response = await fetch(`/edit_user/${username}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ username, role }),
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                // Swal sukses
-                Swal.fire({
-                    title: "Berhasil!",
-                    text: result.message,
-                    icon: "success",
-                    confirmButtonText: "Ok",
-                }).then(() => {
-                    // Tutup modal
-                    const modal = bootstrap.Modal.getInstance(
-                        document.getElementById("editModal")
-                    );
-                    modal.hide();
-
-                    // Reset form
-                    document.getElementById("editUserForm").reset();
-
-                    // Tambahkan logika refresh UI atau tabel jika diperlukan
-                    location.reload();
+        setTimeout(async () => {
+            // Kirim data ke server menggunakan Fetch API
+            try {
+                const response = await fetch(`/edit_user/${username}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ username, role }),
                 });
-            } else {
-                // Swal error dari server
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Swal sukses
+                    Swal.fire({
+                        title: "Berhasil!",
+                        text: result.message,
+                        icon: "success",
+                        confirmButtonText: "Ok",
+                    }).then(() => {
+                        // Logout otomatis setelah sukses
+                        window.location.href = "/logout"; // Arahkan ke rute logout
+                    });
+                } else {
+                    // Swal error dari server
+                    Swal.fire({
+                        title: "Gagal!",
+                        text: result.message,
+                        icon: "error",
+                        confirmButtonText: "Ok",
+                    });
+                }
+            } catch (error) {
+                // Swal error jika ada masalah koneksi
                 Swal.fire({
-                    title: "Gagal!",
-                    text: result.message,
+                    title: "Kesalahan!",
+                    text: "Terjadi kesalahan saat menyimpan data.",
                     icon: "error",
                     confirmButtonText: "Ok",
                 });
             }
-        } catch (error) {
-            // Swal error jika ada masalah koneksi
-            Swal.fire({
-                title: "Kesalahan!",
-                text: "Terjadi kesalahan saat menyimpan data.",
-                icon: "error",
-                confirmButtonText: "Ok",
-            });
-            }
         }, 5000); // Delay 5 detik (5000 ms)
     });
 });
+
 
   </script>
 
