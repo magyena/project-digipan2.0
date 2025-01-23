@@ -14,6 +14,7 @@
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
   <link href="static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+  
 </head>
 <style>
   
@@ -304,23 +305,40 @@
         </tbody>
     </table>
 </div>
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">Edit Pengguna</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Formulir edit pengguna di sini -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-primary">Simpan perubahan</button>
+    <!-- Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Pengguna</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Form Edit -->
+                    <form id="editUserForm">
+                        <div class="mb-3">
+                            <label for="editUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="editUsername" name="username">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editRole" class="form-label">Role</label>
+                            <select class="form-control" id="editRole" name="role">
+                                <option value="admin">Admin</option>
+                                <option value="kader">Kader</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <!-- Tombol Tutup -->
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <!-- Tombol Simpan -->
+                    <button type="button" class="btn btn-primary" id="saveEditUser">Simpan Perubahan</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
 
 
 
@@ -401,7 +419,8 @@
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
   <!-- Page level custom scripts -->
   <script>
     $(document).ready(function () {
@@ -547,18 +566,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-
 document.addEventListener('DOMContentLoaded', function () {
+    const currentUserRole = "{{ session['role'] }}"; // Ambil role pengguna dari sesi Flask
+
     document.querySelectorAll('.btn-edit').forEach(button => {
         button.addEventListener('click', function () {
             const userId = this.dataset.id;
             const username = this.dataset.username;
 
-            // Cek apakah user adalah "kader"
-            const userRole = 'kader'; // Gantilah sesuai dengan peran pengguna yang sedang login (dapat diambil dari session atau data pengguna)
-
-            if (userRole === 'kader') {
-                // Tampilkan konfirmasi SweetAlert sebelum melanjutkan
+            if (currentUserRole === 'kader') {
+                // SweetAlert untuk role 'kader'
                 Swal.fire({
                     title: `Anda yakin ingin mengedit pengguna ${username}?`,
                     text: "Klik 'Ya' untuk melanjutkan.",
@@ -570,7 +587,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Akses terbatas untuk "kader", jika diizinkan
                         Swal.fire({
                             title: 'Akses Terbatas!',
                             text: 'Fitur ini hanya dapat diakses oleh Admin.',
@@ -580,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             } else {
-                // Jika user bukan "kader", arahkan ke modal edit
+                // SweetAlert untuk role selain 'kader'
                 Swal.fire({
                     title: 'Arahkan ke modal edit?',
                     text: "Klik 'Ya' untuk melanjutkan ke modal edit.",
@@ -592,10 +608,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Panggil modal untuk edit data pengguna
-                        $('#editModal').modal('show'); // Pastikan modal edit sudah ada di HTML
-                        // Isi modal dengan data pengguna (misalnya, menggunakan AJAX atau Jinja)
-                        // contoh: loadUserDataForEditing(userId);
+                        // Menampilkan modal edit
+                        const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+                        editModal.show();
                     }
                 });
             }
@@ -603,6 +618,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+            // Tombol "Simpan Perubahan" (contoh fungsi)
+            document.getElementById('saveEditUser').addEventListener('click', function () {
+                const username = document.getElementById('editUsername').value;
+                const role = document.getElementById('editRole').value;
+
+                if (username && role) {
+                    alert(`Perubahan disimpan:\nUsername: ${username}\nRole: ${role}`);
+                    // Tambahkan logika pengiriman data ke server di sini
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+                    modal.hide(); // Tutup modal setelah data disimpan
+                } else {
+                    alert('Mohon lengkapi data sebelum menyimpan.');
+                }
+            });
+        });
   </script>
 
 </body>
