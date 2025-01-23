@@ -283,7 +283,8 @@
             <td>{{ user.role }}</td>
             <td>
                 <button class="btn btn-primary btn-sm">Edit</button>
-                <button class="btn btn-danger btn-sm">Hapus</button>
+                <button class="btn btn-danger btn-sm btn-delete" data-id="{{ user.id }}">Hapus</button>
+
             </td>
         </tr>
         {% endfor %}
@@ -449,6 +450,68 @@ setTimeout(() => {
 });
 
     
+});
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function () {
+            const userId = this.dataset.id;
+
+            // Tampilkan konfirmasi SweetAlert
+            Swal.fire({
+                title: 'Anda yakin?',
+                text: "Data akan dihapus secara permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Kirim permintaan DELETE ke server
+                    fetch(`/delete_user/${userId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                    .then(({ status, body }) => {
+                        if (status === 200 && body.status === 'success') {
+                            Swal.fire(
+                                'Berhasil!',
+                                body.message,
+                                'success'
+                            ).then(() => {
+                                location.reload(); // Refresh halaman
+                            });
+                        } else if (status === 403) {
+                            // Error khusus untuk akses terbatas
+                            Swal.fire(
+                                'Akses Terbatas!',
+                                body.message,
+                                'error'
+                            );
+                        } else {
+                            Swal.fire(
+                                'Gagal!',
+                                body.message,
+                                'error'
+                            );
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire(
+                            'Gagal!',
+                            'Terjadi kesalahan saat menghapus data.',
+                            'error'
+                        );
+                    });
+                }
+            });
+        });
+    });
 });
 
   </script>

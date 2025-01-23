@@ -2082,5 +2082,32 @@ def tambah_pengeluaran():
         return jsonify({"error": f"Terjadi kesalahan: {str(e)}"}), 500
 
 
+# Endpoint delete_user
+@app.route("/delete_user/<int:user_id>", methods=["POST"])
+def delete_user(user_id):
+    # Periksa role pengguna yang sedang login
+    current_user_role = session.get("role")
+    if current_user_role == "kader":
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "Fitur ini hanya dapat diakses oleh Admin.",
+                }
+            ),
+            403,
+        )
+
+    # Temukan pengguna berdasarkan ID
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"status": "error", "message": "Pengguna tidak ditemukan."}), 404
+
+    # Hapus pengguna dari database
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"status": "success", "message": "Pengguna berhasil dihapus."})
+
+
 if __name__ == "__main__":
     app.run(debug=True)
