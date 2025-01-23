@@ -305,7 +305,8 @@
         </tbody>
     </table>
 </div>
-    <!-- Modal -->
+   
+ <!-- Modal -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -323,7 +324,7 @@
                         <div class="mb-3">
                             <label for="editRole" class="form-label">Role</label>
                             <select class="form-control" id="editRole" name="role">
-                                <option value="admin">Admin</option>
+                                <option value="ketua">Ketua</option>
                                 <option value="kader">Kader</option>
                             </select>
                         </div>
@@ -338,8 +339,6 @@
             </div>
         </div>
     </div>
-
-
 
 
       </div>
@@ -618,22 +617,92 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-            // Tombol "Simpan Perubahan" (contoh fungsi)
-            document.getElementById('saveEditUser').addEventListener('click', function () {
-                const username = document.getElementById('editUsername').value;
-                const role = document.getElementById('editRole').value;
+ document.addEventListener("DOMContentLoaded", function () {
+    const saveEditButton = document.getElementById("saveEditUser");
 
-                if (username && role) {
-                    alert(`Perubahan disimpan:\nUsername: ${username}\nRole: ${role}`);
-                    // Tambahkan logika pengiriman data ke server di sini
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
-                    modal.hide(); // Tutup modal setelah data disimpan
-                } else {
-                    alert('Mohon lengkapi data sebelum menyimpan.');
-                }
+    // Klik tombol Simpan Perubahan
+    saveEditButton.addEventListener("click", async function () {
+        // Ambil ID pengguna dari atribut data-id di tombol modal
+        const userId = saveEditButton.getAttribute("data-id"); 
+        const username = document.getElementById("editUsername").value;
+        const role = document.getElementById("editRole").value;
+
+        // Validasi data
+        if (!username || !role) {
+            Swal.fire({
+                title: "Gagal!",
+                text: "Mohon lengkapi semua data sebelum menyimpan.",
+                icon: "error",
+                confirmButtonText: "Ok",
             });
+            return;
+        }
+
+        // Tampilkan SweetAlert proses
+        Swal.fire({
+            title: "Proses...",
+            text: "Menyimpan perubahan, harap tunggu.",
+            icon: "info",
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
         });
+
+        // Kirim data ke server menggunakan Fetch API
+        try {
+            const response = await fetch(`/edit_user/${username}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, role }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Swal sukses
+                Swal.fire({
+                    title: "Berhasil!",
+                    text: result.message,
+                    icon: "success",
+                    confirmButtonText: "Ok",
+                }).then(() => {
+                    // Tutup modal
+                    const modal = bootstrap.Modal.getInstance(
+                        document.getElementById("editModal")
+                    );
+                    modal.hide();
+
+                    // Reset form
+                    document.getElementById("editUserForm").reset();
+
+                    // Tambahkan logika refresh UI atau tabel jika diperlukan
+                    location.reload();
+                });
+            } else {
+                // Swal error dari server
+                Swal.fire({
+                    title: "Gagal!",
+                    text: result.message,
+                    icon: "error",
+                    confirmButtonText: "Ok",
+                });
+            }
+        } catch (error) {
+            // Swal error jika ada masalah koneksi
+            Swal.fire({
+                title: "Kesalahan!",
+                text: "Terjadi kesalahan saat menyimpan data.",
+                icon: "error",
+                confirmButtonText: "Ok",
+            });
+        }
+    });
+});
+
   </script>
 
 </body>

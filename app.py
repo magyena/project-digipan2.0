@@ -2109,5 +2109,38 @@ def delete_user(user_id):
     return jsonify({"status": "success", "message": "Pengguna berhasil dihapus."})
 
 
+@app.route("/edit_user/<string:username>", methods=["POST"])
+def edit_user(username):
+    # Periksa role pengguna yang sedang login
+    current_user_role = session.get("role")
+    if current_user_role == "kader":
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "Fitur ini hanya dapat diakses oleh Admin.",
+                }
+            ),
+            403,
+        )
+
+    # Cari pengguna berdasarkan username
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"status": "error", "message": "Pengguna tidak ditemukan."}), 404
+
+    # Ambil data baru dari request
+    data = request.get_json()
+    role = data.get("role")
+    if not role:
+        return jsonify({"status": "error", "message": "Role harus diisi."}), 400
+
+    # Perbarui role pengguna
+    user.role = role
+    db.session.commit()
+
+    return jsonify({"status": "success", "message": "Pengguna berhasil diperbarui."})
+
+
 if __name__ == "__main__":
     app.run(debug=True)
