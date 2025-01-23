@@ -650,6 +650,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
         });
 
+      setTimeout(async () => {
         // Kirim data ke server menggunakan Fetch API
         try {
             const response = await fetch(`/edit_user/${username}`, {
@@ -699,7 +700,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: "error",
                 confirmButtonText: "Ok",
             });
-        }
+            }
+        }, 5000); // Delay 5 detik (5000 ms)
     });
 });
 
