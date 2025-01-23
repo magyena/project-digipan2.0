@@ -1495,15 +1495,20 @@ def laporan():
 
 @app.route("/generate_report", methods=["POST"])
 def generate_report():
+    # Log data yang diterima untuk debugging
+    print(request.form)
+
     report_type = request.form.get("report_type")
-    status_pembayaran = request.form.get("status_pembayaran")
+    if not report_type:
+        return "No report type selected", 400
 
     if report_type == "keluarga":
         return generate_family_report()
     elif report_type == "keuangan":
         return generate_financial_report()
+    elif report_type == "pengeluaran":
+        return generate_expense_report()
     else:
-        # Tangani kasus jika tidak ada laporan yang dipilih
         return "Invalid report type", 400
 
 
@@ -1574,6 +1579,43 @@ def generate_financial_report():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
         download_name="laporan_keuangan.xlsx",
+    )
+
+
+@app.route("/generate_expense_report", methods=["GET"])
+def generate_expense_report():
+    # Query semua data dari tabel Pengeluaran
+    query = db.session.query(Pengeluaran).all()
+
+    if not query:
+        return "No data available", 404  # Jika tidak ada data di tabel
+
+    # Konversi data ke dalam format dictionary untuk DataFrame
+    laporan_data = [
+        {
+            "Nama Kegiatan": pengeluaran.nama_kegiatan,
+            "Jenis Pengeluaran": pengeluaran.jenis_pengeluaran,
+            "Jumlah": pengeluaran.jumlah,
+            "Tanggal": pengeluaran.tanggal.strftime("%Y-%m-%d"),
+        }
+        for pengeluaran in query
+    ]
+
+    # Membuat DataFrame menggunakan pandas
+    df = pd.DataFrame(laporan_data)
+
+    # Menulis DataFrame ke file Excel menggunakan BytesIO
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, sheet_name="Laporan Pengeluaran", index=False)
+
+    # Mengembalikan file Excel sebagai respon
+    output.seek(0)
+    return send_file(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name="laporan_pengeluaran.xlsx",
     )
 
 
