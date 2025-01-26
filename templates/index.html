@@ -442,6 +442,71 @@ footer {
     }
 }
 
+/* Gaya untuk modal */
+.modal {
+  display: none; 
+  position: fixed; 
+  z-index: 1; 
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0); 
+  background-color: rgba(0,0,0,0.4); 
+  padding-top: 60px;
+}
+
+/* Konten modal */
+.modal-content {
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+/* Tombol close */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+/* Gaya untuk tombol tutorial */
+#openTutorialBtn {
+    display: inline-block;
+    background-color: #007bff; /* Warna biru */
+    color: white;
+    padding: 12px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.2s;
+    border: none; /* Menghilangkan border default */
+}
+
+/* Gaya saat hover pada tombol tutorial */
+#openTutorialBtn:hover {
+    background-color: #0056b3; /* Warna biru lebih gelap saat hover */
+    transform: scale(1.05); /* Membesar sedikit */
+}
+
+/* Gaya saat tombol tutorial diklik */
+#openTutorialBtn:active {
+    background-color: #004085; /* Warna biru lebih gelap saat klik */
+    transform: scale(0.98); /* Sedikit mengecil */
+}
+
 </style>
 </head>
 <body>
@@ -466,6 +531,20 @@ footer {
     
     <!-- Tombol buku tamu -->
     <a href="/buku-tamu" class="guestbook-button">Buku Tamu</a>
+</div>
+
+<button id="openTutorialBtn" class="btn btn-primary" style="margin-top: 10px;">Tutorial</button>
+
+
+<!-- Modal untuk menampilkan video -->
+<div id="tutorialModal" class="modal">
+  <div class="modal-content">
+    <span id="closeTutorialBtn" class="close">&times;</span>
+    <video id="tutorialVideo" width="100%" height="auto" controls>
+      <source src="static/img/tutorial.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
 </div>
 
 <!-- Tambahkan link untuk Terms of Use dan Privacy Policy di bawah tombol buku tamu -->
@@ -534,6 +613,34 @@ footer {
                 mainContent.style.display = 'grid'; // Tampilkan konten utama
             }, 3000); // Ganti waktu di sini (dalam milidetik)
         });
+        // Mendapatkan elemen modal dan tombol
+var modal = document.getElementById("tutorialModal");
+var openBtn = document.getElementById("openTutorialBtn");
+var closeBtn = document.getElementById("closeTutorialBtn");
+
+// Ketika tombol tutorial diklik, buka modal
+openBtn.onclick = function() {
+  modal.style.display = "block";
+  var video = document.getElementById("tutorialVideo");
+  video.play(); // Memutar video saat modal dibuka
+}
+
+// Ketika tombol close diklik, tutup modal
+closeBtn.onclick = function() {
+  modal.style.display = "none";
+  var video = document.getElementById("tutorialVideo");
+  video.pause(); // Menjeda video saat modal ditutup
+}
+
+// Jika pengguna mengklik di luar modal, tutup modal
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+    var video = document.getElementById("tutorialVideo");
+    video.pause();
+  }
+}
+
 </script>
 </body>
 </html>
