@@ -51,6 +51,7 @@ import pytz
 import pandas as pd
 from functools import wraps
 from flask import session, redirect, url_for, flash, abort
+from collections import Counter
 
 pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", "static/font/Times-Bold.TTF"))
 
@@ -399,6 +400,10 @@ def dashboard():
         .scalar()
     )
     total_iuran = total_iuran or 0
+    total_pengeluaran = db.session.query(func.sum(Pengeluaran.jumlah)).scalar()
+    total_pengeluaran = total_pengeluaran or 0
+    net_iuran = total_iuran - total_pengeluaran
+    net_iuran_formatted = format_rupiah(net_iuran)
 
     # Format total iuran ke dalam format '60.000'
     total_iuran_diterima_formatted = format_rupiah(total_iuran)
@@ -450,16 +455,13 @@ def dashboard():
         family_count=family_count,
         surat_count=surat_count,
         warga_count=warga_count,
-        total_iuran=total_iuran_diterima_formatted,
+        total_iuran=net_iuran_formatted,
         current_datetime=current_datetime,
         messages=message_list_to_display,  # Tampilkan pesan yang dibatasi
         more_messages=message_list_more,  # Kirimkan pesan tambahan untuk View More
         selesai_count=selesai_count,
         none_count=none_count,
     )
-
-
-from collections import Counter
 
 
 @app.route("/get_family_relationships")
