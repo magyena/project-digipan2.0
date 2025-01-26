@@ -611,15 +611,22 @@ footer {
     // Fungsi untuk menutup modal dan menghentikan video
     closeTutorialBtn.onclick = function() {
         tutorialModal.style.display = 'none';
-        tutorialIframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+        stopYouTubeVideo();
     }
 
     // Menutup modal jika klik di luar area modal
     window.onclick = function(event) {
         if (event.target === tutorialModal) {
             tutorialModal.style.display = 'none';
-            tutorialIframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+            stopYouTubeVideo();
         }
+    }
+
+    // Fungsi untuk menghentikan video YouTube
+    function stopYouTubeVideo() {
+        const iframeSrc = tutorialIframe.src; // Simpan URL asli
+        tutorialIframe.src = ''; // Kosongkan src untuk menghentikan video
+        tutorialIframe.src = iframeSrc; // Setel ulang src ke URL asli
     }
 </script>
 </body>
