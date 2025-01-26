@@ -611,14 +611,14 @@ footer {
     // Fungsi untuk menutup modal dan menghentikan video
     closeTutorialBtn.onclick = function() {
         tutorialModal.style.display = 'none';
-        tutorialIframe.contentWindow.postMessage('{"method":"pause"}', '*');
+        tutorialIframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
     }
 
     // Menutup modal jika klik di luar area modal
     window.onclick = function(event) {
         if (event.target === tutorialModal) {
             tutorialModal.style.display = 'none';
-            tutorialIframe.contentWindow.postMessage('{"method":"pause"}', '*');
+            tutorialIframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
         }
     }
 </script>
