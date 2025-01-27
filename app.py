@@ -2186,5 +2186,61 @@ def edit_user(username):
     return jsonify({"status": "success", "message": "Pengguna berhasil diperbarui."})
 
 
+@app.route("/api/pengeluaran", methods=["GET"])
+def get_pengeluaran():
+    try:
+        # Ambil parameter bulan dan tahun dari query string
+        bulan = request.args.get("bulan", type=int)
+        tahun = request.args.get("tahun", type=int)
+
+        # Filter data pengeluaran berdasarkan bulan dan tahun jika diberikan
+        query = Pengeluaran.query.with_entities(
+            Pengeluaran.nama_kegiatan, Pengeluaran.jumlah, Pengeluaran.tanggal
+        )
+
+        if bulan and tahun:
+            query = query.filter(
+                extract("month", Pengeluaran.tanggal) == bulan,
+                extract("year", Pengeluaran.tanggal) == tahun,
+            )
+
+        pengeluaran_data = query.all()
+
+        # Hitung total pengeluaran
+        total_pengeluaran = sum(pengeluaran.jumlah for pengeluaran in pengeluaran_data)
+
+        # Hitung total iuran
+        total_iuran = (
+            db.session.query(func.sum(Iuran.jumlah_iuran))
+            .filter(Iuran.status_pembayaran == "Diterima")
+            .scalar()
+        )
+        total_iuran = total_iuran or 0
+        total_pengeluaran = db.session.query(func.sum(Pengeluaran.jumlah)).scalar()
+        total_pengeluaran = total_pengeluaran or 0
+        net_iuran = total_iuran - total_pengeluaran
+        net_iuran_formatted = format_rupiah(net_iuran)
+
+        # Format data menjadi list of dicts
+        result = [
+            {"nama_kegiatan": pengeluaran.nama_kegiatan, "jumlah": pengeluaran.jumlah}
+            for pengeluaran in pengeluaran_data
+        ]
+
+        # Mengembalikan data sebagai JSON, termasuk total pengeluaran dan total kas
+        return (
+            jsonify(
+                {
+                    "pengeluaran_data": result,
+                    "total_pengeluaran": total_pengeluaran,
+                    "total_iuran": net_iuran_formatted,
+                }
+            ),
+            200,
+        )
+    except Exception as e:
+        return jsonify({"message": "Error retrieving data", "error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)

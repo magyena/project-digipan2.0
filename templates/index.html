@@ -4,488 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="static/css/index.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="styles.css"> -->
     <link href="static/img/logo/2.png" rel="icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <title>DIGIPAN</title>
-    <style>body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Roboto', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f0f0f0;
-}
-
-.container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    width: 100%;
-    height: 100%;
-}
-
-/* Bagian Kiri */
-.left-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: #fff;
-    padding: 40px;
-    text-align: center;
-}
-
-.left-section h1 {
-    font-size: 4rem;
-    font-weight: bold;
-    color: #5ce1e6;
-    margin-bottom: 10px;
-}
-
-.left-section h1 span {
-    color: #f4880b;
-}
-
-.left-section p {
-    max-width: 300px;
-    margin: 20px 0;
-    font-size: 1rem;
-    color: #666;
-}
-
-.social-icons i {
-    font-size: 1.5rem;
-    color: #666;
-    margin: 0 10px;
-    cursor: pointer;
-}
-
-.social-icons i:hover {
-    color: #000;
-}
-
-/* Bagian Kanan */
-.right-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 20px;
-}
-
-.menu-item {
-    display: flex;
-    flex-direction: column;
-     text-decoration: none;
-    justify-content: center;
-    align-items: center;
-    color: #fff;
-    padding:50px;
-    border-radius: 10px;
-    text-align: center;
-    transition: transform 0.3s;
-    position: relative;
-}
-
-.menu-item:hover {
-    transform: scale(1.05);
-     text-decoration: none;
-}
-
-
-/* Mengatur ukuran gambar ikon */
-.menu-icon {
-    width: 100px; /* Atur lebar ikon sesuai kebutuhan */
-    height: auto; /* Mempertahankan rasio gambar */
-    position: absolute;
-    bottom: 30px;
-    right: 200px;
-    opacity: 0.8; /* Transparansi ikon */
-    transition: all 0.3s ease; /* Animasi untuk efek hover */
-}
-.about-us {
-   background-image: url('static/img/logo/biru2.png'); /* Mengatur gambar sebagai latar belakang */
-    background-size: cover; /* Mengatur gambar agar memenuhi elemen */
-    background-position: center; /* Memusatkan gambar di elemen */
-    height: 260px;
-    width: auto;
-    text-decoration: none;
-}
-
-.services {
-      background-image: url('static/img/logo/merah.png'); /* Mengatur gambar sebagai latar belakang */
-    background-size: cover; /* Mengatur gambar agar memenuhi elemen */
-    background-position: center; /* Memusatkan gambar di elemen */
-    height: 260px;
-    text-decoration: none;
-}
-
-.contact {
-   background-image: url('static/img/logo/kuning.png'); /* Mengatur gambar sebagai latar belakang */
-    background-size: cover; /* Mengatur gambar agar memenuhi elemen */
-    background-position: center; /* Memusatkan gambar di elemen */
-    height: 260px;
-    text-decoration: none;
-}
-
-.portfolio {
-      background-image: url('static/img/logo/ungu.png'); /* Mengatur gambar sebagai latar belakang */
-    background-size: cover; /* Mengatur gambar agar memenuhi elemen */
-    background-position: center; /* Memusatkan gambar di elemen */
-    height: 260px;
-    text-decoration: none;
-}
-
-/* Responsif untuk layar dengan lebar 1366px */
-@media (max-width: 1366px) {
-    .container {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Dua kolom untuk container */
-        height: 100vh; /* Menetapkan tinggi container menjadi 100% dari tinggi viewport */
-        overflow: hidden; /* Mencegah scroll pada container utama */
-    }
-
-    .left-section {
-        height: 100%; /* Memastikan bagian kiri menempati seluruh tinggi container */
-        padding: 20px;
-        box-sizing: border-box;
-    }
-
-    .right-section {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Membagi grid dalam dua kolom */
-        grid-auto-rows: 1fr; /* Set tinggi otomatis untuk setiap baris agar merata */
-        gap: 10px;
-        padding: 10px;
-        box-sizing: border-box;
-        overflow-y: auto; /* Mengizinkan scroll vertikal jika konten melebihi tinggi */
-        height: 100%; /* Menetapkan tinggi bagian kanan agar tidak melebihi container */
-    }
-
-    .menu-item {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background-color: #fff;
-        color: #fff;
-        padding: 20px;
-        text-align: center;
-        border-radius: 10px;
-        height: 260px; /* Menentukan tinggi tetap untuk setiap item menu */
-        overflow: hidden; /* Mencegah konten meluap */
-        transition: transform 0.3s;
-    }
-
-    .menu-item:hover {
-        transform: scale(1.05);
-    }
-
-            .menu-icon {
-                width: 80px; /* Sesuaikan ukuran ikon */
-                bottom: 20px;
-                right: 150px;
-            }
-        }
-/* Responsif untuk layar dengan lebar 800px atau lebih kecil */
-@media (max-width: 800px) {
-    .container {
-        display: flex;
-        flex-direction: column; /* Ubah layout menjadi kolom */
-        align-items: center;
-        height: auto; 
-        width:100%; /* Sesuaikan lebar agar penuh di layar kecil */
-    }
-
-    .left-section {
-        width: 100%; /* Sesuaikan lebar penuh */
-        padding: 20px; /* Ruang padding untuk elemen di layar kecil */
-        text-align: center; /* Teks di tengah untuk lebih bagus */
-        order: 1; /* Menampilkan bagian kiri terlebih dahulu */
-    }
-
-    .right-section {
-        width: 100%; /* Sesuaikan lebar penuh */
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Tetap dalam dua kolom kecil */
-        gap: 10px; /* Jarak antar elemen */
-        padding: 20px;
-        height: auto; /* Tinggi otomatis agar sesuai dengan konten */
-        order: 2; /* Menampilkan bagian grid di bawah bagian kiri */
-    }
-
-    .menu-item {
-        height: 180px; /* Sesuaikan tinggi untuk layar kecil */
-        font-size: 0.9rem; /* Ukuran font lebih kecil */
-        padding: 10px; /* Padding yang lebih kecil untuk menghemat ruang */
-        margin-bottom: 10px; /* Margin antar menu */
-        text-align: center;
-        position: relative; /* Menjaga posisi ikon tetap relatif */
-    }
-
-    .menu-icon {
-        width: 40px; /* Ukuran ikon lebih kecil */
-        position: absolute; /* Tetap pada posisi absolut */
-        right: 110px; /* Posisi ikon di kanan bawah */
-        bottom: 10px; /* Posisi ikon di kanan bawah */
-    }
-
-    .left-section h1 {
-        font-size: 2rem; /* Ukuran font lebih kecil untuk judul */
-        margin-top: 130px;
-        margin-bottom: 10px; /* Jarak bawah lebih kecil */
-    }
-
-    .left-section p {
-        font-size: 0.85rem; /* Ukuran font paragraf lebih kecil */
-        max-width: 250px; /* Batasi lebar maksimal */
-    }
-
-    .social-icons i {
-        font-size: 1.2rem; /* Ukuran ikon media sosial lebih kecil */
-        margin: 0 5px; /* Kurangi jarak antar ikon */
-    }
-}
-/* Splash Screen */
-.splash-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    transition: opacity 1s ease;
-}
-
-.splash-screen.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.splash-screen h1 {
-    font-size: 3rem;
-    color: #3461c1;
-    animation: fadeIn 2s;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-/* CSS untuk logo di splash screen */
-.splash-logo {
-    width: 150px; /* Atur ukuran logo awal */
-    height: auto;
-    opacity: 0; /* Logo awalnya transparan */
-    transform: scale(0.5); /* Skala kecil awal */
-    animation: slowAppear 3s ease forwards; /* Animasi muncul perlahan */
-}
-
-/* Keyframes untuk efek slow motion */
-@keyframes slowAppear {
-    0% {
-        opacity: 0;
-        transform: scale(1.5); /* Skala kecil di awal */
-    }
-    100% {
-        opacity: 1;
-        transform: scale(3.5); /* Ukuran normal di akhir */
-    }
-}
-.whatsapp-icon {
-    font-size: 50px;
-    color: #25D366; 
-    text-decoration: none;
-    margin-bottom: 50px;
-}
-
-.whatsapp-icon:hover {
-    color: #128C7E; 
-}
-.video-container {
-    position: relative;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
-    height: 0;
-    overflow: hidden;
-    max-width: 100%;
-    background: #000;
-    margin: 0 auto;
-}
-
-.video-container iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-footer {
-    background: #f4f4f4;
-    padding: 20px;
-    text-align: center;
-    border-top: 1px solid #ddd;
-}
-
-.footer-content {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.footer-links {
-    list-style: none;
-    padding: 0;
-    margin: 10px 0;
-}
-
-.footer-links li {
-    display: inline;
-    margin: 0 10px;
-}
-
-.footer-links a {
-    text-decoration: none;
-    color: #333;
-}
-
-.footer-links a:hover {
-    text-decoration: underline;
-}
-
- 
-        .guestbook-section {
-            margin-top: 30px;
-            text-align: center;
-        }
-
-        .guestbook-info {
-            font-size: 1.1rem;
-            color: #555;
-            margin-bottom: 15px;
-        }
-
-        .guestbook-button {
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #f4880b;
-            color: white;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .guestbook-button:hover {
-            background-color: #3461c1;
-            transform: scale(1.05);
-            box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Responsif untuk perangkat mobile */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            .guestbook-button {
-                font-size: 1rem;
-                padding: 10px 20px;
-            }
-
-            .guestbook-info {
-                font-size: 1rem;
-            }
-        }
- /* Aturan umum untuk link Terms of Use dan Privacy Policy */
-.terms-privacy-links {
-    text-align: center;
-    margin-top: 280px;
-    font-size: 0.9rem; /* Sesuaikan ukuran font */
-}
-
-.terms-privacy-links a {
-    color: #666; /* Warna teks hijau */
-    text-decoration: none; /* Menghilangkan garis bawah */
-    padding: 0 10px; /* Memberi jarak antara link */
-}
-/* Responsif untuk layar dengan lebar 800px atau lebih kecil */
-@media (max-width: 800px) {
-    .right-section {
-        padding-bottom: 60px;
-        z-index: 999; /* Menambahkan ruang agar tidak bertabrakan dengan footer */
-    }
-
-    .terms-privacy-links {
-        position: fixed; /* Menetapkan posisi tetap sebagai footer */
-        bottom: 0; /* Tempatkan di bagian bawah layar */
-        left: 0;
-        right: 0;
-        margin-top: 500px;
-        background-color: #f8f8f8; /* Warna background untuk footer */
-        padding: 10px 0; /* Ruang padding vertikal */
-        text-align: center; /* Teks rata tengah */
-        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Efek bayangan untuk memberikan batas */
-        z-index: 1000;
-        
-    }
-
-    .terms-privacy-links a {
-        color: #666; /* Warna teks biru untuk mobile */
-        text-decoration: none; /* Tidak ada underline pada mobile */
-    }
-}
-
-
- .modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999; 
-    }
-
-    .modal-content {
-        background-color: #fff;
-        border-radius: 10px;
-        padding: 10px;
-        position: relative;
-        max-width: 900px;
-        width: 100%;
-    }
-
-    .close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 30px;
-        cursor: pointer;
-    }
-
-    .btn {
-        background-color: #007bff;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    .btn:hover {
-        background-color: #0056b3;
-    }
-</style>
+   
 </head>
 <body>
      <div class="splash-screen" id="splashScreen">
@@ -512,6 +37,87 @@ footer {
 </div>
 <!-- Tombol Tutorial -->
 <button id="openTutorialBtn" class="btn btn-primary" style="margin-top: 10px;">Tutorial</button>
+<button id="showPengeluaranBtn" class="btn btn-primary" style="margin-top: 10px;">Laporan</button>
+<div id="pengeluaranModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+    <div style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; width: 80%; max-width: 600px;">
+        <div style="margin-top: 20px;">
+            <h2>Daftar Pengeluaran</h2>
+            <!-- Pengeluaran Sejajar -->
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="flex-basis: 120px; text-align: left;">Pengeluaran</span>
+                <span style="margin-right: 10px;">:</span>
+                <span style="flex-grow: 1; text-align: left;">
+                    <strong id="total-pengeluaran">0</strong>
+                </span>
+            </div>
+            <!-- Total Kas Sejajar -->
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="flex-basis: 120px; text-align: left;">Total Kas</span>
+                <span style="margin-right: 10px;">:</span>
+                <span style="flex-grow: 1; text-align: left;">
+                    <strong id="total-kas">0</strong>
+                </span>
+            </div>
+        </div>
+
+        <!-- Tanggal Update -->
+        <div style="margin-top: 20px; font-size: 14px; color: #777;">
+            <span>Terakhir Update: <strong id="last-update-date">Tanggal Update</strong></span>
+        </div>
+
+        <!-- Filter Bulan dan Tahun -->
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="flex: 1; margin-right: 10px;">
+                <select id="filter-bulan" style="width: 100%; padding: 5px;">
+                    <option value="">Pilih Bulan</option>
+                    <option value="1">Januari</option>
+                    <option value="2">Februari</option>
+                    <option value="3">Maret</option>
+                    <option value="4">April</option>
+                    <option value="5">Mei</option>
+                    <option value="6">Juni</option>
+                    <option value="7">Juli</option>
+                    <option value="8">Agustus</option>
+                    <option value="9">September</option>
+                    <option value="10">Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12">Desember</option>
+                </select>
+            </div>
+            <div style="flex: 1; margin-right: 10px;">
+                <select id="filter-tahun" style="width: 100%; padding: 5px;">
+                    <option value="">Pilih Tahun</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2025">2026</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <button id="filterBtn" style="width: 100%; padding: 5px; background-color: blue; color: white; border: none;">Filter</button>
+            </div>
+        </div>
+
+        <!-- Tombol Tutup -->
+        <button id="closeModalBtn" style="background-color: red; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-top: -15px;">Tutup</button>
+
+        <!-- Tabel Pengeluaran -->
+        <table id="pengeluaran-table" style="width: 100%; border-collapse: collapse; margin-top: 30px;">
+            <thead>
+                <tr style="background-color: #f4f4f4;">
+                    <th style="padding: 10px; text-align: left;">Nama Kegiatan</th>
+                    <th style="padding: 10px; text-align: left;">Jumlah (Rp)</th>
+                </tr>
+            </thead>
+            <tbody id="pengeluaran-ul">
+                <!-- Data pengeluaran akan dimuat di sini -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
 <!-- Modal untuk Tutorial -->
 <div id="tutorialModal" class="modal" style="display:none;">
     <div class="modal-content">
@@ -530,7 +136,7 @@ footer {
 
 
 <!-- Tambahkan link untuk Terms of Use dan Privacy Policy di bawah tombol buku tamu -->
-<div class="terms-privacy-links">
+<div class="terms-privacy-links" style="margin-top: 100px;">
         <a href="https://www.termsfeed.com/live/bbec1de1-63f9-4b26-b6d3-6f80305d5add" target="_blank">Syarat Penggunaan</a>|
         <a href="https://www.termsfeed.com/live/e1ef9f6f-bfff-4320-af2e-fe16cba0e2cc" target="_blank">Kebijakan Privasi</a>|
         <a href="#" target="_blank">Unduh Aplikasi</a>
@@ -572,62 +178,9 @@ footer {
         </div>
     </a>
 </div>
-
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 <script>
-//  //hide klik kanan
-// document.addEventListener("contextmenu", function(e){
-//     e.preventDefault();
-// }, false);
 
-// document.onkeydown = function(e) {
-//     if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {
-//         e.preventDefault();
-//     }
-// };
-
-// Tampilkan splash screen selama 3 detik
-        window.addEventListener("load", function() {
-            const splash = document.getElementById('splashScreen');
-            const mainContent = document.getElementById('mainContent');
-            
-            setTimeout(() => {
-                splash.classList.add('hidden'); // Hilangkan splash screen dengan animasi
-                mainContent.style.display = 'grid'; // Tampilkan konten utama
-            }, 3000); // Ganti waktu di sini (dalam milidetik)
-        });
-       
-
-        // Ambil elemen modal dan tombol
-    const openTutorialBtn = document.getElementById('openTutorialBtn');
-    const tutorialModal = document.getElementById('tutorialModal');
-    const closeTutorialBtn = document.getElementById('closeTutorialBtn');
-    const tutorialIframe = document.getElementById('tutorialIframe');
-
-    // Fungsi untuk membuka modal
-    openTutorialBtn.onclick = function() {
-        tutorialModal.style.display = 'flex';
-    }
-
-    // Fungsi untuk menutup modal dan menghentikan video
-    closeTutorialBtn.onclick = function() {
-        tutorialModal.style.display = 'none';
-        stopYouTubeVideo();
-    }
-
-    // Menutup modal jika klik di luar area modal
-    window.onclick = function(event) {
-        if (event.target === tutorialModal) {
-            tutorialModal.style.display = 'none';
-            stopYouTubeVideo();
-        }
-    }
-
-    // Fungsi untuk menghentikan video YouTube
-    function stopYouTubeVideo() {
-        const iframeSrc = tutorialIframe.src; // Simpan URL asli
-        tutorialIframe.src = ''; // Kosongkan src untuk menghentikan video
-        tutorialIframe.src = iframeSrc; // Setel ulang src ke URL asli
-    }
 </script>
 </body>
 </html>
