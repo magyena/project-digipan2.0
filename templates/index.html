@@ -39,7 +39,7 @@
 <button id="openTutorialBtn" class="btn btn-primary" style="margin-top: 10px;">Tutorial</button>
 <button id="showPengeluaranBtn" class="btn btn-primary" style="margin-top: 10px;">Laporan</button>
 <div id="pengeluaranModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
-    <div style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; width: 80%; max-width: 600px;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; width: 80%; max-width: 600px; height: 80%;">
         <div style="margin-top: 20px;">
             <h2>Daftar Pengeluaran</h2>
             <!-- Pengeluaran Sejajar -->
@@ -100,19 +100,20 @@
 
         <!-- Tombol Tutup -->
         <button id="closeModalBtn" style="background-color: red; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-top: -15px;">Tutup</button>
+<div style="height: 300px; overflow-y: auto; margin-top: 30px; border: 1px solid #ddd; position: relative;">
+    <table id="pengeluaran-table" style="width: 100%; border-collapse: collapse;">
+        <thead style="position: sticky; top: 0; background-color: #f4f4f4; z-index: 1;">
+            <tr>
+                <th style="padding: 10px; width: 70%;">Nama Kegiatan</th>
+                <th style="padding: 10px; width: 50%;">Jumlah (Rp)</th>
+            </tr>
+        </thead>
+        <tbody id="pengeluaran-ul">
+            <!-- Data pengeluaran akan dimuat di sini -->
+        </tbody>
+    </table>
+</div>
 
-        <!-- Tabel Pengeluaran -->
-        <table id="pengeluaran-table" style="width: 100%; border-collapse: collapse; margin-top: 30px;">
-            <thead>
-                <tr style="background-color: #f4f4f4;">
-                    <th style="padding: 10px; text-align: left;">Nama Kegiatan</th>
-                    <th style="padding: 10px; text-align: left;">Jumlah (Rp)</th>
-                </tr>
-            </thead>
-            <tbody id="pengeluaran-ul">
-                <!-- Data pengeluaran akan dimuat di sini -->
-            </tbody>
-        </table>
     </div>
 </div>
 
