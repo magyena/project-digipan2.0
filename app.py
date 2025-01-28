@@ -1873,12 +1873,80 @@ def send_telegram_notification(message):
 #         logging.error(f"Gagal mengirim notifikasi Slack: {response.text}")
 
 
-# Route untuk menampilkan daftar buku tamu
-@app.route("/pendatang")
+@app.route("/pendatang", methods=["GET", "POST"])
 def daftar_buku_tamu():
-    # Kode untuk menampilkan daftar buku tamu
+    # Cek apakah pengguna sudah login
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("login"))
+
+    user_role = session.get("role")  # Ambil role dari session
+
+    # Handle POST request untuk menambah pengguna
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
+        role = request.form["role"]  # Ambil peran pengguna dari form
+
+        # Cek apakah role pengguna adalah 'kader'
+        if user_role == "kader":
+            return (
+                jsonify(
+                    {
+                        "message": None,
+                        "error": "Fitur ini hanya dapat diakses oleh Admin.",
+                    }
+                ),
+                403,
+            )
+
+        # Cek apakah username sudah ada di database
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return jsonify({"message": None, "error": "Username sudah tersedia"}), 400
+
+        # Tambahkan pengguna baru
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+        new_user = User(username=username, password=hashed_password, role=role)
+        db.session.add(new_user)
+        db.session.commit()
+
+        # Kirimkan response sukses
+        return (
+            jsonify({"message": "Pengguna berhasil ditambahkan!", "error": None}),
+            200,
+        )
+
+    # Handle GET request untuk menampilkan data
     buku_tamu_list = BukuTamu.query.all()
-    return render_template("pendatang.html", buku_tamu_list=buku_tamu_list)
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+    messages_to_display = all_messages[:3]
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+
+    iuran_list = Iuran.query.all()
+    all_users = User.query.order_by(User.username.asc()).all()
+
+    return render_template(
+        "pendatang.html",
+        buku_tamu_list=buku_tamu_list,
+        iuran_list=iuran_list,
+        messages=message_list_to_display,
+        all_users=all_users,
+    )
 
 
 # Route untuk menghapus buku tamu
