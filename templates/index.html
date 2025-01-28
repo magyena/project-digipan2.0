@@ -35,13 +35,16 @@
     <!-- Tombol buku tamu -->
     <a href="/buku-tamu" class="guestbook-button">Buku Tamu</a>
 </div>
-<!-- Tombol Tutorial -->
-<button id="openTutorialBtn" class="btn btn-primary" style="margin-top: 10px;">Tutorial</button>
-<button id="showPengeluaranBtn" class="btn btn-primary" style="margin-top: 10px;">Laporan</button>
+   <div class="Addon" style="display: flex; gap: 10px; align-items: center; margin-top: 20px;" >
+  <!-- Tombol Tutorial -->
+  <button id="openTutorialBtn" class="btn btn-primary">Tutorial</button>
+  <button id="showPengeluaranBtn" class="btn btn-primary">Laporan</button>
+</div>
+
 <div id="pengeluaranModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; width: 80%; max-width: 600px; height: 80%;">
         <div style="margin-top: 20px;">
-            <h2>Daftar Pengeluaran</h2>
+            <h2>Laporan Pengeluaran RT 08/01</h2>
             <!-- Pengeluaran Sejajar -->
             <div style="display: flex; align-items: center; margin-bottom: 10px;">
                 <span style="flex-basis: 120px; text-align: left;">Pengeluaran</span>
@@ -104,7 +107,7 @@
     <table id="pengeluaran-table" style="width: 100%; border-collapse: collapse;">
         <thead style="position: sticky; top: 0; background-color: #f4f4f4; z-index: 1;">
             <tr>
-                <th style="padding: 10px; width: 70%;">Nama Kegiatan</th>
+                <th style="padding: 10px; width: 70%;">Kegiatan</th>
                 <th style="padding: 10px; width: 50%;">Jumlah (Rp)</th>
             </tr>
         </thead>
@@ -112,11 +115,14 @@
             <!-- Data pengeluaran akan dimuat di sini -->
         </tbody>
     </table>
+    
 </div>
-
+ <!-- Catatan di bawah tabel -->
+        <div style="margin-top: 20px; font-size: 10px; color: #555;">
+            <p><em>Catatan: Data pengeluaran dan kas di atas akan diperbarui secara berkala.</em></p>
+        </div>
     </div>
 </div>
-
 
 
 <!-- Modal untuk Tutorial -->
@@ -137,7 +143,7 @@
 
 
 <!-- Tambahkan link untuk Terms of Use dan Privacy Policy di bawah tombol buku tamu -->
-<div class="terms-privacy-links" style="margin-top: 100px;">
+<div class="terms-privacy-links" style="margin-top: 180px;">
         <a href="https://www.termsfeed.com/live/bbec1de1-63f9-4b26-b6d3-6f80305d5add" target="_blank">Syarat Penggunaan</a>|
         <a href="https://www.termsfeed.com/live/e1ef9f6f-bfff-4320-af2e-fe16cba0e2cc" target="_blank">Kebijakan Privasi</a>|
         <a href="#" target="_blank">Unduh Aplikasi</a>
