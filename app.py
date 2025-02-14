@@ -1255,9 +1255,7 @@ def edit_family():
             db.session.commit()
 
             jakarta_tz = pytz.timezone("Asia/Jakarta")
-            now_jakarta = datetime.now(jakarta_tz).replace(
-                tzinfo=None
-            )  # ✅ Buang informasi timezone
+            now_jakarta = datetime.now(jakarta_tz).replace(tzinfo=None)
 
             new_activity = Activity(
                 user_id=session["user_id"],
