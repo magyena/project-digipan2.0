@@ -52,6 +52,8 @@ import pandas as pd
 from functools import wraps
 from flask import session, redirect, url_for, flash, abort
 from collections import Counter
+import random
+import string
 
 pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", "static/font/Times-Bold.TTF"))
 
@@ -184,6 +186,17 @@ class Pengeluaran(db.Model):
     jumlah = db.Column(db.Float, nullable=False)
     tanggal = db.Column(db.Date, nullable=False)
 
+
+class Register(db.Model):
+    __tablename__ = "register"
+    __table_args__ = {"schema": "data_keluarga"}
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nama_lengkap = db.Column(db.String(255), nullable=False)
+    nomor_whatsapp = db.Column(db.String(20), nullable=False, unique=False)
+    kata_sandi = db.Column(db.Text, nullable=False)
+    tanggal_daftar = db.Column(db.DateTime, default=db.func.current_timestamp())
+    status = db.Column(db.String(20), default="Belum Aktif")
+
     def __init__(
         self,
         nama,
@@ -259,6 +272,11 @@ class Pengeluaran(db.Model):
         self.jumlah = jumlah
         self.tanggal = tanggal
 
+    def __init__(self, nama_lengkap, nomor_whatsapp, kata_sandi, tanggal_daftar):
+        self.nama_lengkap = nama_lengkap
+        self.nomor_whatsapp = nomor_whatsapp
+        self.kata_sandi = kata_sandi
+
 
 def __init__(self, username, password):
     self.username = username
@@ -289,6 +307,16 @@ def role_required(allowed_roles):
 # Route untuk halaman user
 @app.route("/")
 def index():
+    return render_template("loginuser.html")
+
+
+@app.route("/main")
+def main():
+    # Perbaikan pengecekan session
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("index"))
+
     return render_template("index.html")
 
 
@@ -311,6 +339,7 @@ def login():
             session["user_id"] = user.id
             session["username"] = user.username
             session["role"] = user.role  # Tambahkan role pengguna ke session
+            session.permanent = True
 
             return redirect(url_for("dashboard"))
         else:
@@ -324,6 +353,25 @@ def logout():
     session.clear()  # Hapus semua data sesi
     flash("Anda telah keluar.", "info")
     return redirect(url_for("login"))
+
+
+@app.route("/logoutuser")
+def logoutuser():
+    user_id = session.get(
+        "user_id"
+    )  # Mendapatkan ID pengguna yang sedang login dari session
+    if user_id:
+        # Anda bisa menggunakan ID pengguna yang sedang login untuk memeriksa status mereka jika perlu
+        user = Register.query.get(user_id)
+        if user:
+            session.pop("user_id", None)  # Hapus sesi pengguna berdasarkan ID
+            flash(f"Anda telah keluar")
+        else:
+            flash("Pengguna tidak ditemukan.")
+    else:
+        flash("Tidak ada pengguna yang sedang login.")
+
+    return redirect(url_for("index"))
 
 
 # schduler setiap hari
@@ -591,6 +639,21 @@ def get_latest_families():
 
 @app.route("/input_keluarga")
 def input_keluarga():
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("index"))
+
+    user_id = session.get("user_id")
+    user = Register.query.get(user_id)
+
+    if not user:
+        flash("Pengguna tidak ditemukan.", "danger")
+        return redirect(url_for("index"))
+
+    if user.status != "Aktif":
+        flash("Akun Anda tidak aktif.", "danger")
+        return redirect(url_for("index"))
+
     return render_template("input.html")
 
 
@@ -644,17 +707,55 @@ def input_data():
 
 @app.route("/surat_pengantar")
 def surat_pengantar():
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("index"))
+
+    user_id = session.get("user_id")
+    user = Register.query.get(user_id)
+
+    if not user:
+        flash("Pengguna tidak ditemukan.", "danger")
+        return redirect(url_for("index"))
+
+    if user.status != "Aktif":
+        flash("Akun Anda tidak aktif. Silakan hubungi admin.", "danger")
+        return redirect(url_for("index"))
+
     return render_template("surat/surat_pengantar.html")
 
 
 @app.route("/tentang")
 def tentang():
-    return render_template("tentang.html")
+    # Periksa apakah session user_id ada
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(
+            url_for("index")
+        )  # Redirect ke halaman login jika session tidak ada
+
+    return render_template(
+        "tentang.html"
+    )  # Tampilkan halaman tentang jika login berhasil
 
 
 @app.route("/input_iuran", methods=["GET", "POST"])
 def input_iuran():
-    # Hilangkan spasi di awal dan akhir, dan ambil nama keluarga yang unik
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("index"))
+
+    user_id = session.get("user_id")
+    user = Register.query.get(user_id)
+
+    if not user:
+        flash("Pengguna tidak ditemukan.", "danger")
+        return redirect(url_for("index"))
+
+    if user.status != "Aktif":
+        flash("Akun Anda tidak aktif. Silakan hubungi admin.", "danger")
+        return redirect(url_for("index"))
+
     subquery = (
         db.session.query(func.trim(func.lower(Family.nama_keluarga)))
         .distinct()
@@ -1770,6 +1871,8 @@ def get_notification_count():
 
 @app.route("/buku-tamu")
 def buku_tamu():
+
+    # Jika tidak ada user_id, anggap pengguna sebagai tamu dan langsung izinkan akses
     return render_template("tamu.html")
 
 
@@ -1911,7 +2014,6 @@ def daftar_buku_tamu():
         db.session.add(new_user)
         db.session.commit()
 
-        # Kirimkan response sukses
         return (
             jsonify({"message": "Pengguna berhasil ditambahkan!", "error": None}),
             200,
@@ -1919,8 +2021,18 @@ def daftar_buku_tamu():
 
     # Handle GET request untuk menampilkan data
     buku_tamu_list = BukuTamu.query.all()
-    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
-    messages_to_display = all_messages[:3]
+
+    # Hitung jumlah pendatang berdasarkan kategori tujuan
+    total_menetap = BukuTamu.query.filter(BukuTamu.tujuan.ilike("%Menetap%")).count()
+    total_sementara = BukuTamu.query.filter(
+        BukuTamu.tujuan.ilike("%Sementara%")
+    ).count()
+    total_lainnya = BukuTamu.query.filter(
+        ~BukuTamu.tujuan.ilike("%Menetap%"), ~BukuTamu.tujuan.ilike("%Sementara%")
+    ).count()
+
+    # Ambil pesan terbaru (3 pesan terakhir)
+    all_messages = Message.query.order_by(Message.timestamp.desc()).limit(3).all()
     message_list_to_display = [
         {
             "message": msg.message,
@@ -1934,7 +2046,7 @@ def daftar_buku_tamu():
                 pytz.timezone("Asia/Jakarta")
             ).strftime("%d %b %Y · %H:%M"),
         }
-        for msg in messages_to_display
+        for msg in all_messages
     ]
 
     iuran_list = Iuran.query.all()
@@ -1946,6 +2058,9 @@ def daftar_buku_tamu():
         iuran_list=iuran_list,
         messages=message_list_to_display,
         all_users=all_users,
+        total_menetap=total_menetap,
+        total_sementara=total_sementara,
+        total_lainnya=total_lainnya,
     )
 
 
@@ -2308,6 +2423,254 @@ def get_pengeluaran():
         )
     except Exception as e:
         return jsonify({"message": "Error retrieving data", "error": str(e)}), 500
+
+
+@app.route("/register", methods=["POST"])
+def register_user():
+    try:
+        # Ambil data dari form
+        data = request.form
+        print(f"Data diterima: {data}")  # Tambahkan ini untuk debug
+        nama_lengkap = data.get("nama_lengkap")
+        nomor_whatsapp = data.get("nomor_whatsapp")
+        kata_sandi = data.get("kata_sandi")
+
+        # Validasi input
+        if not nama_lengkap or not nomor_whatsapp or not kata_sandi:
+            return jsonify({"error": "Semua field harus diisi!"}), 400
+
+        # Hash kata sandi untuk keamanan
+        from werkzeug.security import generate_password_hash
+
+        kata_sandi_hashed = generate_password_hash(kata_sandi)
+
+        # Buat objek registrasi dengan menambahkan tanggal_daftar
+        user_baru = Register(
+            nama_lengkap=nama_lengkap,
+            nomor_whatsapp=nomor_whatsapp,
+            kata_sandi=kata_sandi_hashed,
+            tanggal_daftar=datetime.now(),  # Menambahkan tanggal pendaftaran
+        )
+
+        # Simpan ke database
+        db.session.add(user_baru)
+        db.session.commit()
+
+        return (
+            jsonify(
+                {"message": "Pendaftaran berhasil ! Menunggu persetujuan pengurus RT"}
+            ),
+            200,
+        )
+    except Exception as e:
+        return jsonify({"error": f"Terjadi kesalahan: {str(e)}"}), 500
+
+
+@app.route("/loginusers", methods=["POST"])
+def loginusers():
+    try:
+        data = request.form
+        nama_lengkap = data.get("nama_lengkap")
+        kata_sandi = data.get("kata_sandi")
+
+        # Validasi input
+        if not nama_lengkap or not kata_sandi:
+            return jsonify({"error": "Nama lengkap dan kata sandi wajib diisi!"}), 400
+
+        # Cari pengguna berdasarkan nama_lengkap
+        user = Register.query.filter_by(nama_lengkap=nama_lengkap).first()
+
+        if not user:
+
+            return jsonify({"error": "Anda tidak terdaftar"}), 404
+
+        # 🔹 Periksa kecocokan kata sandi terlebih dahulu
+        if not check_password_hash(user.kata_sandi, kata_sandi):
+
+            return jsonify({"error": "Nama dan Kata sandi tidak sesuai!"}), 401
+
+        # 🔹 Periksa status pengguna setelah memastikan password benar
+        if user.status != "Aktif":
+            return jsonify({"error": "Akun belum aktif. Silakan hubungi admin!"}), 403
+
+        # Simpan sesi login
+        session["user_id"] = user.id
+        session["nama_lengkap"] = user.nama_lengkap
+        return jsonify({"message": "Login berhasil!", "user": user.nama_lengkap}), 200
+
+    except Exception as e:
+        return jsonify({"error": "Terjadi kesalahan server"}), 500
+
+
+@app.route("/aktivasi")
+def aktivasi():
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("login"))
+
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+    register_data = Register.query.all()
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+
+    username = session.get("username")
+    return render_template(
+        "aktivasi.html",
+        register_data=register_data,
+        messages=message_list_to_display,
+        username=username,
+    )
+
+
+@app.route("/toggle_status/<nama_lengkap>", methods=["POST"])
+def toggle_user_status(nama_lengkap):
+    user = Register.query.filter_by(nama_lengkap=nama_lengkap).first()
+    if user:
+        # Jika user aktif, nonaktifkan; jika tidak aktif, aktifkan
+        user.status = "Belum Aktif" if user.status == "Aktif" else "Aktif"
+        db.session.commit()
+        flash(
+            f"Status akun {user.nama_lengkap} berhasil diubah menjadi {user.status}.",
+            "success",
+        )
+    else:
+        flash("Akun tidak ditemukan.", "danger")
+
+    return redirect(url_for("aktivasi"))
+
+
+# Route untuk menampilkan data Register
+@app.route("/get_register", methods=["GET"])
+def get_register():
+    try:
+        # Ambil parameter dari query string jika diperlukan (contoh: pencarian berdasarkan nomor whatsapp atau status)
+        nomor_whatsapp = request.args.get("nomor_whatsapp", type=str)
+        status = request.args.get("status", type=str)
+
+        # Query untuk mengambil data dari tabel register
+        query = Register.query.with_entities(
+            Register.id,
+            Register.nama_lengkap,
+            Register.nomor_whatsapp,
+            Register.tanggal_daftar,
+            Register.status,
+        )
+
+        if nomor_whatsapp:
+            query = query.filter(Register.nomor_whatsapp == nomor_whatsapp)
+
+        if status:
+            query = query.filter(Register.status == status)
+
+        register_data = query.all()
+
+        # Format data menjadi list of dicts
+        result = [
+            {
+                "id": r.id,
+                "nama_lengkap": r.nama_lengkap,
+                "nomor_whatsapp": r.nomor_whatsapp,
+                "tanggal_daftar": r.tanggal_daftar,
+                "status": r.status,
+            }
+            for r in register_data
+        ]
+
+        return jsonify({"register_data": result}), 200
+    except Exception as e:
+        return jsonify({"message": "Error retrieving data", "error": str(e)}), 500
+
+
+def send_whatsapp_message(nomor_whatsapp, message):
+    url = "https://api.fonnte.com/send"
+
+    headers = {"Authorization": "epNpDwe9gi9MabXMLZGG"}
+
+    payload = {"target": nomor_whatsapp, "message": message, "countryCode": "62"}
+
+    response = requests.post(url, data=payload, headers=headers)
+
+    if response.status_code == 200:
+        print("Pesan berhasil dikirim!")
+    else:
+        print(f"Error: {response.status_code} - {response.text}")
+
+
+def format_nomor_whatsapp(nomor):
+    if nomor.startswith("08"):
+        nomor = "+62" + nomor[1:]
+    return nomor
+
+
+def generate_custom_password(nama_lengkap):
+    # Menghilangkan spasi dan menggabungkan nama lengkap
+    nama_bersih = nama_lengkap.replace(" ", "")
+
+    # Mengambil 4 digit angka acak untuk menambah keamanan
+    angka_acak = random.randint(1000, 9999)
+
+    # Membuat password dengan format 'NamaLengkap + AngkaAcak'
+    password = f"{nama_bersih}{angka_acak}"
+    return password
+
+
+@app.route("/reset-password", methods=["POST"])
+def reset_password():
+    nama_lengkap = request.form.get("nama_lengkap")
+
+    # Cari user berdasarkan nama lengkap (case insensitive)
+    user = Register.query.filter(
+        func.lower(Register.nama_lengkap) == func.lower(nama_lengkap)
+    ).first()
+
+    if user:
+        # Generate password baru dengan format nama lengkap
+        new_password = generate_custom_password(user.nama_lengkap)
+        hashed_password = generate_password_hash(new_password)
+
+        # Update password di database
+        user.kata_sandi = hashed_password
+        db.session.commit()
+
+        nomor_whatsapp = format_nomor_whatsapp(user.nomor_whatsapp)
+
+        # Pesan yang dikirim ke WhatsApp
+        message = (
+            f"Halo {user.nama_lengkap},\n\n"
+            f"Permintaan reset password Anda telah berhasil. Berikut password baru Anda:\n\n"
+            f"🔑 *{new_password}*\n\n"
+            f"Silakan login dan simpan password Anda untuk keamanan lebih lanjut.\n"
+            f"Terima kasih."
+        )
+
+        send_whatsapp_message(nomor_whatsapp, message)
+
+        flash(
+            f"Password reset berhasil! Informasi telah dikirim ke WhatsApp {nomor_whatsapp}.",
+            "success",
+        )
+    else:
+        flash(f"Nama lengkap tidak ditemukan. Silakan coba lagi.", "danger")
+
+    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":

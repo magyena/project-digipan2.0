@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk & Daftar - RT 08</title>
+    <link href="static/img/logo/2.png" rel="icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+
+    <!-- Menambahkan SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+    <div class="container">
+ 
+
+        <!-- Form Masuk -->
+        <div class="form-container active" id="login-form">
+              <div class="logo-container">
+        <img src="{{ url_for('static', filename='img/logo/digihd.jpg') }}" alt="Logo" class="logo">
+    </div>
+            <div class="form-title">Masuk</div>
+            <div class="form-subtitle">Silakan masuk untuk melanjutkan</div>
+            <form id="loginuser">
+                <div class="input-group">
+                    <i class="fa fa-user"></i>
+                     <input type="text" name="nama_lengkap" id="nama_lengkap" placeholder="Nama Lengkap" required>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa fa-lock"></i>
+                     <input type="password" name="kata_sandi" id="login-password" placeholder="Kata Sandi" required minlength="6" pattern=".{6,}" title="Kata sandi harus minimal 6 karakter">
+                    <i class="fa fa-eye eye-icon" onclick="togglePasswordVisibility('login-password')"></i>
+                </div>
+                
+               <div class="guest-container">
+    <span class="guest-login" onclick="loginAsGuest()">Masuk sebagai Tamu</span>
+    <span class="forgot-password" onclick="openForgotPasswordModal()">Lupa Password?</span>
+</div>
+
+                <button class="btn">Masuk</button>
+            </form>
+            
+           <span class="toggle-link" onclick="toggleForm('register')">Belum punya akun ?   
+    <span class="highlight">Daftar</span>
+</span>
+
+        </div>
+
+        <!-- Form Daftar -->
+         
+        <div class="form-container" id="register-form">
+             <div class="logo-container2">
+        <img src="{{ url_for('static', filename='img/logo/digihd.jpg') }}" alt="Logo" class="logo2">
+    </div>
+            <div class="form-title">Daftar</div>
+            <div class="form-subtitle">Buat akun baru</div>
+            <form id="signUpForm" action="/register" method="POST">
+                <div class="input-group">
+                    <i class="fa fa-user"></i>
+                    <input type="text" name="nama_lengkap" id="nama_lengkap" placeholder="Nama Lengkap" required>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa fa-phone"></i>
+                    <input type="text" name="nomor_whatsapp" id="nomor_whatsapp" placeholder="Nomor WhatsApp" required pattern="[0-9]+" title="Hanya angka yang diperbolehkan">
+                </div>
+
+               <div class="input-group">
+    <i class="fa fa-lock"></i>
+    <input type="password" name="kata_sandi" id="register-password" placeholder="Kata Sandi" required minlength="6" pattern=".{6,}" title="Kata sandi harus minimal 6 karakter">
+    <i class="fa fa-eye eye-icon" onclick="togglePasswordVisibility('register-password')"></i>
+</div>
+
+
+                <button class="btn">Daftar</button>
+            </form>
+           <span class="toggle-link" onclick="toggleForm('login')">Belum punya akun ?   
+    <span class="highlight">Masuk</span>
+        </div>
+         {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-message" class="alert-message">
+      {% for category, message in messages %}
+        <p class="alert-text">{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+    </div>
+    <!-- Modal Lupa Password -->
+<div id="forgot-password-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Atur Ulang Kata Sandi</h2>
+            <span class="close-btn" onclick="closeForgotPasswordModal()">&times;</span>
+        </div>
+        <form id="resetPasswordForm" method="POST" action="/reset-password">
+            <div class="input-group">
+                <i class="fa fa-user"></i>
+                <input type="text" name="nama_lengkap" id="forgot-nama_lengkap" placeholder="Nama Lengkap" required>
+            </div>
+            <button type="submit" class="btn">Atur Ulang</button>
+        </form>
+    </div>
+</div>
+
+    <div class="footer">© 2025 RT 08. All rights reserved.</div>
+
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+<script>
+     window.addEventListener('DOMContentLoaded', (event) => {
+    setTimeout(function() {
+      const alert = document.querySelector('.alert');
+      if (alert) {
+        // Menambahkan efek fade untuk menghilangkan alert dengan transisi
+        alert.classList.remove('show');
+        alert.classList.add('fade');
+        alert.style.transition = 'opacity 0.5s ease-out'; // Menambahkan transisi
+      }
+    }, 3000); // 3000ms = 3 detik
+  });
+</script>
+</body>
+</html>
+    

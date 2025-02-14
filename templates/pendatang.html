@@ -12,9 +12,13 @@
   <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pendatang.css') }}">
   <link href="static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 </head>
 
+<style>
+  
+</style>
 <body id="page-top">
   <div id="wrapper">
     <!-- Sidebar -->
@@ -88,6 +92,12 @@
          <a class="nav-link" href="{{ url_for('pengguna') }}">
           <i class="fab fa-fw fa-wpforms"></i>
           <span>Pengguna</span>
+        </a>
+      </li>
+       <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('aktivasi') }}">
+          <i class="fas fa-fw fa-user-circle"></i>
+          <span>Aktivasi Akun</span>
         </a>
       </li>
       
@@ -199,6 +209,28 @@
               <li class="breadcrumb-item active" aria-current="page">Data Pendatang</li>
             </ol>
           </div> 
+
+        <div class="total-pendatang-container">
+  <!-- Total Menetap -->
+  <div class="total-pendatang-card total-menetap">
+    <h5>Pendatang Menetap</h5>
+    <h3>{{ total_menetap }}</h3>
+  </div>
+
+  <!-- Total Sementara -->
+  <div class="total-pendatang-card total-sementara">
+    <h5>Pendatang Sementara</h5>
+    <h3>{{ total_sementara }}</h3>
+  </div>
+
+  <!-- Total Lainnya -->
+  <div class="total-pendatang-card total-lainnya">
+    <h5>Pendatang Lainnya</h5>
+    <h3>{{ total_lainnya }}</h3>
+  </div>
+</div>
+
+
         <!-- DataTables with Buku Tamu List -->
 <div class="col-lg-12">
   <div class="card mb-4">
@@ -334,7 +366,7 @@
   <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="static/js/ruang-admin.min.js"></script>
   <script src="static/js/surat.js"></script>
-  <script src="static/js/iuran.js"></script>
+  
   <!-- Page level plugins -->
   <script src="static/vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>

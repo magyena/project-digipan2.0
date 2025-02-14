@@ -514,4 +514,170 @@ footer {
 #closeModalBtn:hover {
     background-color: darkred;
 }
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 60px;
+    height: 100vh;
+    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: width 0.3s, background-color 0.3s;
+    z-index: 1000;
+    overflow: hidden;
+}
 
+/* Sidebar dibuka */
+.sidebar.expanded {
+    width: 160px;
+    background-color: #34acb0;
+}
+
+/* Tombol Menu (☰) */
+.menu-toggle {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+    font-size: 30px;
+    color: black;
+    cursor: pointer;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease; /* Transisi untuk perubahan warna */
+}
+
+/* Mengubah warna burger menjadi putih saat sidebar dibuka */
+.sidebar.expanded .menu-toggle {
+    color: white;
+}
+
+/* Ketika burger dalam keadaan aktif (klik) */
+.menu-toggle:active {
+    color: white;  /* Mengubah warna menjadi putih saat tombol diklik */
+}
+
+/* Teks di sebelah burger */
+.sidebar-text {
+    display: none;  /* Tersembunyi saat sidebar minimized */
+    margin-left: 10px;  /* Jarak antara burger dan teks */
+    font-size: 18px;
+    color: white;
+}
+
+/* Teks di sebelah burger saat sidebar dibuka */
+.sidebar.expanded .sidebar-text {
+    display: inline;  /* Menampilkan teks saat sidebar dibuka */
+}
+
+/* Konten sidebar */
+.sidebar-content {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    padding-top: 50px;
+}
+
+/* Menu Sidebar */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+}
+
+/* Teks menu */
+.sidebar-menu li {
+    width: 100%;
+    text-align: left;
+    margin: 10px 0;
+    padding: 0 20px;
+    transition: background 0.3s;
+}
+
+.sidebar-menu li:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Link Menu */
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    color: white;
+    font-size: 16px;
+    padding: 12px 10px;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+/* Ikon */
+.sidebar-menu i {
+    font-size: 20px;
+    margin-right: 10px;
+    transition: transform 0.3s;
+}
+
+/* Sembunyikan teks menu saat sidebar minimized */
+.menu-text {
+    display: none;
+}
+
+.sidebar.expanded .menu-text {
+    display: inline;
+}
+
+/* Konten utama */
+.main-content {
+    margin-left: 80px;
+    padding: 20px;
+    transition: margin-left 0.3s;
+}
+
+.sidebar.expanded ~ .main-content {
+    margin-left: 220px;
+}
+
+
+.kegiatan-warga {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.kegiatan-warga h2 {
+    font-size: 28px;  /* Membesarkan ukuran judul */
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.kegiatan-slider-container {
+    width: 100%;
+    max-width: 300px; /* Lebar slider lebih besar */
+    overflow: hidden;
+    position: relative;
+    margin: 0 auto;
+    border-radius: 10px;
+}
+
+.kegiatan-slider {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 300%; /* Sesuaikan untuk 3 gambar */
+}
+
+.kegiatan-slider img {
+    width: 50%;
+    max-height: 200px; /* Atur tinggi gambar lebih besar */
+    border-radius: 10px;
+    object-fit: cover;
+}

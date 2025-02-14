@@ -1,0 +1,64 @@
+
+/* Container untuk total pendatang */
+.total-pendatang-container {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+/* Kartu Statistik */
+.total-pendatang-card {
+    background: linear-gradient(135deg, #007bff, #0056b3); /* Warna gradasi */
+    color: white;
+    padding: 12px 15px;
+    border-radius: 10px;
+    text-align: center;
+    width: 120px; /* Ukuran lebih kecil */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+}
+
+.total-pendatang-card:hover {
+    transform: scale(1.05); /* Efek zoom saat hover */
+}
+
+/* Warna khusus untuk kategori */
+.total-menetap { background: linear-gradient(135deg, #007bff, #0056b3); } /* Biru */
+.total-sementara { background: linear-gradient(135deg, #ffc107, #ff9800); } /* Kuning */
+.total-lainnya { background: linear-gradient(135deg, #dc3545, #a71d2a); } /* Merah */
+
+/* Judul di dalam kartu */
+.total-pendatang-card h5 {
+    font-size: 14px;
+    margin: 5px 0;
+    font-weight: bold;
+}
+
+/* Angka total */
+.total-pendatang-card h3 {
+    font-size: 22px;
+    margin: 0;
+    font-weight: bold;
+}
+
+/* Responsif untuk layar kecil */
+@media (max-width: 600px) {
+    .total-pendatang-container {
+        gap: 10px;
+    }
+
+    .total-pendatang-card {
+        width: 100px; /* Lebih kecil di layar mobile */
+        padding: 10px;
+    }
+
+    .total-pendatang-card h5 {
+        font-size: 12px;
+    }
+
+    .total-pendatang-card h3 {
+        font-size: 18px;
+    }
+}

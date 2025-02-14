@@ -130,3 +130,66 @@ filterBtn.addEventListener('click', function () {
     const lastUpdateDate = document.getElementById('last-update-date');
 const currentDate = new Date().toLocaleString(); // Mendapatkan tanggal dan waktu saat ini
 lastUpdateDate.textContent = currentDate;
+
+
+// Fungsi untuk toggle sidebar
+    function toggleSidebar() {
+        var sidebar = document.getElementById("sidebar");
+        var mainContent = document.getElementById("mainContent");
+
+        if (sidebar.classList.contains("expanded")) {
+            sidebar.classList.remove("expanded");
+            mainContent.classList.add("expanded");
+        } else {
+            sidebar.classList.add("expanded");
+            mainContent.classList.remove("expanded");
+        }
+    }
+
+    // Menutup sidebar saat klik di luar sidebar
+    document.addEventListener('click', function(event) {
+        var sidebar = document.getElementById('sidebar');
+        var menuToggle = document.querySelector('.menu-toggle');
+        
+        // Mengecek apakah klik terjadi di luar sidebar dan bukan di tombol menu
+        if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
+            if (sidebar.classList.contains("expanded")) {
+                sidebar.classList.remove("expanded");
+                var mainContent = document.getElementById("mainContent");
+                mainContent.classList.add("expanded");
+            }
+        }
+    });
+
+    // Menutup sidebar saat menu diklik
+    function closeSidebar() {
+        var sidebar = document.getElementById("sidebar");
+        if (sidebar.classList.contains("expanded")) {
+            sidebar.classList.remove("expanded");
+            var mainContent = document.getElementById("mainContent");
+            mainContent.classList.add("expanded");
+        }
+    }
+
+
+    let kegiatanIndex = 0;
+
+function slideKegiatan() {
+    const slider = document.querySelector(".kegiatan-slider");
+    const slides = document.querySelectorAll(".kegiatan-slider img");
+    const totalSlides = slides.length;
+
+    kegiatanIndex++;
+
+    if (kegiatanIndex >= totalSlides) {
+        kegiatanIndex = 0;
+    }
+
+    const translateValue = -kegiatanIndex * 100 + "%";
+    slider.style.transform = "translateX(" + translateValue + ")";
+
+    setTimeout(slideKegiatan, 3000); // Ganti gambar setiap 3 detik
+}
+
+// Jalankan slider saat halaman dimuat
+document.addEventListener("DOMContentLoaded", slideKegiatan);

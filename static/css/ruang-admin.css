@@ -1922,4 +1922,9 @@ body.sidebar-toggled footer.sticky-footer {
  .more-messages {
             display: none;
         }
-   
+  
+        .status-aktif {
+    background-color: #28a745;  /* Hijau */
+    color: white;  /* Teks putih agar kontras */
+    font-weight: bold;
+}
