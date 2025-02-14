@@ -341,6 +341,17 @@ def login():
             session["role"] = user.role  # Tambahkan role pengguna ke session
             session.permanent = True
 
+            # Kirim notifikasi ke Telegram
+            send_telegram_notification(
+                f"<b>Hallo pengurus RT 08/01!</b>\n\n"
+                f"<b>Ada Pengurus RT yang login!</b>\n\n"
+                f"👤 <b>Username:</b> {user.username}\n"
+                f"💼 <b>Role:</b> {user.role}\n\n"
+                f"<i>Login berhasil pada {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.</i>\n\n"
+                f"<b>Untuk detail lebih lanjut, silakan kunjungi website berikut:</b>\n"
+                f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
+            )
+
             return redirect(url_for("dashboard"))
         else:
             flash("Username atau password salah. Silakan coba lagi.", "danger")
