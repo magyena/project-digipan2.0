@@ -197,6 +197,20 @@ class Register(db.Model):
     tanggal_daftar = db.Column(db.DateTime, default=db.func.current_timestamp())
     status = db.Column(db.String(20), default="Belum Aktif")
 
+
+class Activity(db.Model):
+    __tablename__ = "activity"
+    __table_args__ = {"schema": "data_keluarga"}
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("data_keluarga.user.id"), nullable=False
+    )
+    action = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref=db.backref("activities", lazy=True))
+
     def __init__(
         self,
         nama,
@@ -277,6 +291,11 @@ class Register(db.Model):
         self.nomor_whatsapp = nomor_whatsapp
         self.kata_sandi = kata_sandi
 
+    def __init__(self, user_id, action, timestamp=None):
+        self.user_id = user_id
+        self.action = action
+        self.timestamp = timestamp or datetime.utcnow()
+
 
 def __init__(self, username, password):
     self.username = username
@@ -338,19 +357,34 @@ def login():
             # Simpan data pengguna ke session
             session["user_id"] = user.id
             session["username"] = user.username
-            session["role"] = user.role  # Tambahkan role pengguna ke session
+            session["role"] = user.role
             session.permanent = True
 
-            # Kirim notifikasi ke Telegram
-            send_telegram_notification(
-                f"<b>Hallo pengurus RT 08/01!</b>\n\n"
-                f"<b>Ada Pengurus RT yang login!</b>\n\n"
-                f"👤 <b>Username:</b> {user.username}\n"
-                f"💼 <b>Role:</b> {user.role}\n\n"
-                f"<i>Login berhasil pada {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.</i>\n\n"
-                f"<b>Untuk detail lebih lanjut, silakan kunjungi website berikut:</b>\n"
-                f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
+            # Simpan ke tabel Activity
+            new_activity = Activity(
+                user_id=user.id, action="Login ke sistem", timestamp=datetime.utcnow()
             )
+            db.session.add(new_activity)
+            db.session.commit()
+
+            # Ambil jumlah aktivitas user
+            activity_count = Activity.query.filter_by(user_id=user.id).count()
+            print(f"Jumlah aktivitas user {user.username}: {activity_count}")
+
+            if activity_count % 4 == 0:  # Hanya kirim jika aktivitas ke-4, 8, 12, dst.
+                recent_activities = (
+                    Activity.query.filter_by(user_id=user.id)
+                    .order_by(Activity.timestamp.desc())
+                    .limit(4)
+                    .all()
+                )
+
+                activity_list = "\n".join(
+                    [
+                        f"🔹 {act.action} - {act.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+                        for act in recent_activities
+                    ]
+                )
 
             return redirect(url_for("dashboard"))
         else:
@@ -361,6 +395,51 @@ def login():
 
 @app.route("/logout")
 def logout():
+    if "user_id" in session:
+        # Gunakan zona waktu Jakarta
+        jakarta_tz = pytz.timezone("Asia/Jakarta")
+        now_jakarta = datetime.now(jakarta_tz)
+
+        # Catat aktivitas logout sebelum sesi dihapus
+        new_activity = Activity(
+            user_id=session["user_id"],
+            action="Logout dari sistem",
+            timestamp=now_jakarta,
+        )
+        db.session.add(new_activity)
+        db.session.commit()
+
+        # Ambil informasi user sebelum session dihapus
+        username = session.get("username", "Tidak diketahui")
+        role = session.get("role", "Tidak diketahui")
+
+        # Ambil minimal 3 aktivitas terakhir
+        recent_activities = (
+            Activity.query.filter_by(user_id=session["user_id"])
+            .order_by(Activity.timestamp.desc())
+            .limit(10)
+            .all()
+        )
+
+        # Membuat list aktivitas untuk dikirimkan ke Telegram
+        activity_list = "\n".join(
+            [
+                f"🔹 {act.action} - {act.timestamp.astimezone(jakarta_tz).strftime('%Y-%m-%d %H:%M:%S')}"
+                for act in recent_activities
+            ]
+        )
+
+        # Kirim notifikasi Telegram saat logout dengan aktivitas-aktivitas terakhir
+        # send_telegram_notification(
+        #     f"<b>Hallo pengurus RT 08/01!</b>\n\n"
+        #     f"<b>Ada Pengurus RT yang Masuk!</b>\n\n"
+        #     f"👤 <b>Username:</b> {username}\n"
+        #     f"💼 <b>Role:</b> {role}\n\n"
+        #     f"<b>Riwayat Aktivitas Terakhir:</b>\n{activity_list}\n\n"
+        #     f"<b>Untuk detail lebih lanjut, silakan kunjungi website berikut:</b>\n"
+        #     f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
+        # )
+
     session.clear()  # Hapus semua data sesi
     flash("Anda telah keluar.", "info")
     return redirect(url_for("login"))
@@ -1137,8 +1216,23 @@ def delete_family_member(member_id):
         if not member:
             return jsonify({"error": "Anggota keluarga tidak ditemukan."}), 404
 
+        # Simpan informasi sebelum menghapus untuk mencatat aktivitas
+        deleted_member_name = member.nama
+        jakarta_tz = pytz.timezone("Asia/Jakarta")
+        now_jakarta = datetime.now(jakarta_tz)
+
         db.session.delete(member)
         db.session.commit()
+
+        # Catat aktivitas penghapusan
+        new_activity = Activity(
+            user_id=session["user_id"],
+            action=f"Menghapus anggota keluarga {deleted_member_name} (ID: {member_id})",
+            timestamp=now_jakarta,
+        )
+        db.session.add(new_activity)
+        db.session.commit()
+
         return jsonify({"message": "Anggota keluarga berhasil dihapus."}), 200
 
     except Exception as e:
@@ -1157,6 +1251,8 @@ def edit_family():
     tanggal_lahir_str = data.get("tanggal_lahir")
     nomor_keluarga = data.get("nomor_keluarga")
     hubungan_keluarga = data.get("hubungan_keluarga")
+    jakarta_tz = pytz.timezone("Asia/Jakarta")
+    now_jakarta = datetime.now(jakarta_tz)
 
     # Validasi ID anggota keluarga
     if not member_id:
@@ -1184,6 +1280,17 @@ def edit_family():
             family_member.hubungan_keluarga = hubungan_keluarga
 
             db.session.commit()
+
+            # Catat aktivitas edit keluarga
+            new_activity = Activity(
+                user_id=session["user_id"],
+                action=f"Memperbarui data anggota keluarga {family_member.nama} (ID: {member_id})",
+                timestamp=now_jakarta,
+            )
+
+            db.session.add(new_activity)
+            db.session.commit()
+
             return jsonify(
                 {"status": "success", "message": "Data keluarga berhasil diperbarui."}
             )
@@ -1376,21 +1483,39 @@ def read_image_as_base64(image_path):
 #         f"attachment; filename={surat.jenissurat}_{surat.nama}.pdf"
 #     )
 
+
 #     return response
-
-
 @app.route("/lihat_surat/<int:sid>")
 def lihat_surat(sid):
     surat = SuratPengantar.query.get(sid)
 
-    if surat.jenissurat == "Surat Pengantar":
-        return render_template("surat/surat_download_pengantar.html", surat=surat)
-    elif surat.jenissurat == "Surat Pernyataan Belum Menikah":
-        return render_template("surat/surat_download_belum_menikah.html", surat=surat)
-    elif surat.jenissurat == "Surat Pernyataan Tidak Mampu":
-        return render_template("surat/surat_download_tidak_mampu.html", surat=surat)
-    else:
-        return render_template("surat/surat_download.html", surat=surat)
+    if not surat:
+        flash("Surat tidak ditemukan.", "error")
+        return redirect(url_for("dashboard"))
+
+    # Gunakan zona waktu Jakarta
+    jakarta_tz = pytz.timezone("Asia/Jakarta")
+    now_jakarta = datetime.now(jakarta_tz)
+
+    # Catat aktivitas pengguna saat melihat surat
+    new_activity = Activity(
+        user_id=session.get("user_id"),
+        action=f"Melihat surat {surat.jenissurat}",
+        timestamp=now_jakarta,
+    )
+    db.session.add(new_activity)
+    db.session.commit()
+
+    # Tentukan template berdasarkan jenis surat
+    template_mapping = {
+        "Surat Pengantar": "surat/surat_download_pengantar.html",
+        "Surat Pernyataan Belum Menikah": "surat/surat_download_belum_menikah.html",
+        "Surat Pernyataan Tidak Mampu": "surat/surat_download_tidak_mampu.html",
+    }
+
+    template_name = template_mapping.get(surat.jenissurat, "surat/surat_download.html")
+
+    return render_template(template_name, surat=surat)
 
 
 # Route untuk halaman verifikasi iuran
@@ -1432,12 +1557,43 @@ def verifikasi_iuran():
 
 @app.route("/update_status_iuran/<int:iuran_id>", methods=["POST"])
 def update_status_iuran(iuran_id):
-    iuran = Iuran.query.get_or_404(iuran_id)  # Dapatkan data iuran berdasarkan ID
+    # Ambil data iuran berdasarkan ID
+    iuran = Iuran.query.get_or_404(iuran_id)
+
+    # Periksa apakah statusnya masih "Menunggu"
     if iuran.status_pembayaran == "Menunggu":
-        iuran.status_pembayaran = "Diterima"  # Ubah status menjadi "Lunas"
-        db.session.commit()  # Simpan perubahan ke database
+        iuran.status_pembayaran = "Diterima"
+        db.session.commit()  # Simpan perubahan status pembayaran
+
         flash("Iuran telah Diterima!", "success")
-    return redirect(url_for("verifikasi_iuran"))  # Arahkan ulang ke halaman verifikasi
+
+        # Ambil user_id dari session
+        user_id = session.get("user_id")
+
+        # Cek apakah user_id ada di database
+        user = User.query.get(user_id)
+
+        if user:
+            # Set zona waktu Jakarta
+            jakarta_tz = pytz.timezone("Asia/Jakarta")
+            now_jakarta = datetime.now(jakarta_tz)
+
+            # Buat entri aktivitas
+            new_activity = Activity(
+                user_id=user_id,
+                action=f"{user.username} telah verifikasi pembayaran",
+                timestamp=now_jakarta,
+            )
+            db.session.add(new_activity)
+
+            try:
+                db.session.commit()  # Simpan aktivitas ke database
+            except Exception:
+                db.session.rollback()  # Rollback jika ada error
+        else:
+            flash("Terjadi kesalahan: User tidak ditemukan.", "danger")
+
+    return redirect(url_for("verifikasi_iuran"))
 
 
 # Route untuk halaman verifikasi iuran
