@@ -207,7 +207,7 @@ class Activity(db.Model):
         db.Integer, db.ForeignKey("data_keluarga.user.id"), nullable=False
     )
     action = db.Column(db.String(255), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=func.now())
 
     user = db.relationship("User", backref=db.backref("activities", lazy=True))
 
@@ -349,42 +349,26 @@ def login():
             flash("Username dan password harus diisi.", "warning")
             return render_template("login.html")
 
-        # Mencari user di database berdasarkan username
         user = User.query.filter_by(username=username).first()
 
-        # Validasi username dan password
         if user and check_password_hash(user.password, password):
-            # Simpan data pengguna ke session
             session["user_id"] = user.id
             session["username"] = user.username
             session["role"] = user.role
             session.permanent = True
 
-            # Simpan ke tabel Activity
+            jakarta_tz = pytz.timezone("Asia/Jakarta")
+            now_jakarta = datetime.now(jakarta_tz).replace(
+                tzinfo=None
+            )  # ✅ Buang informasi timezone
+
             new_activity = Activity(
-                user_id=user.id, action="Login ke sistem", timestamp=datetime.utcnow()
+                user_id=user.id,
+                action="Login ke Dashboard Digipan",
+                timestamp=now_jakarta,
             )
             db.session.add(new_activity)
             db.session.commit()
-
-            # Ambil jumlah aktivitas user
-            activity_count = Activity.query.filter_by(user_id=user.id).count()
-            print(f"Jumlah aktivitas user {user.username}: {activity_count}")
-
-            if activity_count % 4 == 0:  # Hanya kirim jika aktivitas ke-4, 8, 12, dst.
-                recent_activities = (
-                    Activity.query.filter_by(user_id=user.id)
-                    .order_by(Activity.timestamp.desc())
-                    .limit(4)
-                    .all()
-                )
-
-                activity_list = "\n".join(
-                    [
-                        f"🔹 {act.action} - {act.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
-                        for act in recent_activities
-                    ]
-                )
 
             return redirect(url_for("dashboard"))
         else:
@@ -396,11 +380,11 @@ def login():
 @app.route("/logout")
 def logout():
     if "user_id" in session:
-        # Gunakan zona waktu Jakarta
         jakarta_tz = pytz.timezone("Asia/Jakarta")
-        now_jakarta = datetime.now(jakarta_tz)
+        now_jakarta = datetime.now(jakarta_tz).replace(
+            tzinfo=None
+        )  # ✅ Buang informasi timezone
 
-        # Catat aktivitas logout sebelum sesi dihapus
         new_activity = Activity(
             user_id=session["user_id"],
             action="Logout dari sistem",
@@ -409,11 +393,9 @@ def logout():
         db.session.add(new_activity)
         db.session.commit()
 
-        # Ambil informasi user sebelum session dihapus
         username = session.get("username", "Tidak diketahui")
         role = session.get("role", "Tidak diketahui")
 
-        # Ambil minimal 3 aktivitas terakhir
         recent_activities = (
             Activity.query.filter_by(user_id=session["user_id"])
             .order_by(Activity.timestamp.desc())
@@ -421,7 +403,6 @@ def logout():
             .all()
         )
 
-        # Membuat list aktivitas untuk dikirimkan ke Telegram
         activity_list = "\n".join(
             [
                 f"🔹 {act.action} - {act.timestamp.astimezone(jakarta_tz).strftime('%Y-%m-%d %H:%M:%S')}"
@@ -440,7 +421,7 @@ def logout():
         #     f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
         # )
 
-    session.clear()  # Hapus semua data sesi
+    session.clear()
     flash("Anda telah keluar.", "info")
     return redirect(url_for("login"))
 
@@ -1211,20 +1192,19 @@ def get_family_details(nama_keluarga):
 @app.route("/delete_family_member/<int:member_id>", methods=["DELETE"])
 def delete_family_member(member_id):
     try:
-        # Menghapus anggota keluarga dari database
         member = db.session.query(Family).filter_by(id=member_id).first()
         if not member:
             return jsonify({"error": "Anggota keluarga tidak ditemukan."}), 404
 
-        # Simpan informasi sebelum menghapus untuk mencatat aktivitas
         deleted_member_name = member.nama
         jakarta_tz = pytz.timezone("Asia/Jakarta")
-        now_jakarta = datetime.now(jakarta_tz)
+        now_jakarta = datetime.now(jakarta_tz).replace(
+            tzinfo=None
+        )  # ✅ Buang informasi timezone
 
         db.session.delete(member)
         db.session.commit()
 
-        # Catat aktivitas penghapusan
         new_activity = Activity(
             user_id=session["user_id"],
             action=f"Menghapus anggota keluarga {deleted_member_name} (ID: {member_id})",
@@ -1236,7 +1216,6 @@ def delete_family_member(member_id):
         return jsonify({"message": "Anggota keluarga berhasil dihapus."}), 200
 
     except Exception as e:
-        # Menangani kemungkinan kesalahan
         return jsonify({"error": str(e)}), 500
 
 
@@ -1251,10 +1230,7 @@ def edit_family():
     tanggal_lahir_str = data.get("tanggal_lahir")
     nomor_keluarga = data.get("nomor_keluarga")
     hubungan_keluarga = data.get("hubungan_keluarga")
-    jakarta_tz = pytz.timezone("Asia/Jakarta")
-    now_jakarta = datetime.now(jakarta_tz)
 
-    # Validasi ID anggota keluarga
     if not member_id:
         return (
             jsonify(
@@ -1263,15 +1239,12 @@ def edit_family():
             400,
         )
 
-    # Cari anggota keluarga yang sesuai berdasarkan ID
     family_member = Family.query.get(member_id)
 
     if family_member:
         try:
-            # Parsing tanggal lahir dari string ke objek date
             tanggal_lahir = datetime.strptime(tanggal_lahir_str, "%Y-%m-%d").date()
 
-            # Perbarui data anggota keluarga
             family_member.nama_keluarga = nama_keluarga
             family_member.nama = nama
             family_member.tempat_lahir = tempat_lahir
@@ -1281,7 +1254,11 @@ def edit_family():
 
             db.session.commit()
 
-            # Catat aktivitas edit keluarga
+            jakarta_tz = pytz.timezone("Asia/Jakarta")
+            now_jakarta = datetime.now(jakarta_tz).replace(
+                tzinfo=None
+            )  # ✅ Buang informasi timezone
+
             new_activity = Activity(
                 user_id=session["user_id"],
                 action=f"Memperbarui data anggota keluarga {family_member.nama} (ID: {member_id})",
@@ -1493,11 +1470,11 @@ def lihat_surat(sid):
         flash("Surat tidak ditemukan.", "error")
         return redirect(url_for("dashboard"))
 
-    # Gunakan zona waktu Jakarta
     jakarta_tz = pytz.timezone("Asia/Jakarta")
-    now_jakarta = datetime.now(jakarta_tz)
+    now_jakarta = datetime.now(jakarta_tz).replace(
+        tzinfo=None
+    )  # ✅ Buang informasi timezone
 
-    # Catat aktivitas pengguna saat melihat surat
     new_activity = Activity(
         user_id=session.get("user_id"),
         action=f"Melihat surat {surat.jenissurat}",
@@ -1506,7 +1483,6 @@ def lihat_surat(sid):
     db.session.add(new_activity)
     db.session.commit()
 
-    # Tentukan template berdasarkan jenis surat
     template_mapping = {
         "Surat Pengantar": "surat/surat_download_pengantar.html",
         "Surat Pernyataan Belum Menikah": "surat/surat_download_belum_menikah.html",
@@ -1557,28 +1533,23 @@ def verifikasi_iuran():
 
 @app.route("/update_status_iuran/<int:iuran_id>", methods=["POST"])
 def update_status_iuran(iuran_id):
-    # Ambil data iuran berdasarkan ID
     iuran = Iuran.query.get_or_404(iuran_id)
 
-    # Periksa apakah statusnya masih "Menunggu"
     if iuran.status_pembayaran == "Menunggu":
         iuran.status_pembayaran = "Diterima"
-        db.session.commit()  # Simpan perubahan status pembayaran
+        db.session.commit()
 
         flash("Iuran telah Diterima!", "success")
 
-        # Ambil user_id dari session
         user_id = session.get("user_id")
-
-        # Cek apakah user_id ada di database
         user = User.query.get(user_id)
 
         if user:
-            # Set zona waktu Jakarta
             jakarta_tz = pytz.timezone("Asia/Jakarta")
-            now_jakarta = datetime.now(jakarta_tz)
+            now_jakarta = datetime.now(jakarta_tz).replace(
+                tzinfo=None
+            )  # ✅ Buang informasi timezone
 
-            # Buat entri aktivitas
             new_activity = Activity(
                 user_id=user_id,
                 action=f"{user.username} telah verifikasi pembayaran",
@@ -1587,9 +1558,9 @@ def update_status_iuran(iuran_id):
             db.session.add(new_activity)
 
             try:
-                db.session.commit()  # Simpan aktivitas ke database
+                db.session.commit()
             except Exception:
-                db.session.rollback()  # Rollback jika ada error
+                db.session.rollback()
         else:
             flash("Terjadi kesalahan: User tidak ditemukan.", "danger")
 
