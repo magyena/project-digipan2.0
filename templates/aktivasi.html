@@ -234,7 +234,7 @@
         {% endif %}
       {% endwith %}
     
-      <!-- DataTables with Aktivasi List -->
+   <!-- DataTables with Aktivasi List -->
 <div class="col-lg-12">
   <div class="card mb-4">
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
@@ -265,14 +265,20 @@
             <td>
               <div class="d-flex gap-2">
                 
-            <!-- Tombol Aktivasi / Non-Aktifkan -->
-<form action="{{ url_for('toggle_user_status', nama_lengkap=user.nama_lengkap) }}" method="POST" style="display:inline;">
-  <button type="submit" class="btn btn-sm {% if user.status == 'Aktif' %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
-    <i class="fas {% if user.status == 'Aktif' %}fa-times{% else %}fa-check{% endif %}"></i>
-    {% if user.status == 'Aktif' %}Non Aktifkan{% else %}Aktifkan{% endif %}
-  </button>
-</form>
+                <!-- Tombol Aktivasi / Non-Aktifkan -->
+                <form action="{{ url_for('toggle_user_status', nama_lengkap=user.nama_lengkap) }}" method="POST" style="display:inline;">
+                  <button type="submit" class="btn btn-sm {% if user.status == 'Aktif' %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                    <i class="fas {% if user.status == 'Aktif' %}fa-times{% else %}fa-check{% endif %}"></i>
+                    {% if user.status == 'Aktif' %}Non Aktifkan{% else %}Aktifkan{% endif %}
+                  </button>
+                </form>
 
+                <!-- Tombol Hapus dengan jarak -->
+                <form action="{{ url_for('delete_warga', nama_lengkap=user.nama_lengkap) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger ml-2"> <!-- menambahkan margin kiri -->
+                    <i class="fas fa-trash"></i> Hapus
+                  </button>
+                </form>
               </div>
             </td>
           </tr>

@@ -2673,5 +2673,19 @@ def reset_password():
     return redirect(url_for("index"))
 
 
+@app.route("/delete_warga/<nama_lengkap>", methods=["POST"])
+def delete_warga(nama_lengkap):
+    user = Register.query.filter_by(nama_lengkap=nama_lengkap).first()
+
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        flash("User berhasil dihapus", "success")
+    else:
+        flash("User tidak ditemukan", "danger")
+
+    return redirect(url_for("aktivasi"))
+
+
 if __name__ == "__main__":
     app.run(debug=True)
