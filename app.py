@@ -195,7 +195,7 @@ class Register(db.Model):
     nomor_whatsapp = db.Column(db.String(20), nullable=False, unique=False)
     kata_sandi = db.Column(db.Text, nullable=False)
     tanggal_daftar = db.Column(db.DateTime, default=db.func.current_timestamp())
-    status = db.Column(db.String(20), default="Belum Aktif")
+    status = db.Column(db.String(20), default="Aktif")
 
 
 class Activity(db.Model):
