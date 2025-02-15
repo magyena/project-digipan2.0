@@ -2419,17 +2419,17 @@ def pengeluaran():
 @app.route("/pengeluaran", methods=["POST"])
 def tambah_pengeluaran():
     try:
-        # Ambil data dari form
         data = request.form
         nama_kegiatan = data.get("nama_kegiatan")
         jenis_pengeluaran = data.get("jenis_pengeluaran")
-        jumlah = data.get("jumlah").replace(".", "")  # Hapus titik
+        jumlah = data.get("jumlah").replace(".", "")
         tanggal = data.get("tanggal")
 
-        # Parsing jumlah
+        jakarta_tz = pytz.timezone("Asia/Jakarta")
+        now_jakarta = datetime.now(jakarta_tz).replace(tzinfo=None)
+
         jumlah_float = float(jumlah)
 
-        # Buat objek pengeluaran
         pengeluaran_baru = Pengeluaran(
             nama_kegiatan=nama_kegiatan,
             jenis_pengeluaran=jenis_pengeluaran,
@@ -2437,14 +2437,24 @@ def tambah_pengeluaran():
             tanggal=tanggal,
         )
 
-        # Simpan ke database
         db.session.add(pengeluaran_baru)
         db.session.commit()
 
+        new_activity = Activity(
+            user_id=session["user_id"],
+            action=f"Menambahkan pengeluaran",
+            timestamp=now_jakarta,
+        )
+        db.session.add(new_activity)
+        db.session.commit()
+
         return jsonify({"message": "Pengeluaran berhasil ditambahkan!"}), 200
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return jsonify({"error": f"Terjadi kesalahan: {str(e)}"}), 500
+
+    except:
+        return (
+            jsonify({"error": "Terjadi kesalahan saat menambahkan pengeluaran."}),
+            500,
+        )
 
 
 # Endpoint delete_user
