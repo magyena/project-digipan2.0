@@ -169,7 +169,7 @@ body {
     }
 }
 .footer {
-    position: absolute;
+    position: fixed;
     bottom: 20px; /* Menempatkan footer di bawah */
     width: 100%;
     font-size: 14px;
