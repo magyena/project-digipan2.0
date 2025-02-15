@@ -2328,14 +2328,12 @@ def kirim_manual_iuran():
         jumlah_iuran = request.form.get("jumlah")
         file = request.files.get("bukti_pembayaran")
 
-        file_url = None  # Default nilai untuk bukti pembayaran
+        file_url = None
         if file:
             try:
-                # Tambahkan timestamp ke nama file
                 timestamp = int(time.time())
                 original_filename = secure_filename(file.filename)
                 filename = f"{timestamp}_{original_filename}"
-                # Simpan file ke Supabase Storage
                 bucket_name = "digipan"
                 file_path = f"bukti_pembayaran/{filename}"
                 upload_response = supabase.storage.from_(bucket_name).upload(
@@ -2346,34 +2344,38 @@ def kirim_manual_iuran():
                     file_url = supabase.storage.from_(bucket_name).get_public_url(
                         file_path
                     )
-                else:
-                    logging.warning(f"Upload failed: {upload_response.text}")
-            except Exception as e:
-                logging.error(f"Exception: {e}")
+            except Exception:
+                pass
 
         try:
-            # Simpan data ke database
+            jakarta_tz = pytz.timezone("Asia/Jakarta")
+            now_jakarta = datetime.now(jakarta_tz).replace(tzinfo=None)
+
             iuran_baru = Iuran(
                 nama_keluarga=nama_keluarga,
                 jumlah_iuran=float(
                     jumlah_iuran.replace("Rp ", "").replace(".", "").replace(",", ".")
                 ),
-                bukti_pembayaran=file_url,  # Bisa None jika tidak ada file
+                bukti_pembayaran=file_url,
                 status_pembayaran="Menunggu",
             )
             db.session.add(iuran_baru)
             db.session.commit()
 
-            # Kembalikan respons JSON yang sukses
+            new_activity = Activity(
+                user_id=session["user_id"],
+                action=f"Menambahkan iuran manual atas nama {nama_keluarga}",
+                timestamp=now_jakarta,
+            )
+            db.session.add(new_activity)
+            db.session.commit()
+
             return jsonify({"message": "Iuran berhasil ditambahkan!"}), 200
 
-        except Exception as e:
-            logging.error(f"Database error: {e}")
+        except:
             db.session.rollback()
-            # Kembalikan respons error dalam JSON
             return jsonify({"error": "Terjadi kesalahan saat menambahkan iuran."}), 400
 
-    # Jika metode tidak valid
     return jsonify({"error": "Metode tidak valid."}), 400
 
 
