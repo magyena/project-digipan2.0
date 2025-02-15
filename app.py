@@ -411,15 +411,15 @@ def logout():
         )
 
         # Kirim notifikasi Telegram saat logout dengan aktivitas-aktivitas terakhir
-        # send_telegram_notification(
-        #     f"<b>Hallo pengurus RT 08/01!</b>\n\n"
-        #     f"<b>Ada Pengurus RT yang Masuk!</b>\n\n"
-        #     f"👤 <b>Username:</b> {username}\n"
-        #     f"💼 <b>Role:</b> {role}\n\n"
-        #     f"<b>Riwayat Aktivitas Terakhir:</b>\n{activity_list}\n\n"
-        #     f"<b>Untuk detail lebih lanjut, silakan kunjungi website berikut:</b>\n"
-        #     f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
-        # )
+        send_telegram_notification(
+            f"<b>Hallo pengurus RT 08/01!</b>\n\n"
+            f"<b>Ada Pengurus RT yang Masuk!</b>\n\n"
+            f"👤 <b>Username:</b> {username}\n"
+            f"💼 <b>Role:</b> {role}\n\n"
+            f"<b>Riwayat Aktivitas Terakhir:</b>\n{activity_list}\n\n"
+            f"<b>Untuk detail lebih lanjut, silakan kunjungi website berikut:</b>\n"
+            f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
+        )
 
     session.clear()
     flash("Anda telah keluar.", "info")
@@ -2114,20 +2114,16 @@ def send_telegram_notification(message):
 
 @app.route("/pendatang", methods=["GET", "POST"])
 def daftar_buku_tamu():
-    # Cek apakah pengguna sudah login
-    if "username" not in session:
-        flash("Anda harus login terlebih dahulu.", "warning")
+    if "user_id" not in session:
         return redirect(url_for("login"))
 
-    user_role = session.get("role")  # Ambil role dari session
+    user_role = session.get("role")
 
-    # Handle POST request untuk menambah pengguna
     if request.method == "POST":
         username = request.form["username"].strip()
         password = request.form["password"].strip()
-        role = request.form["role"]  # Ambil peran pengguna dari form
+        role = request.form["role"]
 
-        # Cek apakah role pengguna adalah 'kader'
         if user_role == "kader":
             return (
                 jsonify(
@@ -2139,12 +2135,10 @@ def daftar_buku_tamu():
                 403,
             )
 
-        # Cek apakah username sudah ada di database
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             return jsonify({"message": None, "error": "Username sudah tersedia"}), 400
 
-        # Tambahkan pengguna baru
         hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
         new_user = User(username=username, password=hashed_password, role=role)
         db.session.add(new_user)
@@ -2155,10 +2149,8 @@ def daftar_buku_tamu():
             200,
         )
 
-    # Handle GET request untuk menampilkan data
     buku_tamu_list = BukuTamu.query.all()
 
-    # Hitung jumlah pendatang berdasarkan kategori tujuan
     total_menetap = BukuTamu.query.filter(BukuTamu.tujuan.ilike("%Menetap%")).count()
     total_sementara = BukuTamu.query.filter(
         BukuTamu.tujuan.ilike("%Sementara%")
@@ -2167,7 +2159,6 @@ def daftar_buku_tamu():
         ~BukuTamu.tujuan.ilike("%Menetap%"), ~BukuTamu.tujuan.ilike("%Sementara%")
     ).count()
 
-    # Ambil pesan terbaru (3 pesan terakhir)
     all_messages = Message.query.order_by(Message.timestamp.desc()).limit(3).all()
     message_list_to_display = [
         {
@@ -2200,15 +2191,35 @@ def daftar_buku_tamu():
     )
 
 
-# Route untuk menghapus buku tamu
 @app.route("/delete_buku_tamu/<int:tamu_id>", methods=["POST"])
 def delete_buku_tamu(tamu_id):
-    # Ambil data buku tamu berdasarkan ID
     tamu = BukuTamu.query.get(tamu_id)
     if tamu:
-        # Hapus data dari database
+        nama_tamu = tamu.nama
         db.session.delete(tamu)
         db.session.commit()
+
+        jakarta_tz = pytz.timezone("Asia/Jakarta")
+        now_jakarta = datetime.now(jakarta_tz).replace(tzinfo=None)
+
+        user_id = session.get("user_id")  # Hindari KeyError
+
+        if user_id:  # Pastikan user_id tersedia sebelum menambahkan aktivitas
+            try:
+                new_activity = Activity(
+                    user_id=user_id,
+                    action=f"Menghapus Pendatang atas nama {nama_tamu}",
+                    timestamp=now_jakarta,
+                )
+                db.session.add(new_activity)
+                db.session.commit()
+                print("Aktivitas berhasil dicatat")
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error saat mencatat aktivitas: {e}")
+        else:
+            print("User ID tidak ditemukan dalam sesi, aktivitas tidak dicatat.")
+
         flash("Data buku tamu berhasil dihapus.", "success")
     else:
         flash("Data buku tamu tidak ditemukan.", "danger")
