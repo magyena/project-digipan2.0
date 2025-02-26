@@ -270,7 +270,7 @@ body {
     background-color: #fff;
     margin: 10% auto; /* Memberi jarak lebih tinggi pada desktop */
     padding: 20px;
-    height: 30%;
+    height: 45%;
     border: 1px solid #888;
     width: 90%; /* Lebar 90% untuk layar besar */
     max-width: 400px; /* Membatasi lebar maksimal */
@@ -319,7 +319,7 @@ body {
 }
     .modal-content {
         margin-top: 200px; 
-        height:25%;
+        height:40%;
         width: 95%; /* Lebar hampir penuh pada layar kecil */
         padding: 15px; /* Padding lebih kecil untuk layar kecil */
     }

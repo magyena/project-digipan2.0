@@ -2794,40 +2794,32 @@ def generate_custom_password(nama_lengkap):
 @app.route("/reset-password", methods=["POST"])
 def reset_password():
     nama_lengkap = request.form.get("nama_lengkap")
+    kata_sandi = request.form.get("kata_sandi")
+    konfirmasi_kata_sandi = request.form.get("konfirmasi_kata_sandi")
 
-    # Cari user berdasarkan nama lengkap (case insensitive)
+    if not nama_lengkap or not kata_sandi or not konfirmasi_kata_sandi:
+        flash("Semua kolom harus diisi.", "danger")
+        return redirect(url_for("index"))
+
+    if kata_sandi != konfirmasi_kata_sandi:
+        flash("Konfirmasi kata sandi tidak cocok.", "danger")
+        return redirect(url_for("index"))
+
     user = Register.query.filter(
         func.lower(Register.nama_lengkap) == func.lower(nama_lengkap)
     ).first()
 
     if user:
-        # Generate password baru dengan format nama lengkap
-        new_password = generate_custom_password(user.nama_lengkap)
-        hashed_password = generate_password_hash(new_password)
-
-        # Update password di database
+        hashed_password = generate_password_hash(kata_sandi)
         user.kata_sandi = hashed_password
         db.session.commit()
 
-        nomor_whatsapp = format_nomor_whatsapp(user.nomor_whatsapp)
-
-        # Pesan yang dikirim ke WhatsApp
-        message = (
-            f"Halo {user.nama_lengkap},\n\n"
-            f"Permintaan reset password Anda telah berhasil. Berikut password baru Anda:\n\n"
-            f"🔑 *{new_password}*\n\n"
-            f"Silakan login dan simpan password Anda untuk keamanan lebih lanjut.\n"
-            f"Terima kasih."
-        )
-
-        send_whatsapp_message(nomor_whatsapp, message)
-
         flash(
-            f"Password reset berhasil! Informasi telah dikirim ke WhatsApp {nomor_whatsapp}.",
+            "Password berhasil direset! Silakan login dengan password baru Anda.",
             "success",
         )
     else:
-        flash(f"Nama lengkap tidak ditemukan. Silakan coba lagi.", "danger")
+        flash("Nama lengkap tidak ditemukan. Silakan coba lagi.", "danger")
 
     return redirect(url_for("index"))
 
