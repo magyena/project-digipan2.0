@@ -319,7 +319,7 @@ body {
 }
     .modal-content {
         margin-top: 200px; 
-        height:40%;
+        height:45%;
         width: 95%; /* Lebar hampir penuh pada layar kecil */
         padding: 15px; /* Padding lebih kecil untuk layar kecil */
     }

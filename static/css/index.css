@@ -514,7 +514,6 @@ footer {
 #closeModalBtn:hover {
     background-color: darkred;
 }
-/* Sidebar */
 .sidebar {
     position: fixed;
     left: 0;
@@ -530,13 +529,11 @@ footer {
     overflow: hidden;
 }
 
-/* Sidebar dibuka */
 .sidebar.expanded {
     width: 160px;
     background-color: #34acb0;
 }
 
-/* Tombol Menu (☰) */
 .menu-toggle {
     position: absolute;
     top: 10px;
@@ -549,49 +546,46 @@ footer {
     z-index: 1001;
     display: flex;
     align-items: center;
-    transition: color 0.3s ease; /* Transisi untuk perubahan warna */
+    transition: color 0.3s ease;
 }
 
-/* Mengubah warna burger menjadi putih saat sidebar dibuka */
 .sidebar.expanded .menu-toggle {
     color: white;
 }
 
-/* Ketika burger dalam keadaan aktif (klik) */
 .menu-toggle:active {
-    color: white;  /* Mengubah warna menjadi putih saat tombol diklik */
+    color: white;
 }
 
-/* Teks di sebelah burger */
 .sidebar-text {
-    display: none;  /* Tersembunyi saat sidebar minimized */
-    margin-left: 10px;  /* Jarak antara burger dan teks */
+    display: none;
+    margin-left: 10px;
     font-size: 18px;
     color: white;
 }
 
-/* Teks di sebelah burger saat sidebar dibuka */
 .sidebar.expanded .sidebar-text {
-    display: inline;  /* Menampilkan teks saat sidebar dibuka */
+    display: inline;
 }
 
-/* Konten sidebar */
 .sidebar-content {
     width: 100%;
     text-align: left;
-    display: flex;
+    display: none;
     flex-direction: column;
     padding-top: 50px;
 }
 
-/* Menu Sidebar */
+.sidebar.expanded .sidebar-content {
+    display: flex;
+}
+
 .sidebar-menu {
     list-style: none;
     padding: 0;
     width: 100%;
 }
 
-/* Teks menu */
 .sidebar-menu li {
     width: 100%;
     text-align: left;
@@ -604,7 +598,6 @@ footer {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Link Menu */
 .sidebar-menu a {
     display: flex;
     align-items: center;
@@ -617,14 +610,22 @@ footer {
     transition: background 0.3s;
 }
 
-/* Ikon */
 .sidebar-menu i {
     font-size: 20px;
     margin-right: 10px;
     transition: transform 0.3s;
 }
 
-/* Sembunyikan teks menu saat sidebar minimized */
+.sidebar.minimized .sidebar-menu i {
+    display: none;
+    pointer-events: none;
+}
+
+.sidebar.expanded .sidebar-menu i {
+    display: inline;
+    color: white;
+}
+
 .menu-text {
     display: none;
 }
@@ -633,7 +634,6 @@ footer {
     display: inline;
 }
 
-/* Konten utama */
 .main-content {
     margin-left: 80px;
     padding: 20px;
@@ -643,6 +643,7 @@ footer {
 .sidebar.expanded ~ .main-content {
     margin-left: 220px;
 }
+
 
 
 .kegiatan-warga {
