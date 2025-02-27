@@ -955,16 +955,16 @@ def kirim_iuran():
                     db.session.commit()
 
                     # Kirim notifikasi Telegram
-                    # send_telegram_notification(
-                    #     f"<b>Hallo pengurus RT 08/01!</b>\n\n"
-                    #     f"<b>Ada iuran baru masuk nih!</b>\n\n"
-                    #     f"👪 <b>Nama Keluarga:</b> {nama_keluarga}\n\n"
-                    #     f"💰 <b>Jumlah Iuran:</b> {jumlah_iuran}\n\n"
-                    #     f"📅 <b>Status Pembayaran:</b> Menunggu\n\n"
-                    #     f"<i>Mohon segera diproses. Terima kasih atas perhatian dan kerjasamanya 😊!</i>\n\n"
-                    #     f"<b>Untuk detail lebih lanjut, silakan kunjungi website berikut:</b>\n"
-                    #     f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
-                    # )
+                    send_telegram_notification(
+                        f"<b>Hallo pengurus RT 08/01!</b>\n\n"
+                        f"<b>Ada iuran baru masuk nih!</b>\n\n"
+                        f"👪 <b>Nama Keluarga:</b> {nama_keluarga}\n\n"
+                        f"💰 <b>Jumlah Iuran:</b> {jumlah_iuran}\n\n"
+                        f"📅 <b>Status Pembayaran:</b> Menunggu\n\n"
+                        f"<i>Mohon segera diproses. Terima kasih atas perhatian dan kerjasamanya 😊!</i>\n\n"
+                        f"<b>Untuk detail lebih lanjut, silakan kunjungi website berikut:</b>\n"
+                        f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
+                    )
 
                     # Kembalikan respons JSON yang sukses
                     return jsonify(
