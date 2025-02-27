@@ -935,7 +935,7 @@ def kirim_iuran():
                     file_path, file.read()
                 )
 
-                if upload_response.status_code == 200:
+                if hasattr(upload_response, "full_path"):
                     file_url = supabase.storage.from_(bucket_name).get_public_url(
                         file_path
                     )
