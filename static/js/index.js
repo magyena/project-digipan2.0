@@ -1,4 +1,4 @@
- // Mengambil data pengeluaran dari API
+ 
 function fetchPengeluaran(bulan = '', tahun = '') {
     let url = '/api/pengeluaran';
     if (bulan || tahun) {
@@ -9,9 +9,7 @@ function fetchPengeluaran(bulan = '', tahun = '') {
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById('pengeluaran-ul');
-            tableBody.innerHTML = ''; // Reset tabel sebelum menampilkan data baru
-
-            // Menampilkan pengeluaran di tabel
+            tableBody.innerHTML = ''; 
             if (data.pengeluaran_data.length > 0) {
                 data.pengeluaran_data.forEach(pengeluaran => {
                     const tr = document.createElement('tr');
@@ -39,8 +37,6 @@ function fetchPengeluaran(bulan = '', tahun = '') {
                 tr.appendChild(td);
                 tableBody.appendChild(tr);
             }
-
-            // Menampilkan total pengeluaran dan total kas di samping judul modal
             const totalPengeluaran = document.getElementById('total-pengeluaran');
             const totalKas = document.getElementById('total-kas');
 
@@ -51,68 +47,44 @@ function fetchPengeluaran(bulan = '', tahun = '') {
             console.error('Error:', error);
         });
 }
-
-// Menampilkan modal saat tombol diklik
 document.getElementById('showPengeluaranBtn').addEventListener('click', function () {
     document.getElementById('pengeluaranModal').style.display = 'block';
-    fetchPengeluaran(); // Ambil data tanpa filter saat modal dibuka
+    fetchPengeluaran(); 
 });
 
-// Menutup modal saat tombol 'Tutup' diklik
 document.getElementById('closeModalBtn').addEventListener('click', function () {
     document.getElementById('pengeluaranModal').style.display = 'none';
 });
 
-// Menambahkan event listener untuk filter
 const filterBtn = document.getElementById('filterBtn');
 filterBtn.addEventListener('click', function () {
     const bulan = document.getElementById('filter-bulan').value;
     const tahun = document.getElementById('filter-tahun').value;
-    fetchPengeluaran(bulan, tahun); // Ambil data dengan filter bulan dan tahun
+    fetchPengeluaran(bulan, tahun); 
 });
-
-
-        //  //hide klik kanan
-// document.addEventListener("contextmenu", function(e){
-//     e.preventDefault();
-// }, false);
-
-// document.onkeydown = function(e) {
-//     if(e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) {
-//         e.preventDefault();
-//     }
-// };
-
-// Tampilkan splash screen selama 3 detik
         window.addEventListener("load", function() {
             const splash = document.getElementById('splashScreen');
             const mainContent = document.getElementById('mainContent');
             
             setTimeout(() => {
-                splash.classList.add('hidden'); // Hilangkan splash screen dengan animasi
-                mainContent.style.display = 'grid'; // Tampilkan konten utama
-            }, 3000); // Ganti waktu di sini (dalam milidetik)
+                splash.classList.add('hidden'); 
+                mainContent.style.display = 'grid'; 
+            }, 3000); 
         });
        
 
-        // Ambil elemen modal dan tombol
+        
     const openTutorialBtn = document.getElementById('openTutorialBtn');
     const tutorialModal = document.getElementById('tutorialModal');
     const closeTutorialBtn = document.getElementById('closeTutorialBtn');
     const tutorialIframe = document.getElementById('tutorialIframe');
-
-    // Fungsi untuk membuka modal
     openTutorialBtn.onclick = function() {
         tutorialModal.style.display = 'flex';
     }
-
-    // Fungsi untuk menutup modal dan menghentikan video
     closeTutorialBtn.onclick = function() {
         tutorialModal.style.display = 'none';
         stopYouTubeVideo();
     }
-
-    // Menutup modal jika klik di luar area modal
     window.onclick = function(event) {
         if (event.target === tutorialModal) {
             tutorialModal.style.display = 'none';
@@ -120,19 +92,17 @@ filterBtn.addEventListener('click', function () {
         }
     }
 
-    // Fungsi untuk menghentikan video YouTube
+    
     function stopYouTubeVideo() {
-        const iframeSrc = tutorialIframe.src; // Simpan URL asli
-        tutorialIframe.src = ''; // Kosongkan src untuk menghentikan video
-        tutorialIframe.src = iframeSrc; // Setel ulang src ke URL asli
+        const iframeSrc = tutorialIframe.src; 
+        tutorialIframe.src = '';
+        tutorialIframe.src = iframeSrc; 
     }
 
     const lastUpdateDate = document.getElementById('last-update-date');
-const currentDate = new Date().toLocaleString(); // Mendapatkan tanggal dan waktu saat ini
+const currentDate = new Date().toLocaleString();
 lastUpdateDate.textContent = currentDate;
 
-
-// Fungsi untuk toggle sidebar
     function toggleSidebar() {
         var sidebar = document.getElementById("sidebar");
         var mainContent = document.getElementById("mainContent");
@@ -146,12 +116,12 @@ lastUpdateDate.textContent = currentDate;
         }
     }
 
-    // Menutup sidebar saat klik di luar sidebar
+   
     document.addEventListener('click', function(event) {
         var sidebar = document.getElementById('sidebar');
         var menuToggle = document.querySelector('.menu-toggle');
         
-        // Mengecek apakah klik terjadi di luar sidebar dan bukan di tombol menu
+       
         if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
             if (sidebar.classList.contains("expanded")) {
                 sidebar.classList.remove("expanded");
@@ -161,7 +131,7 @@ lastUpdateDate.textContent = currentDate;
         }
     });
 
-    // Menutup sidebar saat menu diklik
+    
     function closeSidebar() {
         var sidebar = document.getElementById("sidebar");
         if (sidebar.classList.contains("expanded")) {
@@ -188,8 +158,15 @@ function slideKegiatan() {
     const translateValue = -kegiatanIndex * 100 + "%";
     slider.style.transform = "translateX(" + translateValue + ")";
 
-    setTimeout(slideKegiatan, 3000); // Ganti gambar setiap 3 detik
+    setTimeout(slideKegiatan, 3000);
 }
 
-// Jalankan slider saat halaman dimuat
 document.addEventListener("DOMContentLoaded", slideKegiatan);
+function toggleSubMenu(id) {
+    var submenu = document.getElementById(id);
+    if (submenu.style.display === "none") {
+        submenu.style.display = "block";
+    } else {
+        submenu.style.display = "none";
+    }
+}

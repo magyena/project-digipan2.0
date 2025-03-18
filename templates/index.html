@@ -42,9 +42,7 @@
     </div>
 </div> -->
 
-
-
- <div class="sidebar minimized" id="sidebar">
+<div class="sidebar minimized" id="sidebar">
     <button class="menu-toggle" onclick="toggleSidebar()">☰ <span class="sidebar-text">DIGIPAN</span></button>
     <div class="sidebar-content">
         <ul class="sidebar-menu">
@@ -55,10 +53,14 @@
                 </a>
             </li>
             <li>
-                <a href="#" id="showPengeluaranBtn" onclick="closeSidebar()">
+                <a href="#" onclick="toggleSubMenu('laporanSubmenu')">
                     <i class="fa fa-chart-bar"></i>
                     <span class="menu-text">Laporan</span>
                 </a>
+                <ul class="submenu" id="laporanSubmenu" style="display: none;">
+                    <li><a href="#" id="showPengeluaranBtn" onclick="closeSidebar()">Pengeluaran</a></li>
+                    <li><a href="#" id="showPemasukan" onclick="closeSidebar()">Pemasukan</a></li>
+                </ul>
             </li>
             <li>
                 <a href="#" id="keluar" onclick="closeSidebar()">
@@ -133,7 +135,7 @@
 
         <!-- Tombol Tutup -->
         <button id="closeModalBtn" style="background-color: red; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-top: -15px;">Tutup</button>
-<div style="height: 300px; overflow-y: auto; margin-top: 30px; border: 1px solid #ddd; position: relative;">
+<div style="height: 200px; overflow-y: auto; margin-top: 30px; border: 1px solid #ddd; position: relative;">
     <table id="pengeluaran-table" style="width: 100%; border-collapse: collapse;">
         <thead style="position: sticky; top: 0; background-color: #f4f4f4; z-index: 1;">
             <tr>
@@ -148,7 +150,7 @@
     
 </div>
  <!-- Catatan di bawah tabel -->
-        <div style="margin-top: 20px; font-size: 10px; color: #555;">
+        <div style="margin-top: 0px; font-size: 10px; color: #555;">
             <p><em>Catatan: Data pengeluaran dan kas di atas akan diperbarui secara berkala.</em></p>
         </div>
     </div>
