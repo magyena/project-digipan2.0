@@ -15,6 +15,7 @@ from flask import (
     send_file,
     make_response,
 )
+import traceback
 import requests
 from urllib.parse import unquote
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -472,11 +473,14 @@ def run_scheduler():
 
 def format_rupiah(value):
     """Format nilai menjadi rupiah dengan pemisah ribuan (misalnya, 60000 menjadi '60.000')."""
-    return f"{value:,.0f}".replace(
-        ",", "."
-    )  # Menggunakan format koma sebagai titik pemisah ribuan
+    return f"{value:,.0f}".replace(",", ".")
 
-    # Daftarkan filter format rupiah di Flask
+
+def format_rupiah_koma(value):
+    """Format nilai menjadi rupiah dengan pemisah ribuan (misalnya, 60000 menjadi '60.000')."""
+    if value is None:
+        return "0"
+    return f"{value:,.0f}".replace(",", ".")
 
 
 @app.route("/google9f984f41c701cb34.html")
@@ -2531,11 +2535,8 @@ def edit_user(username):
 @app.route("/api/pengeluaran", methods=["GET"])
 def get_pengeluaran():
     try:
-        # Ambil parameter bulan dan tahun dari query string
         bulan = request.args.get("bulan", type=int)
         tahun = request.args.get("tahun", type=int)
-
-        # Filter data pengeluaran berdasarkan bulan dan tahun jika diberikan
         query = Pengeluaran.query.with_entities(
             Pengeluaran.nama_kegiatan, Pengeluaran.jumlah, Pengeluaran.tanggal
         )
@@ -2548,40 +2549,80 @@ def get_pengeluaran():
 
         pengeluaran_data = query.all()
 
-        # Hitung total pengeluaran
-        total_pengeluaran = sum(pengeluaran.jumlah for pengeluaran in pengeluaran_data)
+        total_pengeluaran = db.session.query(func.sum(Pengeluaran.jumlah))
+        if bulan and tahun:
+            total_pengeluaran = total_pengeluaran.filter(
+                extract("month", Pengeluaran.tanggal) == bulan,
+                extract("year", Pengeluaran.tanggal) == tahun,
+            )
+        total_pengeluaran = total_pengeluaran.scalar() or 0
 
-        # Hitung total iuran
-        total_iuran = (
-            db.session.query(func.sum(Iuran.jumlah_iuran))
-            .filter(Iuran.status_pembayaran == "Diterima")
-            .scalar()
+        total_iuran_query = db.session.query(func.sum(Iuran.jumlah_iuran)).filter(
+            Iuran.status_pembayaran == "Diterima"
         )
-        total_iuran = total_iuran or 0
-        total_pengeluaran = db.session.query(func.sum(Pengeluaran.jumlah)).scalar()
-        total_pengeluaran = total_pengeluaran or 0
-        net_iuran = total_iuran - total_pengeluaran
-        net_iuran_formatted = format_rupiah(net_iuran)
 
-        # Format data menjadi list of dicts
+        if bulan and tahun:
+            total_iuran_query = total_iuran_query.filter(
+                extract("month", Iuran.tanggal) == bulan,
+                extract("year", Iuran.tanggal) == tahun,
+            )
+
+        total_iuran = total_iuran_query.scalar() or 0
+
+        net_iuran = total_iuran - total_pengeluaran
+
         result = [
-            {"nama_kegiatan": pengeluaran.nama_kegiatan, "jumlah": pengeluaran.jumlah}
-            for pengeluaran in pengeluaran_data
+            {"nama_kegiatan": p.nama_kegiatan, "jumlah": p.jumlah}
+            for p in pengeluaran_data
         ]
 
-        # Mengembalikan data sebagai JSON, termasuk total pengeluaran dan total kas
         return (
             jsonify(
                 {
                     "pengeluaran_data": result,
                     "total_pengeluaran": total_pengeluaran,
-                    "total_iuran": net_iuran_formatted,
+                    "total_iuran": net_iuran,
+                    "net_iuran": net_iuran,
                 }
             ),
             200,
         )
+
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"message": "Error retrieving data", "error": str(e)}), 500
+
+
+@app.route("/api/pemasukan", methods=["GET"])
+def get_pemasukan():
+    bulan = request.args.get("bulan", type=int)
+    tahun = request.args.get("tahun", type=int)
+
+    query = db.session.query(
+        Iuran.nama_keluarga, Iuran.jumlah_iuran.label("jumlah"), Iuran.tanggal
+    ).filter(Iuran.status_pembayaran == "Diterima")
+
+    if bulan:
+        query = query.filter(func.extract("month", Iuran.tanggal) == bulan)
+    if tahun:
+        query = query.filter(func.extract("year", Iuran.tanggal) == tahun)
+
+    pemasukan_data = query.all()
+    total_pemasukan = sum(item.jumlah for item in pemasukan_data)
+    total_pengeluaran = db.session.query(func.sum(Pengeluaran.jumlah)).scalar()
+    total_pengeluaran = total_pengeluaran or 0
+    total_kas = total_pemasukan - total_pengeluaran
+
+    return jsonify(
+        {
+            "pemasukan_data": [
+                {"nama_keluarga": item.nama_keluarga, "jumlah": item.jumlah}
+                for item in pemasukan_data
+            ],
+            "total_pemasukan": total_pemasukan,
+            "total_kas": total_kas,
+        }
+    )
 
 
 @app.route("/register", methods=["POST"])

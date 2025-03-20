@@ -59,7 +59,7 @@
                 </a>
                 <ul class="submenu" id="laporanSubmenu" style="display: none;">
                     <li><a href="#" id="showPengeluaranBtn" onclick="closeSidebar()">Pengeluaran</a></li>
-                    <li><a href="#" id="showPemasukan" onclick="closeSidebar()">Pemasukan</a></li>
+                    <li><a href="#" id="showPemasukanBtn" onclick="closeSidebar()">Pemasukan</a></li>
                 </ul>
             </li>
             <li>
@@ -97,7 +97,7 @@
 
         <!-- Tanggal Update -->
         <div style="margin-top: 20px; font-size: 14px; color: #777;">
-            <span>Terakhir Update: <strong id="last-update-date">Tanggal Update</strong></span>
+            <span>Terakhir Update: <strong id="last-update-date-pengeluaran">Tanggal Update</strong></span>
         </div>
 
         <!-- Filter Bulan dan Tahun -->
@@ -125,12 +125,16 @@
                     <option value="2023">2023</option>
                     <option value="2024">2024</option>
                     <option value="2025">2025</option>
-                    <option value="2025">2026</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028">2028</option>
                 </select>
             </div>
             <div style="flex: 1;">
-                <button id="filterBtn" style="width: 100%; padding: 5px; background-color: blue; color: white; border: none;">Filter</button>
-            </div>
+    <button id="filterBtn" style="width: 50%; padding: 5px; background-color: blue; color: white; border: none;">Filter</button>
+     <button id="resetBtn" style="width: 50%; padding: 5px; background-color: red; color: white; border: none;">Reset</button>
+</div>
+            
         </div>
 
         <!-- Tombol Tutup -->
@@ -139,12 +143,12 @@
     <table id="pengeluaran-table" style="width: 100%; border-collapse: collapse;">
         <thead style="position: sticky; top: 0; background-color: #f4f4f4; z-index: 1;">
             <tr>
+                 <th style="padding: 10px; width: 10%;">Nomor</th>
                 <th style="padding: 10px; width: 70%;">Kegiatan</th>
                 <th style="padding: 10px; width: 50%;">Jumlah (Rp)</th>
             </tr>
         </thead>
         <tbody id="pengeluaran-ul">
-            <!-- Data pengeluaran akan dimuat di sini -->
         </tbody>
     </table>
     
@@ -152,6 +156,95 @@
  <!-- Catatan di bawah tabel -->
         <div style="margin-top: 0px; font-size: 10px; color: #555;">
             <p><em>Catatan: Data pengeluaran dan kas di atas akan diperbarui secara berkala.</em></p>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="pemasukanModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; width: 80%; max-width: 600px; height: 80%;">
+        <div style="margin-top: 20px;">
+            <h2>Laporan Pemasukan RT 08/01</h2>
+            <!-- Pengeluaran Sejajar -->
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="flex-basis: 120px; text-align: left;">Pemasukan</span>
+                <span style="margin-right: 10px;">:</span>
+                <span style="flex-grow: 1; text-align: left;">
+                    <strong id="total-pemasukan">0</strong>
+                </span>
+            </div>
+          
+            <!-- <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="flex-basis: 120px; text-align: left;">Total Kas</span>
+                <span style="margin-right: 10px;">:</span>
+                <span style="flex-grow: 1; text-align: left;">
+                   <strong id="total-iuran">0</strong>
+                </span>
+            </div> -->
+        </div>
+
+        <!-- Tanggal Update -->
+        <div style="margin-top: 20px; font-size: 14px; color: #777;">
+            <span>Terakhir Update: <strong id="last-update-date-pemasukan">Tanggal Update</strong></span>
+        </div>
+
+        <!-- Filter Bulan dan Tahun -->
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="flex: 1; margin-right: 10px;">
+                <select id="filter-bulan-pemasukan" style="width: 100%; padding: 5px;">
+                    <option value="">Pilih Bulan</option>
+                    <option value="1">Januari</option>
+                    <option value="2">Februari</option>
+                    <option value="3">Maret</option>
+                    <option value="4">April</option>
+                    <option value="5">Mei</option>
+                    <option value="6">Juni</option>
+                    <option value="7">Juli</option>
+                    <option value="8">Agustus</option>
+                    <option value="9">September</option>
+                    <option value="10">Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12">Desember</option>
+                </select>
+            </div>
+            <div style="flex: 1; margin-right: 10px;">
+                <select id="filter-tahun-pemasukan" style="width: 100%; padding: 5px;">
+                    <option value="">Pilih Tahun</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028">2028</option>
+                </select>
+            </div>
+             <div style="flex: 1;">
+    <button id="filterBtnPemasukan" style="width: 50%; padding: 5px; background-color: blue; color: white; border: none;">Filter</button>
+     <button id="resetBtnPemasukan" style="width: 50%; padding: 5px; background-color: red; color: white; border: none;">Reset</button>
+</div>
+        </div>
+
+        <!-- Tombol Tutup -->
+        <button id="closePemasukanModalBtn" style="background-color: red; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-top: -15px;">Tutup</button>
+<div style="height: 200px; overflow-y: auto; margin-top: 30px; border: 1px solid #ddd; position: relative;">
+    <table id="pengeluaran-table" style="width: 100%; border-collapse: collapse;">
+        <thead style="position: sticky; top: 0; background-color: #f4f4f4; z-index: 1;">
+            <tr>
+                <th style="padding: 10px; width: 10%;">Nomor</th>
+                <th style="padding: 10px; width: 70%;">Pemasukan Iuran Keluarga</th>
+                <th style="padding: 10px; width: 50%;">Jumlah (Rp)</th>
+            </tr>
+        </thead>
+        <tbody id="pemasukan-ul">
+            
+        </tbody>
+    </table>
+    
+</div>
+
+        <div style="margin-top: 0px; font-size: 10px; color: #555;">
+            <p><em>Catatan: Data pemasukan dan kas di atas akan diperbarui secara berkala.</em></p>
         </div>
     </div>
 </div>
@@ -172,6 +265,7 @@
         </iframe>
     </div>
 </div>
+
 
 
 <!-- Tambahkan link untuk Terms of Use dan Privacy Policy di bawah tombol buku tamu -->

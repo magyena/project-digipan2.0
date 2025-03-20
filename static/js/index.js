@@ -1,4 +1,3 @@
- 
 function fetchPengeluaran(bulan = '', tahun = '') {
     let url = '/api/pengeluaran';
     if (bulan || tahun) {
@@ -11,9 +10,15 @@ function fetchPengeluaran(bulan = '', tahun = '') {
             const tableBody = document.getElementById('pengeluaran-ul');
             tableBody.innerHTML = ''; 
             if (data.pengeluaran_data.length > 0) {
-                data.pengeluaran_data.forEach(pengeluaran => {
+                data.pengeluaran_data.forEach((pengeluaran, index) => {
                     const tr = document.createElement('tr');
                     tr.style.borderBottom = '1px solid #ddd';
+
+                    const tdNo = document.createElement('td');
+                    tdNo.style.padding = '10px';
+                    tdNo.style.textAlign = 'center';
+                    tdNo.textContent = index + 1; 
+                    tr.appendChild(tdNo);
 
                     const tdNamaKegiatan = document.createElement('td');
                     tdNamaKegiatan.style.padding = '10px';
@@ -30,23 +35,22 @@ function fetchPengeluaran(bulan = '', tahun = '') {
             } else {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.setAttribute('colspan', '2');
+                td.setAttribute('colspan', '3');
                 td.style.textAlign = 'center';
                 td.style.color = 'gray';
                 td.textContent = 'Tidak ada data pengeluaran.';
                 tr.appendChild(td);
                 tableBody.appendChild(tr);
             }
-            const totalPengeluaran = document.getElementById('total-pengeluaran');
-            const totalKas = document.getElementById('total-kas');
-
-            totalPengeluaran.textContent = `Rp ${data.total_pengeluaran.toLocaleString()}`;
-            totalKas.textContent = `Rp ${data.total_iuran.toLocaleString()}`; // Menggunakan total_iuran
+            document.getElementById('total-pengeluaran').textContent = `Rp ${data.total_pengeluaran.toLocaleString()}`;
+            document.getElementById('total-kas').textContent = `Rp ${data.total_iuran.toLocaleString()}`;
         })
         .catch(error => {
             console.error('Error:', error);
         });
 }
+
+
 document.getElementById('showPengeluaranBtn').addEventListener('click', function () {
     document.getElementById('pengeluaranModal').style.display = 'block';
     fetchPengeluaran(); 
@@ -56,12 +60,23 @@ document.getElementById('closeModalBtn').addEventListener('click', function () {
     document.getElementById('pengeluaranModal').style.display = 'none';
 });
 
-const filterBtn = document.getElementById('filterBtn');
-filterBtn.addEventListener('click', function () {
+document.getElementById('filterBtn').addEventListener('click', function () {
     const bulan = document.getElementById('filter-bulan').value;
     const tahun = document.getElementById('filter-tahun').value;
-    fetchPengeluaran(bulan, tahun); 
+    if (!bulan || !tahun) {
+        alert("Harap pilih bulan dan tahun sebelum memfilter!");
+        return;
+    }
+    fetchPengeluaran(bulan, tahun);
 });
+
+document.getElementById('resetBtn').addEventListener('click', function () {
+    document.getElementById('filter-bulan').value = '';
+    document.getElementById('filter-tahun').value = '';
+    fetchPengeluaran();
+});
+
+
         window.addEventListener("load", function() {
             const splash = document.getElementById('splashScreen');
             const mainContent = document.getElementById('mainContent');
@@ -97,11 +112,11 @@ filterBtn.addEventListener('click', function () {
         const iframeSrc = tutorialIframe.src; 
         tutorialIframe.src = '';
         tutorialIframe.src = iframeSrc; 
-    }
+    }const currentDate = new Date().toLocaleString();
 
-    const lastUpdateDate = document.getElementById('last-update-date');
-const currentDate = new Date().toLocaleString();
-lastUpdateDate.textContent = currentDate;
+document.getElementById('last-update-date-pengeluaran').textContent = currentDate;
+document.getElementById('last-update-date-pemasukan').textContent = currentDate;
+
 
     function toggleSidebar() {
         var sidebar = document.getElementById("sidebar");
@@ -170,3 +185,96 @@ function toggleSubMenu(id) {
         submenu.style.display = "none";
     }
 }
+
+function fetchPemasukan(bulan = '', tahun = '') {
+    let url = '/api/pemasukan';
+    if (bulan || tahun) {
+        url += `?bulan=${bulan}&tahun=${tahun}`;
+    }
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('pemasukan-ul');
+            tableBody.innerHTML = '';
+            
+            if (data.pemasukan_data.length > 0) {
+                data.pemasukan_data.forEach((pemasukan, index) => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid #ddd';
+
+                    const tdNo = document.createElement('td');
+                    tdNo.style.padding = '10px';
+                    tdNo.style.textAlign = 'center';
+                    tdNo.textContent = index + 1; // Menambahkan nomor urut
+                    tr.appendChild(tdNo);
+
+                    const tdNamaKeluarga = document.createElement('td');
+                    tdNamaKeluarga.style.padding = '10px';
+                    tdNamaKeluarga.textContent = pemasukan.nama_keluarga;
+                    tr.appendChild(tdNamaKeluarga);
+
+                    const tdJumlah = document.createElement('td');
+                    tdJumlah.style.padding = '10px';
+                    tdJumlah.textContent = `Rp ${pemasukan.jumlah.toLocaleString()}`;
+                    tr.appendChild(tdJumlah);
+
+                    tableBody.appendChild(tr);
+                });
+            } else {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.setAttribute('colspan', '3'); 
+                td.style.textAlign = 'center';
+                td.style.color = 'gray';
+                td.textContent = 'Tidak ada data pemasukan.';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
+            }
+
+            const totalPemasukan = document.getElementById('total-pemasukan');
+            const totalIuran = document.getElementById('total-iuran');
+
+            if (totalPemasukan) {
+                totalPemasukan.textContent = `Rp ${data.total_pemasukan.toLocaleString()}`;
+            }
+            if (totalIuran && data.total_kas !== undefined) {
+                totalIuran.textContent = `Rp ${data.total_kas.toLocaleString()}`;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+
+document.getElementById('showPemasukanBtn').addEventListener('click', function () {
+    document.getElementById('pemasukanModal').style.display = 'block';
+    fetchPemasukan();
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const closePemasukanModalBtn = document.getElementById("closePemasukanModalBtn");
+    const pemasukanModal = document.getElementById("pemasukanModal");
+
+    closePemasukanModalBtn.addEventListener("click", function () {
+        pemasukanModal.style.display = "none";
+    });
+
+   document.getElementById('filterBtnPemasukan').addEventListener('click', function () {
+    const bulan = document.getElementById('filter-bulan-pemasukan').value;
+    const tahun = document.getElementById('filter-tahun-pemasukan').value;
+
+    if (!bulan || !tahun) {
+        alert("Harap pilih bulan dan tahun sebelum memfilter!");
+        return;
+    }
+
+    fetchPemasukan(bulan, tahun);
+   });
+    
+document.getElementById('resetBtnPemasukan').addEventListener('click', function () {
+    document.getElementById('filter-bulan-pemasukan').value = '';
+    document.getElementById('filter-tahun-pemasukan').value = '';
+    fetchPemasukan();
+});
+
+});
