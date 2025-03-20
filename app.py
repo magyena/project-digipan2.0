@@ -55,6 +55,10 @@ from flask import session, redirect, url_for, flash, abort
 from collections import Counter
 import random
 import string
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 
 pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", "static/font/Times-Bold.TTF"))
 
@@ -1736,129 +1740,75 @@ def laporan():
     )
 
 
+def create_pdf_report(data, title, headers, filename):
+    output = BytesIO()
+    pdf = SimpleDocTemplate(output, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+    elements.append(Paragraph(title, styles["Title"]))
+    table_data = [headers] + data
+    table = Table(table_data)
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+            ]
+        )
+    )
+    elements.append(table)
+    pdf.build(elements)
+    output.seek(0)
+    return send_file(
+        output, mimetype="application/pdf", as_attachment=True, download_name=filename
+    )
+
+
 @app.route("/generate_report", methods=["POST"])
 def generate_report():
-    # Log data yang diterima untuk debugging
-    print(request.form)
-
     report_type = request.form.get("report_type")
-    if not report_type:
-        return "No report type selected", 400
-
     if report_type == "keluarga":
         return generate_family_report()
     elif report_type == "keuangan":
         return generate_financial_report()
     elif report_type == "pengeluaran":
         return generate_expense_report()
-    else:
-        return "Invalid report type", 400
+    return "Invalid report type", 400
 
 
 @app.route("/generate_family_report", methods=["POST"])
 def generate_family_report():
     query = db.session.query(Family).all()
-
-    # Menambahkan hubungan_keluarga ke data laporan
-    laporan_data = [
-        {
-            "Nama Keluarga": family.nama_keluarga,
-            "Nama Anggota": family.nama,
-            "Hubungan Keluarga": family.hubungan_keluarga,
-        }
-        for family in query
-    ]
-
-    df = pd.DataFrame(laporan_data)
-
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="Laporan Keluarga", index=False)
-
-    output.seek(0)
-
-    return send_file(
-        output,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        as_attachment=True,
-        download_name="laporan_keluarga.xlsx",
-    )
+    data = [[f.nama_keluarga, f.nama, f.hubungan_keluarga] for f in query]
+    headers = ["Nama Keluarga", "Nama Anggota", "Hubungan Keluarga"]
+    return create_pdf_report(data, "Laporan Keluarga", headers, "laporan_keluarga.pdf")
 
 
 @app.route("/generate_financial_report", methods=["POST"])
 def generate_financial_report():
-    # Ambil status pembayaran dari form, tetapi kita akan fokus pada "Diterima"
-    status_pembayaran = "Diterima"
-
-    # Query untuk mengambil data dari tabel Iuran dengan status "Diterima"
-    query = db.session.query(Iuran).filter(Iuran.status_pembayaran == status_pembayaran)
-
-    data = query.all()
-
-    laporan_data = []
-
-    for iuran in data:
-        laporan_data.append(
-            {
-                "Nama Keluarga": iuran.nama_keluarga,
-                "Jumlah Iuran": iuran.jumlah_iuran,
-                "Tanggal Pembayaran": iuran.tanggal,
-            }
-        )
-
-    # Buat DataFrame dengan kolom yang diperlukan
-    df = pd.DataFrame(
-        laporan_data, columns=["Nama Keluarga", "Jumlah Iuran", "Tanggal Pembayaran"]
-    )
-
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="Laporan Keuangan", index=False)
-
-    output.seek(0)
-
-    return send_file(
-        output,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        as_attachment=True,
-        download_name="laporan_keuangan.xlsx",
-    )
+    query = db.session.query(Iuran).filter(Iuran.status_pembayaran == "Diterima").all()
+    data = [[i.nama_keluarga, i.jumlah_iuran, i.tanggal] for i in query]
+    headers = ["Nama Keluarga", "Jumlah Iuran", "Tanggal Pembayaran"]
+    return create_pdf_report(data, "Laporan Keuangan", headers, "laporan_keuangan.pdf")
 
 
 @app.route("/generate_expense_report", methods=["GET"])
 def generate_expense_report():
-    # Query semua data dari tabel Pengeluaran
     query = db.session.query(Pengeluaran).all()
-
     if not query:
-        return "No data available", 404  # Jika tidak ada data di tabel
-
-    # Konversi data ke dalam format dictionary untuk DataFrame
-    laporan_data = [
-        {
-            "Nama Kegiatan": pengeluaran.nama_kegiatan,
-            "Jenis Pengeluaran": pengeluaran.jenis_pengeluaran,
-            "Jumlah": pengeluaran.jumlah,
-            "Tanggal": pengeluaran.tanggal.strftime("%Y-%m-%d"),
-        }
-        for pengeluaran in query
+        return "No data available", 404
+    data = [
+        [p.nama_kegiatan, p.jenis_pengeluaran, p.jumlah, p.tanggal.strftime("%Y-%m-%d")]
+        for p in query
     ]
-
-    # Membuat DataFrame menggunakan pandas
-    df = pd.DataFrame(laporan_data)
-
-    # Menulis DataFrame ke file Excel menggunakan BytesIO
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="Laporan Pengeluaran", index=False)
-
-    # Mengembalikan file Excel sebagai respon
-    output.seek(0)
-    return send_file(
-        output,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        as_attachment=True,
-        download_name="laporan_pengeluaran.xlsx",
+    headers = ["Nama Kegiatan", "Jenis Pengeluaran", "Jumlah", "Tanggal"]
+    return create_pdf_report(
+        data, "Laporan Pengeluaran", headers, "laporan_pengeluaran.pdf"
     )
 
 
