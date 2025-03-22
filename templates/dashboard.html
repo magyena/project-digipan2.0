@@ -116,6 +116,8 @@
             <h6 class="collapse-header">Iuran</h6>
             <a class="collapse-item" href="/verifikasi-iuran">Verifikasi Iuran</a>
             <a class="collapse-item" href="/statistik-iuran">Statistik Iuran</a>
+            <a class="collapse-item" href="/manual_iuran">Iuran Manual</a>
+            <a class="collapse-item" href="/pengeluaran">Pengeluaran</a>
           </div>
         </div>
       </li>
@@ -125,23 +127,42 @@
           <span>Laporan</span>
         </a>
       </li>
-       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('daftar_buku_tamu') }}">
-          <i class="fab fa-fw fa-wpforms"></i>
-          <span>Pendatang</span>
-        </a>
-      </li>
+      <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('daftar_buku_tamu') }}">
+        <i class="fab fa-fw fa-wpforms fa-lg"></i> <!-- Tambahkan fa-lg -->
+        <span>Pendatang</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('lokasi_keluarga') }}">
+        <i class="fas fa-fw fa-map-marker-alt fa-lg"></i> <!-- Tambahkan fa-lg -->
+        <span>Denah</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="https://digipan.vercel.app" target="_blank">
+        <i class="fas fa-fw fa-map-marker-alt fa-lg"></i>
+        <span>Kegiatan</span>
+    </a>
+</li>
+
+
       <hr class="sidebar-divider">
       <div class="sidebar-heading">
         Examples
       </div>
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('pengguna') }}">
-          <i class="fab fa-fw fa-wpforms"></i>
+          <i class="fas fa-fw fa-user-circle"></i>
           <span>Pengguna</span>
         </a>
       </li>
-     
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('aktivasi') }}">
+          <i class="fas fa-fw fa-user-circle"></i>
+          <span>Aktivasi Akun</span>
+        </a>
+      </li>
       <hr class="sidebar-divider">
       <div class="version" id="version-ruangadmin"></div>
     </ul>
@@ -218,21 +239,6 @@
           </div>
 
             </li>
-            <li class="nav-item dropdown no-arrow mx-1">
-              <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-tasks fa-fw"></i>
-                <span class="badge badge-success badge-counter">3</span>
-              </a>
-              <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                aria-labelledby="messagesDropdown">
-                <h6 class="dropdown-header">
-                  Task
-                </h6>
-                </a>
-                <a class="dropdown-item text-center small text-gray-500" href="#">View All Taks</a>
-              </div>
-            </li>
             <div class="topbar-divider d-none d-sm-block"></div>
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
@@ -248,19 +254,6 @@
 
               </a>
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                <a class="dropdown-item" href="#">
-                  <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Profile
-                </a>
-                <a class="dropdown-item" href="#">
-                  <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Settings
-                </a>
-                <a class="dropdown-item" href="#">
-                  <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Activity Log
-                </a>
-                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="javascript:void(0);" data-toggle="modal" data-target="#logoutModal">
                   <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                   Keluar
@@ -348,7 +341,7 @@
                 <div class="card-body">
                   <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                      <div class="text-xs font-weight-bold text-uppercase mb-1">Total Iuran</div>
+                      <div class="text-xs font-weight-bold text-uppercase mb-1">Total Kas</div>
                       <div class="h5 mb-0 font-weight-bold text-gray-800">Rp {{total_iuran}}</div>
                       <div class="mt-2 mb-0 text-muted text-xs">
                         <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> Update Terakhir</span>

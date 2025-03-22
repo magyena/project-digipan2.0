@@ -338,7 +338,7 @@
                     <option value="" disabled selected>Pilih Jenis Surat</option>
                     <option value="Surat Pernyataan Belum Menikah">Surat Pernyataan Belum Menikah</option>
                     <option value="Surat Keterangan Domisili">Surat Keterangan Domisili</option>
-                    <option value="Surat Pernyataaan Tidak Mampu">Surat Pernyataan Tidak Mampu</option>
+                    <option value="Surat Pernyataan Tidak Mampu">Surat Pernyataan Tidak Mampu</option>
                     <option value="Surat Pengantar">Surat Pengantar</option>
                 </select>
         </div>
@@ -388,7 +388,7 @@
                 <input type="text" id="alamatktp" name="alamatktp" required style="width: 98%;">
             </div>
            <div class="form-group">
-                <label for="statusperkawinan">Jenis Kelamin:</label>
+                <label for="statusperkawinan">Status Perkawinan:</label>
                 <select id="statusperkawinan" name="statusperkawinan" required style="width: 98%;">
                     <option value="" disabled selected>Pilih Status Perkawinan</option>
                     <option value="Lajang">Lajang</option>
@@ -503,7 +503,7 @@
                                 }
                             }).then((result) => {
                                 if (result.isConfirmed) {
-                                    window.location.href = 'https://digiwarga.vercel.app/';
+                                    window.location.href = 'https://digiwarga.vercel.app/main';
                                 }
                             });
                         }, 500); // Delay selama 1 detik (1000 ms)

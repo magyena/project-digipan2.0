@@ -8,17 +8,14 @@
   <meta name="description" content="">
   <meta name="author" content="">
   <link href="static/img/logo/2.png" rel="icon">
-  <title>Digipan | Keluarga</title>
+  <title>Digipan | Pengeluaran</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
   <link href="static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<style>
 
-
-</style>
 <body id="page-top">
   <div id="wrapper">
     <!-- Sidebar -->
@@ -62,8 +59,8 @@
             <h6 class="collapse-header">Iuran</h6>
             <a class="collapse-item" href="/verifikasi-iuran">Verifikasi Iuran</a>
             <a class="collapse-item" href="/statistik-iuran">Statistik Iuran</a>
-             <a class="collapse-item" href="/manual_iuran">Iuran Manual</a>
-             <a class="collapse-item" href="/pengeluaran">Pengeluaran</a>
+            <a class="collapse-item" href="/manual_iuran">Iuran Manual</a>
+            <a class="collapse-item" href="/pengeluaran">Pengeluaran</a>
           </div>
         </div>
       </li>
@@ -89,7 +86,7 @@
       <div class="sidebar-heading">
         Examples
       </div>
-      <li class="nav-item">
+     <li class="nav-item">
         <a class="nav-link" href="{{ url_for('pengguna') }}">
           <i class="fab fa-fw fa-wpforms"></i>
           <span>Pengguna</span>
@@ -101,7 +98,6 @@
           <span>Aktivasi Akun</span>
         </a>
       </li>
-      
      
       <hr class="sidebar-divider">
       <div class="version" id="version-ruangadmin"></div>
@@ -174,7 +170,7 @@
               </a>
               {% endfor %}
 
-             <!-- Link untuk lebih banyak pesan -->
+               <!-- Link untuk lebih banyak pesan -->
               <a id="read-more-messages" class="dropdown-item text-center small text-gray-500" href="#">Baca lebih banyak</a>
           </div>
 
@@ -193,7 +189,6 @@
             </span>
               </a>
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                
                 <a class="dropdown-item" href="javascript:void(0);" data-toggle="modal" data-target="#logoutModal">
                   <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                   Keluar
@@ -203,163 +198,59 @@
           </ul>
         </nav>
         <!-- Topbar -->
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Data Keluarga</h1>
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Data Keluarga</li>
-            </ol>
-          </div> 
-            <!-- DataTables with Unique Family Names -->
-          <div class="col-lg-12">
-            <div class="card mb-4">
-              <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Daftar Nama Keluarga</h6>
-              </div>
-              <div class="table-responsive p-3">
-                <table class="table align-items-center table-flush table-hover" id="dataTableHover">
-                  <thead class="thead-light">
-                    <tr>
-                      <th>Nama Keluarga</th>
-                      <th>Anak</th>
-                      <th>Istri</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                   {% for family in families %}
-                    <tr>
-                      <td>
-                        <a href="#" class="family-link" data-nama-keluarga="{{ family[0] }}">{{ family[0] }}</a>
-                      </td>
-                        <td>{{ family.jumlah_anak }}</td> <!-- Jumlah Anak -->
-                        <td>{{ family.jumlah_istri }}</td> <!-- Jumlah Istri -->
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-                </div>
-              </div>
+       <!-- Container Fluid-->
+<div class="container-fluid" id="container-wrapper">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Pengeluaran dan Kegiatan</h1>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Pengeluaran</li>
+    </ol>
+  </div>
+
+  <div class="container">
+    <!-- Tampilkan Flash Message -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
             </div>
-            
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <h2 class="mb-4">Kegiatan Pengeluaran</h2>
+   <div class="form-container">
+      <form method="POST" action="/pengeluaran" id="formPengeluaran">
+        <div class="form-group">
+          <label for="nama_kegiatan">Nama Kegiatan</label>
+          <input type="text" id="nama_kegiatan" name="nama_kegiatan" class="form-control" placeholder="Masukkan kegiatan" required>
+        </div>
+        <div class="form-group">
+          <label for="jenis_pengeluaran">Jenis Pengeluaran</label>
+          <input type="text" id="jenis_pengeluaran" name="jenis_pengeluaran" class="form-control" placeholder="Contoh Pembelian barang" required>
+        </div>
+        <div class="form-group">
+          <label for="jumlah">Jumlah Pengeluaran</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Rp</span>
+            </div>
+            <input type="text" id="jumlah" name="jumlah" class="form-control"  placeholder="Masukkan jumlah pengeluaran">
           </div>
-          <!--Row-->
-
-         </div>
-            <!-- Modal HTML -->
-<div class="modal fade" id="familyDetailsModal" tabindex="-1" role="dialog" aria-labelledby="familyDetailsModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="familyDetailsModalLabel">Detail Keluarga</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body" id="family-details-content">
-        <!-- Detail keluarga akan dimuat di sini -->
-      </div>
-      <div class="modal-body" id="edit-family-form" style="display: none;">
-      <!-- Formulir Edit -->
-      <form id="edit-form">
-        <div class="form-group">
-          <label for="select-family-member">Pilih Anggota Keluarga:</label>
-          <select id="select-family-member" class="form-control" required>
-            <!-- Opsi anggota keluarga akan dimuat di sini -->
-          </select>
         </div>
         <div class="form-group">
-          <label for="edit-nama-keluarga">Nama Keluarga:</label>
-          <input type="text" class="form-control" id="edit-nama-keluarga" name="nama_keluarga" required>
+          <label for="tanggal">Tanggal</label>
+          <input type="date" id="tanggal" name="tanggal" class="form-control" required>
         </div>
-        <div class="form-group">
-          <label for="edit-nama">Nama Lengkap:</label>
-          <input type="text" class="form-control" id="edit-nama" name="nama" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-tempat-lahir">Tempat Lahir:</label>
-          <input type="text" class="form-control" id="edit-tempat-lahir" name="tempat_lahir" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-tanggal-lahir">Tanggal Lahir:</label>
-          <input type="date" class="form-control" id="edit-tanggal-lahir" name="tanggal_lahir" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-nomor-keluarga">Nomor Keluarga:</label>
-          <input type="text" class="form-control" id="edit-nomor-keluarga" name="nomor_keluarga" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-hubungan-keluarga">Hubungan Keluarga:</label>
-          <select type="text" class="form-control" id="edit-hubungan-keluarga" name="hubungan_keluarga" required>
-                <option value="" disabled selected>Pilih Hubungan</option>
-                <option value="Kepala Keluarga">KepalaKeluarga</option>
-                <option value="Istri">Istri</option>
-                <option value="Anak">Anak</option>
-            </select>
-        </div>
-        <input type="hidden" id="edit-member-id" name="member_id">
-        <button type="submit" class="btn btn-primary">Simpan</button>
+         <button type="submit" id="btnSimpan" class="btn btn-primary btn-block">Simpan</button>
       </form>
-    </div>
-
-      <div class="modal-footer">
-        <button type="button" id="edit-family" class="btn btn-warning">Edit</button>
-        <button type="button" id="delete-family" class="btn btn-danger">Hapus</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-      </div>
-
-      <!-- Modal Peringatan untuk Edit/Hapus -->
-<div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="warningModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="warningModalLabel">Akses Terbatas</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        Fitur Edit dan Hapus hanya dapat diakses oleh Admin. Anda tidak memiliki hak akses ini.
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" id="backToDetailsModal">Kembali ke Detail Keluarga</button>
-      </div>
     </div>
   </div>
 </div>
-
-    <!-- Tambahkan modal konfirmasi untuk memilih anggota keluarga yang akan dihapus -->
-<div class="modal fade" id="deleteFamilyMemberModal" tabindex="-1" role="dialog" aria-labelledby="deleteFamilyMemberLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="deleteFamilyMemberLabel">Pilih Anggota Keluarga untuk Dihapus</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="select-member-to-delete">Pilih Anggota Keluarga:</label>
-          <select id="select-member-to-delete" class="form-control">
-            <!-- Opsi anggota keluarga akan dimuat di sini -->
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" id="confirm-delete-family-member" class="btn btn-danger">Hapus</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-    
 </div>
-
+</div>
 
           <!-- Modal Logout -->
           <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabelLogout"
@@ -387,7 +278,7 @@
         <!---Container Fluid-->
       </div>
 
-       <!-- Footer -->
+     <!-- Footer -->
       <footer class="sticky-footer bg-white">
         <div class="container my-auto">
           <div class="copyright text-center my-auto">
@@ -410,86 +301,120 @@
   <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="static/js/ruang-admin.min.js"></script>
-  <script src="static/js/keluarga.js"></script>
+  <script src="static/js/iuran.js"></script>
   <!-- Page level plugins -->
   <script src="static/vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
-  <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->
-  <!-- Page level custom scripts -->
-  <script>
-    $(document).ready(function () {
-      $('#dataTable').DataTable(); // ID From dataTable 
-      $('#dataTableHover').DataTable(); // ID From dataTable with Hover
+  <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+   document.addEventListener("DOMContentLoaded", () => {
+            const alerts = document.querySelectorAll(".alert");
+            alerts.forEach((alert) => {
+                setTimeout(() => {
+                    alert.style.transition = "opacity 0.5s";
+                    alert.style.opacity = "0";
+                    setTimeout(() => alert.remove(), 500); // Hapus elemen setelah animasi
+                }, 3000); // 3000 ms = 3 detik
+            });
+        });
+
+          const inputJumlah = document.getElementById("jumlah");
+
+    inputJumlah.addEventListener("input", (e) => {
+        // Hapus semua karakter non-angka
+        let value = e.target.value.replace(/\./g, "").replace(/[^0-9]/g, "");
+
+        // Format angka dengan titik setiap ribuan
+        if (value) {
+            e.target.value = new Intl.NumberFormat("id-ID").format(value);
+        } else {
+            e.target.value = ""; // Kosongkan input jika tidak ada angka
+        }
     });
 
-     document.addEventListener("DOMContentLoaded", function() {
-  // Menangani klik tombol Edit
-  document.getElementById("edit-family").addEventListener("click", function(event) {
-    event.preventDefault(); // Mencegah aksi default modal muncul
+    document.getElementById('jumlah').addEventListener('input', function(event) {
+    let value = event.target.value;
 
-    const userRole = "{{ session.get('role') }}"; // Mengambil role dari session Flask ke dalam JS
+    // Hapus semua karakter selain angka dan koma
+    value = value.replace(/[^\d]/g, '');
 
-    if (userRole === "kader") {
-      // Sembunyikan modal jika sedang terbuka
-      $('#familyDetailsModal').modal('hide'); 
+    // Format dengan tanda titik untuk ribuan
+    let formattedValue = '';
+    let counter = 0;
+    
+    // Format value menjadi format 1,000,000
+    for (let i = value.length - 1; i >= 0; i--) {
+      counter++;
+      formattedValue = value[i] + formattedValue;
+      if (counter % 3 === 0 && i !== 0) {
+        formattedValue = '.' + formattedValue;
+      }
+    }
 
-      // Tampilkan SweetAlert dengan pesan dan tombol "OK"
-      Swal.fire({
-        icon: 'error', // Mengubah ikon ke error (danger)
-        title: 'Akses Terbatas',
-        text: 'Fitur Edit hanya dapat diakses oleh Admin.',
-        confirmButtonText: 'OK',
-        background: '#fff', // Background SweetAlert tetap putih
-        iconColor: '#d33', // Warna ikon danger merah
-        allowOutsideClick: false, // Tidak bisa menutup dengan klik di luar SweetAlert
-        backdrop: 'rgba(0, 0, 0, 0)', // Menggunakan backdrop transparan, tanpa warna gelap
-        showClass: {
-          popup: 'animate__animated animate__bounceIn' // Animasi ikon bergerak saat muncul
-        },
-        hideClass: {
-          popup: 'animate__animated animate__fadeOut' // Animasi menghilang
-        },
-        willClose: () => {
-          // Langsung redirect setelah animasi selesai
-          window.location.href = "/keluarga"; // Redirection langsung
-        }
-      });
+    // Set input field dengan format yang benar
+    event.target.value = formattedValue;
+  });
+
+
+  document.getElementById("formPengeluaran").addEventListener("submit", function (e) {
+  e.preventDefault(); // Mencegah form submit default
+
+  // Menampilkan SweetAlert dengan loading
+  Swal.fire({
+    title: 'Proses...',
+    text: 'Harap tunggu, data sedang diproses.',
+    icon: 'info',
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    willOpen: () => {
+      Swal.showLoading();
     }
   });
 
-  // Menangani klik tombol Hapus
-  document.getElementById("delete-family").addEventListener("click", function(event) {
-    event.preventDefault(); // Mencegah aksi default modal muncul
+  // Delay selama 3 detik sebelum melanjutkan proses
+  setTimeout(() => {
+    // Ambil data form
+    const formData = new FormData(this);
 
-    const userRole = "{{ session.get('role') }}"; // Mengambil role dari session Flask ke dalam JS
-
-    if (userRole === "kader") {
-      // Sembunyikan modal jika sedang terbuka
-      $('#familyDetailsModal').modal('hide'); 
-
-      // Tampilkan SweetAlert dengan pesan dan tombol "OK"
-      Swal.fire({
-        icon: 'error', // Mengubah ikon ke error (danger)
-        title: 'Akses Terbatas',
-        text: 'Fitur Hapus hanya dapat diakses oleh Admin.',
-        confirmButtonText: 'OK',
-        background: '#fff', // Background SweetAlert tetap putih
-        iconColor: '#d33', // Warna ikon danger merah
-        allowOutsideClick: false, // Tidak bisa menutup dengan klik di luar SweetAlert
-        backdrop: 'rgba(0, 0, 0, 0)', // Menggunakan backdrop transparan, tanpa warna gelap
-        showClass: {
-          popup: 'animate__animated animate__bounceIn' // Animasi ikon bergerak saat muncul
-        },
-        hideClass: {
-          popup: 'animate__animated animate__fadeOut' // Animasi menghilang
-        },
-        willClose: () => {
-          // Langsung redirect setelah animasi selesai
-          window.location.href = "/keluarga"; // Redirection langsung
+    // Kirim data via fetch
+    fetch('/pengeluaran', {
+      method: 'POST',
+      body: formData
+    })
+      .then(response => response.json())
+      .then(result => {
+        if (result.message) {
+          // Jika berhasil, tampilkan pesan sukses
+          Swal.fire({
+            title: 'Berhasil!',
+            text: result.message,
+            icon: 'success',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            // Arahkan ke halaman pengeluaran
+            window.location.href = '/pengeluaran';
+          });
+        } else {
+          // Jika error, tampilkan pesan error
+          Swal.fire({
+            title: 'Gagal!',
+            text: result.error || 'Terjadi kesalahan.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
         }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Terjadi kesalahan saat memproses data.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
       });
-    }
-  });
+  }, 5000); // Delay 3000 ms = 3 detik
 });
 
   </script>

@@ -14,10 +14,16 @@
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
   <link href="static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+  
 </head>
+<style>
+  
+
+</style>
 
 <body id="page-top">
   <div id="wrapper">
+   
     <!-- Sidebar -->
     <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar">
       <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
@@ -59,6 +65,8 @@
             <h6 class="collapse-header">Iuran</h6>
             <a class="collapse-item" href="/verifikasi-iuran">Verifikasi Iuran</a>
             <a class="collapse-item" href="/statistik-iuran">Statistik Iuran</a>
+             <a class="collapse-item" href="/manual_iuran">Iuran Manual</a>
+             <a class="collapse-item" href="/pengeluaran">Pengeluaran</a>
           </div>
         </div>
       </li>
@@ -74,6 +82,12 @@
           <span>Pendatang</span>
         </a>
       </li>
+      <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('lokasi_keluarga') }}">
+        <i class="fas fa-fw fa-map-marker-alt fa-lg"></i> <!-- Tambahkan fa-lg -->
+        <span>Denah</span>
+    </a>
+</li>
       <hr class="sidebar-divider">
       <div class="sidebar-heading">
         Examples
@@ -82,6 +96,12 @@
         <a class="nav-link" href="{{ url_for('pengguna') }}">
           <i class="fab fa-fw fa-wpforms"></i>
           <span>Pengguna</span>
+        </a>
+      </li>
+       <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('aktivasi') }}">
+          <i class="fas fa-fw fa-user-circle"></i>
+          <span>Aktivasi Akun</span>
         </a>
       </li>
      
@@ -156,26 +176,12 @@
               </a>
               {% endfor %}
 
-              <!-- Link untuk lebih banyak pesan -->
-              <a id="read-more-messages" class="dropdown-item text-center small text-gray-500" href="/dashboard#messages-section">Baca lebih banyak</a>
+               <!-- Link untuk lebih banyak pesan -->
+              <a id="read-more-messages" class="dropdown-item text-center small text-gray-500" href="#">Baca lebih banyak</a>
           </div>
+
             </li>
-            <li class="nav-item dropdown no-arrow mx-1">
-              <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-tasks fa-fw"></i>
-                <span class="badge badge-success badge-counter">3</span>
-              </a>
-              <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                aria-labelledby="messagesDropdown">
-                <h6 class="dropdown-header">
-                  Task
-                </h6>
-               
-                <a class="dropdown-item text-center small text-gray-500" href="#">View All Taks</a>
-              </div>
-            </li>
-             <div class="topbar-divider d-none d-sm-block"></div>
+            <div class="topbar-divider d-none d-sm-block"></div>
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false">
@@ -189,19 +195,6 @@
             </span>
               </a>
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                <a class="dropdown-item" href="#">
-                  <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Profile
-                </a>
-                <a class="dropdown-item" href="#">
-                  <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Settings
-                </a>
-                <a class="dropdown-item" href="#">
-                  <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Activity Log
-                </a>
-                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="javascript:void(0);" data-toggle="modal" data-target="#logoutModal">
                   <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                   Keluar
@@ -220,30 +213,115 @@
       <li class="breadcrumb-item active" aria-current="page">Pengguna</li>
     </ol>
   </div>
-<!-- Pesan Flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div>
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
+
+
   
   <h4>Tambahkan Pengguna</h4>
-  <form method="POST" action="/add_user">
-      <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" class="form-control" id="username" name="username" required>
-      </div>
-      <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" class="form-control" id="password" name="password" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Tambah Pengguna</button>
-  </form>
-  
+<form id="formPengguna" method="POST" action="/pengguna">
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" class="form-control" id="username" name="username" placeholder="Masukkan username" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Masukkan password" required>
+    </div>
+    <div class="form-group">
+        <label for="role">Peran</label>
+        <select class="form-control" id="role" name="role" required>
+            <option value="ketua">Ketua RT</option>
+            <option value="kader">Kader RT</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Tambah Pengguna</button>
+</form>
+
+   {% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    <div>
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+
+<div class="table-responsive">
+    <table class="table text-center" style="border: none; background-color: #ffffff;">
+        <thead>
+            <tr style="background-color: #f8f8f8;">
+                <th class="py-3">No</th>
+                <th class="py-3">Username</th>
+                <th class="py-3">Role</th>
+                <th class="py-3">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in all_users %}
+            <tr style="background-color: #ffffff; border-bottom: 1px solid #ddd;">
+                <td class="py-3">{{ loop.index }}</td>
+                <td class="py-3">{{ user.username }}</td>
+               
+    <td class="py-3">
+    <span class="badge px-3 py-2 
+        {% if user.role == 'ketua' %} badge-success 
+        {% elif user.role == 'kader' %} badge-warning
+        {% else %} bg-secondary 
+        {% endif %}">
+        <span class="fw-bold fs-1">{{ user.role }}</span>
+    </span>
+</td>
+
+                <td class="py-3">
+                   <button class="btn btn-sm btn-outline-primary me-2 btn-edit" data-id="{{ user.id }}" data-username="{{ user.username }}">
+    <i class="bi bi-pencil"></i> Edit
+</button>
+
+                    <button class="btn btn-sm btn-outline-danger btn-delete" data-id="{{ user.id }}">
+                        <i class="bi bi-trash"></i> Hapus
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+   
+ <!-- Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Pengguna</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Form Edit -->
+                    <form id="editUserForm">
+                        <div class="mb-3">
+                            <label for="editUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="editUsername" name="username">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editRole" class="form-label">Role</label>
+                            <select class="form-control" id="editRole" name="role">
+                                <option value="ketua">Ketua</option>
+                                <option value="kader">Kader</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <!-- Tombol Tutup -->
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <!-- Tombol Simpan -->
+                    <button type="button" class="btn btn-primary" id="saveEditUser">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
       </div>
       </div>
           <!-- Modal Logout -->
@@ -271,6 +349,26 @@
         </div>
         <!---Container Fluid-->
       </div>
+      <!-- Popup Notifikasi -->
+<div id="notification-popup" class="modal" tabindex="-1" role="dialog" style="display:none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notifikasi</h5>
+                <button type="button" class="close" onclick="closePopup()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="notification-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="closePopup()">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
       <!-- Footer -->
       <footer class="sticky-footer bg-white">
@@ -300,8 +398,9 @@
   <script src="static/vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->
-
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
   <!-- Page level custom scripts -->
   <script>
     $(document).ready(function () {
@@ -316,6 +415,267 @@
             alert.style.display = 'none'; // Menghilangkan elemen
         });
     }, 3000); // Waktu dalam milidetik
+
+   document.addEventListener("DOMContentLoaded", function () {
+
+
+    const flashContainer = document.querySelector(".alert");
+    if (flashContainer) {
+
+      alert(flashContainer.textContent.trim());
+    } else {
+    }
+  });
+
+ document.addEventListener("DOMContentLoaded", function () {
+    const formPengguna = document.getElementById("formPengguna");
+
+    formPengguna.addEventListener("submit", function (e) {
+        e.preventDefault(); // Mencegah form submit default
+
+        Swal.fire({
+            title: 'Proses...',
+            text: 'Harap tunggu, data sedang diproses.',
+            icon: 'info',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+setTimeout(() => {
+        const formData = new FormData(formPengguna);
+
+        fetch("/pengguna", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(result => {
+                    const errorTitle = response.status === 403 ? 'Akses Terbatas' :
+                                       response.status === 400 ? 'Gagal' : 'Error';
+                    throw { title: errorTitle, message: result.error || "Terjadi kesalahan." };
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            Swal.fire({
+                title: 'Berhasil!',
+                text: result.message,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                window.location.reload();
+            });
+        })
+        .catch(error => {
+            Swal.fire({
+                title: error.title || 'Error',
+                text: error.message || "Terjadi kesalahan saat memproses permintaan.",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+         }, 5000); // Delay 3000 ms = 3 detik
+});
+
+    
+});
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function () {
+            const userId = this.dataset.id;
+
+            // Tampilkan konfirmasi SweetAlert
+            Swal.fire({
+                title: 'Anda yakin?',
+                text: "Data akan dihapus secara permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Kirim permintaan DELETE ke server
+                    fetch(`/delete_user/${userId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                    .then(({ status, body }) => {
+                        if (status === 200 && body.status === 'success') {
+                            Swal.fire(
+                                'Berhasil!',
+                                body.message,
+                                'success'
+                            ).then(() => {
+                                location.reload(); // Refresh halaman
+                            });
+                        } else if (status === 403) {
+                            // Error khusus untuk akses terbatas
+                            Swal.fire(
+                                'Akses Terbatas!',
+                                body.message,
+                                'error'
+                            );
+                        } else {
+                            Swal.fire(
+                                'Gagal!',
+                                body.message,
+                                'error'
+                            );
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire(
+                            'Gagal!',
+                            'Terjadi kesalahan saat menghapus data.',
+                            'error'
+                        );
+                    });
+                }
+            });
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const currentUserRole = "{{ session['role'] }}"; // Ambil role pengguna dari sesi Flask
+
+    document.querySelectorAll('.btn-edit').forEach(button => {
+        button.addEventListener('click', function () {
+            const userId = this.dataset.id;
+            const username = this.dataset.username;
+
+            if (currentUserRole === 'kader') {
+                // SweetAlert untuk role 'kader'
+                Swal.fire({
+                    title: `Anda yakin ingin mengedit pengguna ${username}?`,
+                    text: "Klik 'Ya' untuk melanjutkan.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Edit!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Akses Terbatas!',
+                            text: 'Fitur ini hanya dapat diakses oleh Admin.',
+                            icon: 'error',
+                            confirmButtonText: 'Ok'
+                        });
+                    }
+                });
+            } else {
+                // SweetAlert untuk role selain 'kader'
+                Swal.fire({
+                    title: 'Arahkan ke modal edit?',
+                    text: "Klik 'Ya' untuk melanjutkan ke modal edit.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Edit!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Menampilkan modal edit
+                        const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+                        editModal.show();
+                    }
+                });
+            }
+        });
+    });
+});
+
+ document.addEventListener("DOMContentLoaded", function () {
+    const saveEditButton = document.getElementById("saveEditUser");
+
+    // Klik tombol Simpan Perubahan
+    saveEditButton.addEventListener("click", async function () {
+        const userId = saveEditButton.getAttribute("data-id");
+        const username = document.getElementById("editUsername").value;
+        const role = document.getElementById("editRole").value;
+
+        // Validasi data
+        if (!username || !role) {
+            Swal.fire({
+                title: "Gagal!",
+                text: "Mohon lengkapi semua data sebelum menyimpan.",
+                icon: "error",
+                confirmButtonText: "Ok",
+            });
+            return;
+        }
+
+        // Tampilkan SweetAlert proses
+        Swal.fire({
+            title: "Proses...",
+            text: "Menyimpan perubahan, harap tunggu.",
+            icon: "info",
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+
+        setTimeout(async () => {
+            // Kirim data ke server menggunakan Fetch API
+            try {
+                const response = await fetch(`/edit_user/${username}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ username, role }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Swal sukses
+                    Swal.fire({
+                        title: "Berhasil!",
+                        text: result.message,
+                        icon: "success",
+                        confirmButtonText: "Ok",
+                    }).then(() => {
+                        // Logout otomatis setelah sukses
+                        window.location.href = "/logout"; // Arahkan ke rute logout
+                    });
+                } else {
+                    // Swal error dari server
+                    Swal.fire({
+                        title: "Gagal!",
+                        text: result.message,
+                        icon: "error",
+                        confirmButtonText: "Ok",
+                    });
+                }
+            } catch (error) {
+                // Swal error jika ada masalah koneksi
+                Swal.fire({
+                    title: "Kesalahan!",
+                    text: "Terjadi kesalahan saat menyimpan data.",
+                    icon: "error",
+                    confirmButtonText: "Ok",
+                });
+            }
+        }, 5000); // Delay 5 detik (5000 ms)
+    });
+});
+
 
   </script>
 

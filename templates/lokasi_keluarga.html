@@ -8,17 +8,31 @@
   <meta name="description" content="">
   <meta name="author" content="">
   <link href="static/img/logo/2.png" rel="icon">
-  <title>Digipan | Keluarga</title>
+  <title>Digipan | Lokasi</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="static/css/ruang-admin.min.css" rel="stylesheet">
   <link href="static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+         #family-list li {
+        margin-bottom: 10px;
+    }
+
+    #family-list button:hover {
+        background-color: #f0f0f0;
+    }
+
+    #map {
+        height: 350px;
+        width: 100%;
+        z-index: 900;
+        margin-top: 20px;
+    }
+    </style>
 </head>
-<style>
 
-
-</style>
 <body id="page-top">
   <div id="wrapper">
     <!-- Sidebar -->
@@ -67,7 +81,7 @@
           </div>
         </div>
       </li>
-       <li class="nav-item">
+      <li class="nav-item">
         <a class="nav-link" href="{{ url_for('laporan') }}">
           <i class="fab fa-fw fa-wpforms"></i>
           <span>Laporan</span>
@@ -89,7 +103,7 @@
       <div class="sidebar-heading">
         Examples
       </div>
-      <li class="nav-item">
+     <li class="nav-item">
         <a class="nav-link" href="{{ url_for('pengguna') }}">
           <i class="fab fa-fw fa-wpforms"></i>
           <span>Pengguna</span>
@@ -101,7 +115,6 @@
           <span>Aktivasi Akun</span>
         </a>
       </li>
-      
      
       <hr class="sidebar-divider">
       <div class="version" id="version-ruangadmin"></div>
@@ -174,7 +187,7 @@
               </a>
               {% endfor %}
 
-             <!-- Link untuk lebih banyak pesan -->
+               <!-- Link untuk lebih banyak pesan -->
               <a id="read-more-messages" class="dropdown-item text-center small text-gray-500" href="#">Baca lebih banyak</a>
           </div>
 
@@ -193,7 +206,6 @@
             </span>
               </a>
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                
                 <a class="dropdown-item" href="javascript:void(0);" data-toggle="modal" data-target="#logoutModal">
                   <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                   Keluar
@@ -203,164 +215,44 @@
           </ul>
         </nav>
         <!-- Topbar -->
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Data Keluarga</h1>
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Data Keluarga</li>
-            </ol>
-          </div> 
-            <!-- DataTables with Unique Family Names -->
-          <div class="col-lg-12">
-            <div class="card mb-4">
-              <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Daftar Nama Keluarga</h6>
-              </div>
-              <div class="table-responsive p-3">
-                <table class="table align-items-center table-flush table-hover" id="dataTableHover">
-                  <thead class="thead-light">
-                    <tr>
-                      <th>Nama Keluarga</th>
-                      <th>Anak</th>
-                      <th>Istri</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                   {% for family in families %}
-                    <tr>
-                      <td>
-                        <a href="#" class="family-link" data-nama-keluarga="{{ family[0] }}">{{ family[0] }}</a>
-                      </td>
-                        <td>{{ family.jumlah_anak }}</td> <!-- Jumlah Anak -->
-                        <td>{{ family.jumlah_istri }}</td> <!-- Jumlah Istri -->
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-                </div>
-              </div>
-            </div>
-            
-          </div>
-          <!--Row-->
+       <!-- Container Fluid-->
 
-         </div>
-            <!-- Modal HTML -->
-<div class="modal fade" id="familyDetailsModal" tabindex="-1" role="dialog" aria-labelledby="familyDetailsModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="familyDetailsModalLabel">Detail Keluarga</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body" id="family-details-content">
-        <!-- Detail keluarga akan dimuat di sini -->
-      </div>
-      <div class="modal-body" id="edit-family-form" style="display: none;">
-      <!-- Formulir Edit -->
-      <form id="edit-form">
-        <div class="form-group">
-          <label for="select-family-member">Pilih Anggota Keluarga:</label>
-          <select id="select-family-member" class="form-control" required>
-            <!-- Opsi anggota keluarga akan dimuat di sini -->
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="edit-nama-keluarga">Nama Keluarga:</label>
-          <input type="text" class="form-control" id="edit-nama-keluarga" name="nama_keluarga" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-nama">Nama Lengkap:</label>
-          <input type="text" class="form-control" id="edit-nama" name="nama" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-tempat-lahir">Tempat Lahir:</label>
-          <input type="text" class="form-control" id="edit-tempat-lahir" name="tempat_lahir" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-tanggal-lahir">Tanggal Lahir:</label>
-          <input type="date" class="form-control" id="edit-tanggal-lahir" name="tanggal_lahir" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-nomor-keluarga">Nomor Keluarga:</label>
-          <input type="text" class="form-control" id="edit-nomor-keluarga" name="nomor_keluarga" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-hubungan-keluarga">Hubungan Keluarga:</label>
-          <select type="text" class="form-control" id="edit-hubungan-keluarga" name="hubungan_keluarga" required>
-                <option value="" disabled selected>Pilih Hubungan</option>
-                <option value="Kepala Keluarga">KepalaKeluarga</option>
-                <option value="Istri">Istri</option>
-                <option value="Anak">Anak</option>
-            </select>
-        </div>
-        <input type="hidden" id="edit-member-id" name="member_id">
-        <button type="submit" class="btn btn-primary">Simpan</button>
-      </form>
-    </div>
-
-      <div class="modal-footer">
-        <button type="button" id="edit-family" class="btn btn-warning">Edit</button>
-        <button type="button" id="delete-family" class="btn btn-danger">Hapus</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-      </div>
-
-      <!-- Modal Peringatan untuk Edit/Hapus -->
-<div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="warningModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="warningModalLabel">Akses Terbatas</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        Fitur Edit dan Hapus hanya dapat diakses oleh Admin. Anda tidak memiliki hak akses ini.
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" id="backToDetailsModal">Kembali ke Detail Keluarga</button>
-      </div>
-    </div>
+<div class="container-fluid" id="container-wrapper">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Denah</h1>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Laporan</li>
+    </ol>
   </div>
-</div>
+  <div style="display: flex; flex-direction: row; gap: 20px;">
+    <!-- Daftar keluarga -->
+    <div style="width: 30%;">
+        <h4>Daftar Keluarga</h4>
+        <ul id="family-list" style="list-style: none; padding: 0;">
+            {% for keluarga in lokasi_keluarga %}
+            <li>
+                <button 
+                    class="family-item" 
+                    data-lat="{{ keluarga.lat }}" 
+                    data-lng="{{ keluarga.lng }}" 
+                    data-nama="{{ keluarga.nama }}"
+                    style="background: none; border: 1px solid #ccc; padding: 8px 12px; cursor: pointer; width: 100%; text-align: left;">
+                    {{ keluarga.nama }}
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 
-    <!-- Tambahkan modal konfirmasi untuk memilih anggota keluarga yang akan dihapus -->
-<div class="modal fade" id="deleteFamilyMemberModal" tabindex="-1" role="dialog" aria-labelledby="deleteFamilyMemberLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="deleteFamilyMemberLabel">Pilih Anggota Keluarga untuk Dihapus</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="select-member-to-delete">Pilih Anggota Keluarga:</label>
-          <select id="select-member-to-delete" class="form-control">
-            <!-- Opsi anggota keluarga akan dimuat di sini -->
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" id="confirm-delete-family-member" class="btn btn-danger">Hapus</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-    
-</div>
+    <!-- Peta -->
+    <div style="width: 70%;">
+        <h4>Lokasi Warga</h4>
+        <div id="map"></div>
+    </div>
 
 
+      </div>
           <!-- Modal Logout -->
           <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabelLogout"
             aria-hidden="true">
@@ -387,7 +279,7 @@
         <!---Container Fluid-->
       </div>
 
-       <!-- Footer -->
+      <!-- Footer -->
       <footer class="sticky-footer bg-white">
         <div class="container my-auto">
           <div class="copyright text-center my-auto">
@@ -405,16 +297,18 @@
   <a class="scroll-to-top rounded" href="#page-top">
     <i class="fas fa-angle-up"></i>
   </a>
-
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="static/vendor/jquery/jquery.min.js"></script>
   <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="static/js/ruang-admin.min.js"></script>
-  <script src="static/js/keluarga.js"></script>
+  <script src="static/js/iuran.js"></script>
   <!-- Page level plugins -->
   <script src="static/vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="static/js/main.js"></script> <!-- File JavaScript yang baru -->
+
+
   <!-- Page level custom scripts -->
   <script>
     $(document).ready(function () {
@@ -422,74 +316,82 @@
       $('#dataTableHover').DataTable(); // ID From dataTable with Hover
     });
 
-     document.addEventListener("DOMContentLoaded", function() {
-  // Menangani klik tombol Edit
-  document.getElementById("edit-family").addEventListener("click", function(event) {
-    event.preventDefault(); // Mencegah aksi default modal muncul
+      // Ikon kustom menggunakan gambar
+    var customIcon = L.icon({
+        iconUrl: "{{ url_for('static', filename='img/boy.png') }}",  // Path gambar
+        iconSize: [20, 20],  // Ukuran ikon
+        iconAnchor: [16, 32],  // Titik jangkar ikon
+        popupAnchor: [0, -32]  // Posisi popup relatif terhadap ikon
+    });
 
-    const userRole = "{{ session.get('role') }}"; // Mengambil role dari session Flask ke dalam JS
+    // Data lokasi keluarga dari Flask
+    var lokasiKeluarga = JSON.parse('{{ lokasi_keluarga | tojson | safe }}');
 
-    if (userRole === "kader") {
-      // Sembunyikan modal jika sedang terbuka
-      $('#familyDetailsModal').modal('hide'); 
+    // Koordinat titik pusat
+    var centerCoordinates = [-6.341110, 106.847104];
 
-      // Tampilkan SweetAlert dengan pesan dan tombol "OK"
-      Swal.fire({
-        icon: 'error', // Mengubah ikon ke error (danger)
-        title: 'Akses Terbatas',
-        text: 'Fitur Edit hanya dapat diakses oleh Admin.',
-        confirmButtonText: 'OK',
-        background: '#fff', // Background SweetAlert tetap putih
-        iconColor: '#d33', // Warna ikon danger merah
-        allowOutsideClick: false, // Tidak bisa menutup dengan klik di luar SweetAlert
-        backdrop: 'rgba(0, 0, 0, 0)', // Menggunakan backdrop transparan, tanpa warna gelap
-        showClass: {
-          popup: 'animate__animated animate__bounceIn' // Animasi ikon bergerak saat muncul
-        },
-        hideClass: {
-          popup: 'animate__animated animate__fadeOut' // Animasi menghilang
-        },
-        willClose: () => {
-          // Langsung redirect setelah animasi selesai
-          window.location.href = "/keluarga"; // Redirection langsung
+    // Inisialisasi peta
+    var map = L.map('map', {
+        center: centerCoordinates,  // Titik pusat peta
+        zoom: 20,  // Level zoom awal
+        minZoom: 17,  // Menetapkan zoom minimum
+        maxZoom: 18,  // Menetapkan zoom maksimum
+        dragging: false,  // Menonaktifkan geser peta
+        touchZoom: false,  // Menonaktifkan zoom sentuh
+        scrollWheelZoom: false,  // Menonaktifkan zoom dengan roda mouse
+        doubleClickZoom: false  // Menonaktifkan zoom dengan klik ganda
+    });
+
+    // Tambahkan tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Tentukan batas peta (maxBounds) untuk mencegah zoom ke luar dari area ini
+    var bounds = [
+        [-6.345, 106.844],  // Batas bawah kiri
+        [-6.336, 106.850]   // Batas kanan atas
+    ];
+    map.setMaxBounds(bounds);  // Membatasi peta hanya dalam area ini
+
+    // Menjaga peta tetap di dalam batas saat di geser
+    map.on('drag', function() {
+        map.panInsideBounds(bounds);
+    });
+
+    // Tambahkan marker dengan ikon kustom
+    lokasiKeluarga.forEach(item => {
+        L.marker([item.lat, item.lng], { icon: customIcon })
+         .addTo(map)
+         .bindPopup(`<b>${item.nama}</b>`);
+    });
+
+// Simpan marker ke dalam objek untuk memudahkan akses
+var markers = {};
+
+// Tambahkan marker ke peta dan simpan dalam objek markers
+lokasiKeluarga.forEach(item => {
+    const marker = L.marker([item.lat, item.lng], { icon: customIcon })
+        .addTo(map)
+        .bindPopup(`<b>${item.nama}</b>`);
+
+    // Simpan marker berdasarkan nama keluarga
+    markers[item.nama] = marker;
+});
+
+// Event listener untuk tombol daftar keluarga
+document.querySelectorAll('.family-item').forEach(button => {
+    button.addEventListener('click', function () {
+        const lat = parseFloat(this.getAttribute('data-lat'));
+        const lng = parseFloat(this.getAttribute('data-lng'));
+        const nama = this.getAttribute('data-nama');
+
+        // Fokus pada marker dan buka popup
+        map.setView([lat, lng], 18); // Zoom ke lokasi
+        if (markers[nama]) {
+            markers[nama].openPopup();
         }
-      });
-    }
-  });
-
-  // Menangani klik tombol Hapus
-  document.getElementById("delete-family").addEventListener("click", function(event) {
-    event.preventDefault(); // Mencegah aksi default modal muncul
-
-    const userRole = "{{ session.get('role') }}"; // Mengambil role dari session Flask ke dalam JS
-
-    if (userRole === "kader") {
-      // Sembunyikan modal jika sedang terbuka
-      $('#familyDetailsModal').modal('hide'); 
-
-      // Tampilkan SweetAlert dengan pesan dan tombol "OK"
-      Swal.fire({
-        icon: 'error', // Mengubah ikon ke error (danger)
-        title: 'Akses Terbatas',
-        text: 'Fitur Hapus hanya dapat diakses oleh Admin.',
-        confirmButtonText: 'OK',
-        background: '#fff', // Background SweetAlert tetap putih
-        iconColor: '#d33', // Warna ikon danger merah
-        allowOutsideClick: false, // Tidak bisa menutup dengan klik di luar SweetAlert
-        backdrop: 'rgba(0, 0, 0, 0)', // Menggunakan backdrop transparan, tanpa warna gelap
-        showClass: {
-          popup: 'animate__animated animate__bounceIn' // Animasi ikon bergerak saat muncul
-        },
-        hideClass: {
-          popup: 'animate__animated animate__fadeOut' // Animasi menghilang
-        },
-        willClose: () => {
-          // Langsung redirect setelah animasi selesai
-          window.location.href = "/keluarga"; // Redirection langsung
-        }
-      });
-    }
-  });
+    });
 });
 
   </script>

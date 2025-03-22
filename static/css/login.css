@@ -1,0 +1,350 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.container {
+    width:450px;
+    background: white;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 600px;
+    border-radius: 15px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: fixed; /* Membuat form tetap di posisi tetap */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Menjaga form tetap di tengah layar */
+    overflow: hidden;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 20px;
+    color: #ff5e62;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.close-btn:hover {
+    color: #e14a4f;
+    transform: scale(1.1);
+}
+
+.form-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #34acb0;
+}
+
+.form-subtitle {
+    font-size: 14px;
+    color: #757575;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    position: relative;
+    width: 100%;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    padding-left: 40px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.input-group input:focus {
+    border-color: #34acb0;
+    outline: none;
+    box-shadow: #34acb0;
+}
+
+.input-group i {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #34acb0;
+}
+
+.input-group .eye-icon {
+    right: 15px;
+    color: #757575;
+    
+}
+
+.input-group .fa-user {
+    left: 15px;
+    color: #34acb0;
+}
+
+.input-group .fa-lock {
+    left: 15px;
+    color: #34acb0;
+}
+
+.input-group .fa-phone {
+    left: 15px;
+    color: #34acb0;
+}
+
+.btn {
+    width: 50%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #34acb0;
+    border: none;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: #34acb0;
+    transform: scale(1.05);
+}
+
+.toggle-link {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #757575;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-block;
+    transition: 1.9s;
+}
+
+.toggle-link .highlight {
+    color: #34acb0; 
+    font-weight: 700;
+}
+
+.toggle-link:hover {
+    text-decoration: underline;
+}
+
+.form-container {
+    display: none;
+}
+
+.form-container.active {
+    display: block;
+    animation: fadeIn 1s ease-in-out; /* Animasi fade tanpa pergerakan */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.footer {
+    position: fixed;
+    bottom: 20px; /* Menempatkan footer di bawah */
+    width: 100%;
+    font-size: 14px;
+    text-align: center;
+}
+.alert-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  margin: 10px 0;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+}
+
+.alert-text {
+  margin: 0;
+}
+
+/* Efek saat menghilang */
+.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: -20px;
+    margin-top: -88px;
+}
+
+.logo {
+    width: 180px; /* Sesuaikan ukuran */
+    height: 180px;
+}
+
+
+.logo-container2 {
+    text-align: center;
+    margin-bottom: -40px;
+    margin-top: -78px;
+}
+
+.logo2 {
+    width: 180px; /* Sesuaikan ukuran */
+    height: 180px;
+}
+#flash-message {
+    position: absolute;
+    top: 500px; /* Sesuaikan jarak dari atas */
+    left: 50%;
+    width: 100%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 0, 0, 0.8); /* Warna latar belakang */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-align: center;
+    z-index: 1000; /* Pastikan muncul di atas */
+}
+
+.forgot-container {
+    display: flex;
+    justify-content: flex-end; /* Posisikan ke kiri */
+    margin-bottom: 10px; /* Beri jarak dengan tombol masuk */
+}
+
+.forgot-password {
+    font-size: 14px;
+    color: #757575;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-right: 5px;
+    text-align: right; /* Pastikan text sejajar kiri */
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+/* Modal */
+.modal {
+    display: none; /* Default tidak tampil */
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0);
+    padding-top: 60px;
+}
+
+/* Konten modal */
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto; /* Memberi jarak lebih tinggi pada desktop */
+    padding: 20px;
+    height: 45%;
+    border: 1px solid #888;
+    width: 90%; /* Lebar 90% untuk layar besar */
+    max-width: 400px; /* Membatasi lebar maksimal */
+    box-sizing: border-box;
+    position: relative; /* Menjaga posisi tombol close */
+}
+
+/* Tombol close di dalam modal */
+.close-btn {
+    color: red;
+    position: absolute; /* Menempatkan tombol close di pojok kanan atas modal */
+    top: 10px;
+    right: 15px;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+/* Hover dan fokus pada tombol close */
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Responsif di layar kecil */
+@media (max-width: 1028px) {
+
+   
+.container {
+    width: 400px;
+    background: white;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 600px;
+    border-radius: 15px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: fixed; /* Membuat form tetap di posisi tetap */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Menjaga form tetap di tengah layar */
+    overflow: hidden;
+}
+    .modal-content {
+        margin-top: 200px; 
+        height:45%;
+        width: 95%; /* Lebar hampir penuh pada layar kecil */
+        padding: 15px; /* Padding lebih kecil untuk layar kecil */
+    }
+
+    .close-btn {
+        font-size: 25px; /* Ukuran tombol close lebih kecil di mobile */
+    }
+}
+ /* Menjadikan Guest Login sejajar dengan password */
+.guest-container {
+    display: flex;
+    justify-content: space-between; /* Menyebarkan elemen ke kiri dan kanan */
+    align-items: center;
+    margin-top: 5px;
+}
+
+.guest-login {
+    font-size: 14px;
+    color: #757575;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.guest-login:hover {
+    text-decoration: underline;
+}
+

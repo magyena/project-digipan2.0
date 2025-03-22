@@ -15,6 +15,7 @@ from flask import (
     send_file,
     make_response,
 )
+import traceback
 import requests
 from urllib.parse import unquote
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -49,6 +50,15 @@ from dateutil.relativedelta import relativedelta
 import calendar
 import pytz
 import pandas as pd
+from functools import wraps
+from flask import session, redirect, url_for, flash, abort
+from collections import Counter
+import random
+import string
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 
 pdfmetrics.registerFont(TTFont("TimesNewRoman-Bold", "static/font/Times-Bold.TTF"))
 
@@ -102,6 +112,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default="user")
 
 
 class SchedulerLog(db.Model):
@@ -169,6 +180,41 @@ class BukuTamu(db.Model):
             tzinfo=None
         ),
     )
+
+
+class Pengeluaran(db.Model):
+    __tablename__ = "pengeluaran"
+    __table_args__ = {"schema": "data_keluarga"}
+    id = db.Column(db.Integer, primary_key=True)
+    nama_kegiatan = db.Column(db.String(255), nullable=False)
+    jenis_pengeluaran = db.Column(db.String(255), nullable=False)
+    jumlah = db.Column(db.Float, nullable=False)
+    tanggal = db.Column(db.Date, nullable=False)
+
+
+class Register(db.Model):
+    __tablename__ = "register"
+    __table_args__ = {"schema": "data_keluarga"}
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nama_lengkap = db.Column(db.String(255), nullable=False)
+    nomor_whatsapp = db.Column(db.String(20), nullable=False, unique=False)
+    kata_sandi = db.Column(db.Text, nullable=False)
+    tanggal_daftar = db.Column(db.DateTime, default=db.func.current_timestamp())
+    status = db.Column(db.String(20), default="Aktif")
+
+
+class Activity(db.Model):
+    __tablename__ = "activity"
+    __table_args__ = {"schema": "data_keluarga"}
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("data_keluarga.user.id"), nullable=False
+    )
+    action = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, default=func.now())
+
+    user = db.relationship("User", backref=db.backref("activities", lazy=True))
 
     def __init__(
         self,
@@ -239,36 +285,96 @@ class BukuTamu(db.Model):
         self.tujuan = tujuan
         self.kontak = kontak
 
+    def __init__(self, nama_kegiatan, jenis_pengeluaran, jumlah, tanggal):
+        self.nama_kegiatan = nama_kegiatan
+        self.jenis_pengeluaran = jenis_pengeluaran
+        self.jumlah = jumlah
+        self.tanggal = tanggal
+
+    def __init__(self, nama_lengkap, nomor_whatsapp, kata_sandi, tanggal_daftar):
+        self.nama_lengkap = nama_lengkap
+        self.nomor_whatsapp = nomor_whatsapp
+        self.kata_sandi = kata_sandi
+
+    def __init__(self, user_id, action, timestamp=None):
+        self.user_id = user_id
+        self.action = action
+        self.timestamp = timestamp or datetime.utcnow()
+
 
 def __init__(self, username, password):
     self.username = username
     self.password = password  # Menyimpan password sebagai plaintext
 
 
+import logging
+
+
+def role_required(allowed_roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if "role" not in session or session["role"] not in allowed_roles:
+                # Flash message untuk tidak memiliki akses
+                return render_template(
+                    "unauthorized.html",  # Menampilkan halaman unauthorized
+                    original_url=request.path,
+                    role=session.get("role"),
+                )
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 # Route untuk halaman user
 @app.route("/")
 def index():
+    return render_template("loginuser.html")
+
+
+@app.route("/main")
+def main():
+    # Perbaikan pengecekan session
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("index"))
+
     return render_template("index.html")
 
 
-# Route untuk login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
+        username = request.form.get("username").strip()
+        password = request.form.get("password").strip()
 
         if not username or not password:
             flash("Username dan password harus diisi.", "warning")
             return render_template("login.html")
 
-        # Mencari user di database berdasarkan username
         user = User.query.filter_by(username=username).first()
 
-        # Validasi username dan password
         if user and check_password_hash(user.password, password):
-            session["user_id"] = user.id  # Simpan user id di session
-            session["username"] = user.username  # Simpan username di session
+            session["user_id"] = user.id
+            session["username"] = user.username
+            session["role"] = user.role
+            session.permanent = True
+
+            jakarta_tz = pytz.timezone("Asia/Jakarta")
+            now_jakarta = datetime.now(jakarta_tz).replace(
+                tzinfo=None
+            )  # ✅ Buang informasi timezone
+
+            new_activity = Activity(
+                user_id=user.id,
+                action="Login ke Dashboard Digipan",
+                timestamp=now_jakarta,
+            )
+            db.session.add(new_activity)
+            db.session.commit()
+
             return redirect(url_for("dashboard"))
         else:
             flash("Username atau password salah. Silakan coba lagi.", "danger")
@@ -278,9 +384,70 @@ def login():
 
 @app.route("/logout")
 def logout():
-    session.clear()  # Hapus semua data sesi
+    if "user_id" in session:
+        jakarta_tz = pytz.timezone("Asia/Jakarta")
+        now_jakarta = datetime.now(jakarta_tz).replace(
+            tzinfo=None
+        )  # ✅ Buang informasi timezone
+
+        new_activity = Activity(
+            user_id=session["user_id"],
+            action="Logout dari sistem",
+            timestamp=now_jakarta,
+        )
+        db.session.add(new_activity)
+        db.session.commit()
+
+        username = session.get("username", "Tidak diketahui")
+        role = session.get("role", "Tidak diketahui")
+
+        recent_activities = (
+            Activity.query.filter_by(user_id=session["user_id"])
+            .order_by(Activity.timestamp.desc())
+            .limit(10)
+            .all()
+        )
+
+        activity_list = "\n".join(
+            [
+                f"🔹 {act.action} - {act.timestamp.astimezone(jakarta_tz).strftime('%Y-%m-%d %H:%M:%S')}"
+                for act in recent_activities
+            ]
+        )
+
+        # Kirim notifikasi Telegram saat logout dengan aktivitas-aktivitas terakhir
+        send_telegram_notification(
+            f"<b>Hallo pengurus RT 08/01!</b>\n\n"
+            f"<b>Ada Pengurus RT yang Masuk!</b>\n\n"
+            f"👤 <b>Username:</b> {username}\n"
+            f"💼 <b>Role:</b> {role}\n\n"
+            f"<b>Riwayat Aktivitas Terakhir:</b>\n{activity_list}\n\n"
+            f"<b>Untuk detail lebih lanjut, silakan kunjungi website berikut:</b>\n"
+            f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
+        )
+
+    session.clear()
     flash("Anda telah keluar.", "info")
     return redirect(url_for("login"))
+
+
+@app.route("/logoutuser")
+def logoutuser():
+    user_id = session.get(
+        "user_id"
+    )  # Mendapatkan ID pengguna yang sedang login dari session
+    if user_id:
+        # Anda bisa menggunakan ID pengguna yang sedang login untuk memeriksa status mereka jika perlu
+        user = Register.query.get(user_id)
+        if user:
+            session.pop("user_id", None)  # Hapus sesi pengguna berdasarkan ID
+            flash(f"Anda telah keluar")
+        else:
+            flash("Pengguna tidak ditemukan.")
+    else:
+        flash("Tidak ada pengguna yang sedang login.")
+
+    return redirect(url_for("index"))
 
 
 # schduler setiap hari
@@ -310,11 +477,14 @@ def run_scheduler():
 
 def format_rupiah(value):
     """Format nilai menjadi rupiah dengan pemisah ribuan (misalnya, 60000 menjadi '60.000')."""
-    return f"{value:,.0f}".replace(
-        ",", "."
-    )  # Menggunakan format koma sebagai titik pemisah ribuan
+    return f"{value:,.0f}".replace(",", ".")
 
-    # Daftarkan filter format rupiah di Flask
+
+def format_rupiah_koma(value):
+    """Format nilai menjadi rupiah dengan pemisah ribuan (misalnya, 60000 menjadi '60.000')."""
+    if value is None:
+        return "0"
+    return f"{value:,.0f}".replace(",", ".")
 
 
 @app.route("/google9f984f41c701cb34.html")
@@ -357,6 +527,10 @@ def dashboard():
         .scalar()
     )
     total_iuran = total_iuran or 0
+    total_pengeluaran = db.session.query(func.sum(Pengeluaran.jumlah)).scalar()
+    total_pengeluaran = total_pengeluaran or 0
+    net_iuran = total_iuran - total_pengeluaran
+    net_iuran_formatted = format_rupiah(net_iuran)
 
     # Format total iuran ke dalam format '60.000'
     total_iuran_diterima_formatted = format_rupiah(total_iuran)
@@ -408,16 +582,13 @@ def dashboard():
         family_count=family_count,
         surat_count=surat_count,
         warga_count=warga_count,
-        total_iuran=total_iuran_diterima_formatted,
+        total_iuran=net_iuran_formatted,
         current_datetime=current_datetime,
         messages=message_list_to_display,  # Tampilkan pesan yang dibatasi
         more_messages=message_list_more,  # Kirimkan pesan tambahan untuk View More
         selesai_count=selesai_count,
         none_count=none_count,
     )
-
-
-from collections import Counter
 
 
 @app.route("/get_family_relationships")
@@ -547,6 +718,21 @@ def get_latest_families():
 
 @app.route("/input_keluarga")
 def input_keluarga():
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("index"))
+
+    user_id = session.get("user_id")
+    user = Register.query.get(user_id)
+
+    if not user:
+        flash("Pengguna tidak ditemukan.", "danger")
+        return redirect(url_for("index"))
+
+    if user.status != "Aktif":
+        flash("Akun Anda tidak aktif.", "danger")
+        return redirect(url_for("index"))
+
     return render_template("input.html")
 
 
@@ -600,17 +786,55 @@ def input_data():
 
 @app.route("/surat_pengantar")
 def surat_pengantar():
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("index"))
+
+    user_id = session.get("user_id")
+    user = Register.query.get(user_id)
+
+    if not user:
+        flash("Pengguna tidak ditemukan.", "danger")
+        return redirect(url_for("index"))
+
+    if user.status != "Aktif":
+        flash("Akun Anda tidak aktif. Silakan hubungi admin.", "danger")
+        return redirect(url_for("index"))
+
     return render_template("surat/surat_pengantar.html")
 
 
 @app.route("/tentang")
 def tentang():
-    return render_template("tentang.html")
+    # Periksa apakah session user_id ada
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(
+            url_for("index")
+        )  # Redirect ke halaman login jika session tidak ada
+
+    return render_template(
+        "tentang.html"
+    )  # Tampilkan halaman tentang jika login berhasil
 
 
 @app.route("/input_iuran", methods=["GET", "POST"])
 def input_iuran():
-    # Hilangkan spasi di awal dan akhir, dan ambil nama keluarga yang unik
+    if "user_id" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("index"))
+
+    user_id = session.get("user_id")
+    user = Register.query.get(user_id)
+
+    if not user:
+        flash("Pengguna tidak ditemukan.", "danger")
+        return redirect(url_for("index"))
+
+    if user.status != "Aktif":
+        flash("Akun Anda tidak aktif. Silakan hubungi admin.", "danger")
+        return redirect(url_for("index"))
+
     subquery = (
         db.session.query(func.trim(func.lower(Family.nama_keluarga)))
         .distinct()
@@ -719,7 +943,7 @@ def kirim_iuran():
                     file_path, file.read()
                 )
 
-                if upload_response.status_code == 200:
+                if hasattr(upload_response, "full_path"):
                     file_url = supabase.storage.from_(bucket_name).get_public_url(
                         file_path
                     )
@@ -740,12 +964,12 @@ def kirim_iuran():
 
                     # Kirim notifikasi Telegram
                     send_telegram_notification(
-                        f"<b>Hallo pengurus RT 08/01!</b>\n\n"  # Menambahkan spasi baru
-                        f"<b>Ada iuran baru masuk nih!</b>\n\n"  # Menambahkan spasi baru
-                        f"👪 <b>Nama Keluarga:</b> {nama_keluarga}\n\n"  # Emoji keluarga
-                        f"💰 <b>Jumlah Iuran:</b> {jumlah_iuran}\n\n"  # Emoji uang
-                        f"📅 <b>Status Pembayaran:</b> Menunggu\n\n"  # Emoji kalender
-                        f"<i>Mohon segera diproses. Terima kasih atas perhatian dan kerjasamanya 😊!</i>\n\n"  # Spasi dan format italic
+                        f"<b>Hallo pengurus RT 08/01!</b>\n\n"
+                        f"<b>Ada iuran baru masuk nih!</b>\n\n"
+                        f"👪 <b>Nama Keluarga:</b> {nama_keluarga}\n\n"
+                        f"💰 <b>Jumlah Iuran:</b> {jumlah_iuran}\n\n"
+                        f"📅 <b>Status Pembayaran:</b> Menunggu\n\n"
+                        f"<i>Mohon segera diproses. Terima kasih atas perhatian dan kerjasamanya 😊!</i>\n\n"
                         f"<b>Untuk detail lebih lanjut, silakan kunjungi website berikut:</b>\n"
                         f"<a href='https://digiwarga.vercel.app/login'>digiwarga.vercel.app/login</a>"
                     )
@@ -888,29 +1112,27 @@ def message_center():
     return render_template("tentang.html")
 
 
-#  route menu keluarga
 @app.route("/keluarga")
 def keluarga():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
 
+    # Mendapatkan role dari session (misalnya 'kader', 'admin', dll)
+    user_role = session.get("role", "")
+
     # Mengambil nama keluarga unik dengan jumlah anak dan istri
     families = (
         db.session.query(
-            func.trim(Family.nama_keluarga).label(
-                "nama_keluarga"
-            ),  # Menghapus spasi dari nama keluarga
+            func.trim(Family.nama_keluarga).label("nama_keluarga"),
             func.sum(case((Family.hubungan_keluarga == "Anak", 1), else_=0)).label(
                 "jumlah_anak"
-            ),  # Hanya hitung anak
+            ),
             func.sum(case((Family.hubungan_keluarga == "Istri", 1), else_=0)).label(
                 "jumlah_istri"
-            ),  # Hanya hitung istri
+            ),
         )
-        .group_by(
-            func.trim(Family.nama_keluarga)
-        )  # Mengelompokkan berdasarkan nama keluarga yang telah di-trim
+        .group_by(func.trim(Family.nama_keluarga))
         .all()
     )
 
@@ -937,8 +1159,12 @@ def keluarga():
         for msg in messages_to_display
     ]
 
+    # Mengirim data role ke template
     return render_template(
-        "datatables.html", families=families, messages=message_list_to_display
+        "datatables.html",
+        families=families,
+        messages=message_list_to_display,
+        user_role=user_role,  # Menambahkan role ke context template
     )
 
 
@@ -974,21 +1200,35 @@ def get_family_details(nama_keluarga):
 @app.route("/delete_family_member/<int:member_id>", methods=["DELETE"])
 def delete_family_member(member_id):
     try:
-        # Menghapus anggota keluarga dari database
         member = db.session.query(Family).filter_by(id=member_id).first()
         if not member:
             return jsonify({"error": "Anggota keluarga tidak ditemukan."}), 404
 
+        deleted_member_name = member.nama
+        jakarta_tz = pytz.timezone("Asia/Jakarta")
+        now_jakarta = datetime.now(jakarta_tz).replace(
+            tzinfo=None
+        )  # ✅ Buang informasi timezone
+
         db.session.delete(member)
         db.session.commit()
+
+        new_activity = Activity(
+            user_id=session["user_id"],
+            action=f"Menghapus anggota keluarga {deleted_member_name} (ID: {member_id})",
+            timestamp=now_jakarta,
+        )
+        db.session.add(new_activity)
+        db.session.commit()
+
         return jsonify({"message": "Anggota keluarga berhasil dihapus."}), 200
 
     except Exception as e:
-        # Menangani kemungkinan kesalahan
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/edit_family", methods=["POST"])
+@role_required(["ketua"])
 def edit_family():
     data = request.form
     member_id = data.get("member_id")
@@ -999,7 +1239,6 @@ def edit_family():
     nomor_keluarga = data.get("nomor_keluarga")
     hubungan_keluarga = data.get("hubungan_keluarga")
 
-    # Validasi ID anggota keluarga
     if not member_id:
         return (
             jsonify(
@@ -1008,15 +1247,12 @@ def edit_family():
             400,
         )
 
-    # Cari anggota keluarga yang sesuai berdasarkan ID
     family_member = Family.query.get(member_id)
 
     if family_member:
         try:
-            # Parsing tanggal lahir dari string ke objek date
             tanggal_lahir = datetime.strptime(tanggal_lahir_str, "%Y-%m-%d").date()
 
-            # Perbarui data anggota keluarga
             family_member.nama_keluarga = nama_keluarga
             family_member.nama = nama
             family_member.tempat_lahir = tempat_lahir
@@ -1025,6 +1261,19 @@ def edit_family():
             family_member.hubungan_keluarga = hubungan_keluarga
 
             db.session.commit()
+
+            jakarta_tz = pytz.timezone("Asia/Jakarta")
+            now_jakarta = datetime.now(jakarta_tz).replace(tzinfo=None)
+
+            new_activity = Activity(
+                user_id=session["user_id"],
+                action=f"Memperbarui data anggota keluarga {family_member.nama} (ID: {member_id})",
+                timestamp=now_jakarta,
+            )
+
+            db.session.add(new_activity)
+            db.session.commit()
+
             return jsonify(
                 {"status": "success", "message": "Data keluarga berhasil diperbarui."}
             )
@@ -1107,6 +1356,7 @@ def surat():
         "surat/list_surat.html",
         messages=message_list_to_display,
         surat_list=surat_list_to_display,
+        user_role=session.get("role"),
     )
 
 
@@ -1216,21 +1466,38 @@ def read_image_as_base64(image_path):
 #         f"attachment; filename={surat.jenissurat}_{surat.nama}.pdf"
 #     )
 
+
 #     return response
-
-
 @app.route("/lihat_surat/<int:sid>")
 def lihat_surat(sid):
     surat = SuratPengantar.query.get(sid)
 
-    if surat.jenissurat == "surat_pengantar":
-        return render_template("surat/surat_download_pengantar.html", surat=surat)
-    elif surat.jenissurat == "surat_pernyataan_belum_menikah":
-        return render_template("surat/surat_download_belum_menikah.html", surat=surat)
-    elif surat.jenissurat == "surat_pernyataan_tidak_mampu":
-        return render_template("surat/surat_download_tidak_mampu.html", surat=surat)
-    else:
-        return render_template("surat/surat_download.html", surat=surat)
+    if not surat:
+        flash("Surat tidak ditemukan.", "error")
+        return redirect(url_for("dashboard"))
+
+    jakarta_tz = pytz.timezone("Asia/Jakarta")
+    now_jakarta = datetime.now(jakarta_tz).replace(
+        tzinfo=None
+    )  # ✅ Buang informasi timezone
+
+    new_activity = Activity(
+        user_id=session.get("user_id"),
+        action=f"Melihat surat {surat.jenissurat}",
+        timestamp=now_jakarta,
+    )
+    db.session.add(new_activity)
+    db.session.commit()
+
+    template_mapping = {
+        "Surat Pengantar": "surat/surat_download_pengantar.html",
+        "Surat Pernyataan Belum Menikah": "surat/surat_download_belum_menikah.html",
+        "Surat Pernyataan Tidak Mampu": "surat/surat_download_tidak_mampu.html",
+    }
+
+    template_name = template_mapping.get(surat.jenissurat, "surat/surat_download.html")
+
+    return render_template(template_name, surat=surat)
 
 
 # Route untuk halaman verifikasi iuran
@@ -1272,12 +1539,38 @@ def verifikasi_iuran():
 
 @app.route("/update_status_iuran/<int:iuran_id>", methods=["POST"])
 def update_status_iuran(iuran_id):
-    iuran = Iuran.query.get_or_404(iuran_id)  # Dapatkan data iuran berdasarkan ID
+    iuran = Iuran.query.get_or_404(iuran_id)
+
     if iuran.status_pembayaran == "Menunggu":
-        iuran.status_pembayaran = "Diterima"  # Ubah status menjadi "Lunas"
-        db.session.commit()  # Simpan perubahan ke database
+        iuran.status_pembayaran = "Diterima"
+        db.session.commit()
+
         flash("Iuran telah Diterima!", "success")
-    return redirect(url_for("verifikasi_iuran"))  # Arahkan ulang ke halaman verifikasi
+
+        user_id = session.get("user_id")
+        user = User.query.get(user_id)
+
+        if user:
+            jakarta_tz = pytz.timezone("Asia/Jakarta")
+            now_jakarta = datetime.now(jakarta_tz).replace(
+                tzinfo=None
+            )  # ✅ Buang informasi timezone
+
+            new_activity = Activity(
+                user_id=user_id,
+                action=f"{user.username} telah verifikasi pembayaran",
+                timestamp=now_jakarta,
+            )
+            db.session.add(new_activity)
+
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        else:
+            flash("Terjadi kesalahan: User tidak ditemukan.", "danger")
+
+    return redirect(url_for("verifikasi_iuran"))
 
 
 # Route untuk halaman verifikasi iuran
@@ -1447,107 +1740,93 @@ def laporan():
     )
 
 
+def create_pdf_report(data, title, headers, filename):
+    output = BytesIO()
+    pdf = SimpleDocTemplate(output, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+    elements.append(Paragraph(title, styles["Title"]))
+    table_data = [headers] + data
+    table = Table(table_data)
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+            ]
+        )
+    )
+    elements.append(table)
+    pdf.build(elements)
+    output.seek(0)
+    return send_file(
+        output, mimetype="application/pdf", as_attachment=True, download_name=filename
+    )
+
+
 @app.route("/generate_report", methods=["POST"])
 def generate_report():
     report_type = request.form.get("report_type")
-    status_pembayaran = request.form.get("status_pembayaran")
-
     if report_type == "keluarga":
         return generate_family_report()
     elif report_type == "keuangan":
         return generate_financial_report()
-    else:
-        # Tangani kasus jika tidak ada laporan yang dipilih
-        return "Invalid report type", 400
+    elif report_type == "pengeluaran":
+        return generate_expense_report()
+    return "Invalid report type", 400
 
 
 @app.route("/generate_family_report", methods=["POST"])
 def generate_family_report():
     query = db.session.query(Family).all()
-
-    # Menambahkan hubungan_keluarga ke data laporan
-    laporan_data = [
-        {
-            "Nama Keluarga": family.nama_keluarga,
-            "Nama Anggota": family.nama,
-            "Hubungan Keluarga": family.hubungan_keluarga,
-        }
-        for family in query
-    ]
-
-    df = pd.DataFrame(laporan_data)
-
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="Laporan Keluarga", index=False)
-
-    output.seek(0)
-
-    return send_file(
-        output,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        as_attachment=True,
-        download_name="laporan_keluarga.xlsx",
-    )
+    data = [[f.nama_keluarga, f.nama, f.hubungan_keluarga] for f in query]
+    headers = ["Nama Keluarga", "Nama Anggota", "Hubungan Keluarga"]
+    return create_pdf_report(data, "Laporan Keluarga", headers, "laporan_keluarga.pdf")
 
 
 @app.route("/generate_financial_report", methods=["POST"])
 def generate_financial_report():
-    # Ambil status pembayaran dari form, tetapi kita akan fokus pada "Diterima"
-    status_pembayaran = "Diterima"
+    query = db.session.query(Iuran).filter(Iuran.status_pembayaran == "Diterima").all()
+    data = [[i.nama_keluarga, i.jumlah_iuran, i.tanggal] for i in query]
+    headers = ["Nama Keluarga", "Jumlah Iuran", "Tanggal Pembayaran"]
+    return create_pdf_report(data, "Laporan Keuangan", headers, "laporan_keuangan.pdf")
 
-    # Query untuk mengambil data dari tabel Iuran dengan status "Diterima"
-    query = db.session.query(Iuran).filter(Iuran.status_pembayaran == status_pembayaran)
 
-    data = query.all()
-
-    laporan_data = []
-
-    for iuran in data:
-        laporan_data.append(
-            {
-                "Nama Keluarga": iuran.nama_keluarga,
-                "Jumlah Iuran": iuran.jumlah_iuran,
-                "Tanggal Pembayaran": iuran.tanggal,
-            }
-        )
-
-    # Buat DataFrame dengan kolom yang diperlukan
-    df = pd.DataFrame(
-        laporan_data, columns=["Nama Keluarga", "Jumlah Iuran", "Tanggal Pembayaran"]
-    )
-
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="Laporan Keuangan", index=False)
-
-    output.seek(0)
-
-    return send_file(
-        output,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        as_attachment=True,
-        download_name="laporan_keuangan.xlsx",
+@app.route("/generate_expense_report", methods=["GET"])
+def generate_expense_report():
+    query = db.session.query(Pengeluaran).all()
+    if not query:
+        return "No data available", 404
+    data = [
+        [p.nama_kegiatan, p.jenis_pengeluaran, p.jumlah, p.tanggal.strftime("%Y-%m-%d")]
+        for p in query
+    ]
+    headers = ["Nama Kegiatan", "Jenis Pengeluaran", "Jumlah", "Tanggal"]
+    return create_pdf_report(
+        data, "Laporan Pengeluaran", headers, "laporan_pengeluaran.pdf"
     )
 
 
-# Route untuk halaman Pengguna
-@app.route("/pengguna")
+@app.route("/pengguna", methods=["GET", "POST"])
 def pengguna():
     if "username" not in session:
         flash("Anda harus login terlebih dahulu.", "warning")
         return redirect(url_for("login"))
+
+    user_role = session.get("role")  # Ambil role dari session
+
+    # Ambil semua pesan untuk ditampilkan
     all_messages = Message.query.order_by(Message.timestamp.desc()).all()
-
-    # Batasi pesan yang ditampilkan
     messages_to_display = all_messages[:3]
-
-    # Format pesan untuk template
     message_list_to_display = [
         {
             "message": msg.message,
             "user": msg.user,
-            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
             "nomor_whatsapp": (
                 "62" + msg.nomor_whatsapp[1:]
                 if msg.nomor_whatsapp.startswith("0")
@@ -1559,46 +1838,93 @@ def pengguna():
         }
         for msg in messages_to_display
     ]
-    # Ambil semua data iuran dari database
+
+    # Ambil semua data iuran
     iuran_list = Iuran.query.all()
+
+    # Ambil semua pengguna dari tabel User
+    all_users = User.query.order_by(User.username.asc()).all()
+
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
+        role = request.form["role"]  # Ambil peran pengguna dari form
+
+        # Cek apakah role pengguna yang login adalah 'kader'
+        if user_role == "kader":
+            return (
+                jsonify(
+                    {
+                        "message": None,
+                        "error": "Fitur ini hanya dapat diakses oleh Admin.",
+                    }
+                ),
+                403,
+            )
+
+        # Cek apakah username sudah ada di database
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return (
+                jsonify({"message": None, "error": "Username sudah tersedia"}),
+                400,
+            )
+
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+
+        # Tambahkan pengguna baru dengan role
+        new_user = User(username=username, password=hashed_password, role=role)
+        db.session.add(new_user)
+        db.session.commit()
+
+        # Kirimkan response sukses
+        return (
+            jsonify({"message": "Pengguna berhasil ditambahkan!", "error": None}),
+            200,
+        )
+
     return render_template(
         "pengguna.html",
         iuran_list=iuran_list,
         messages=message_list_to_display,
+        all_users=all_users,
+        akses_terbatas=False,  # Set ke False jika akses tidak terbatas
     )
 
 
 @app.route("/add_user", methods=["GET", "POST"])
 def add_user():
-    # Pastikan hanya pengguna yang sudah login yang dapat mengakses halaman ini
     if "username" not in session:
         flash("Anda harus login terlebih dahulu untuk mengakses halaman ini.", "error")
         return redirect(url_for("login"))
 
+    # Periksa role pengguna
+    user_role = session.get("role")  # Ambil role dari sesi
+    if user_role == "kader":
+        # Jika user role adalah kader, tampilkan pesan akses terbatas menggunakan SweetAlert
+        return render_template("pengguna.html", akses_terbatas=True)
+
     if request.method == "POST":
         username = request.form["username"].strip()
         password = request.form["password"].strip()
+        role = request.form["role"]  # Ambil peran pengguna dari form
+
         # Cek apakah username sudah ada di database
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-
             flash("Username sudah terdaftar", "warning")
-
         else:
             hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
 
-            # Buat pengguna baru dengan hashed password
-            new_user = User(username=username, password=hashed_password)
+            # Tambahkan pengguna baru dengan role
+            new_user = User(username=username, password=hashed_password, role=role)
             db.session.add(new_user)
             db.session.commit()
 
-            # Beri tahu pengguna bahwa user telah berhasil ditambahkan
             flash("User berhasil ditambahkan!", "success")
-            return redirect(
-                url_for("add_user")
-            )  # Tetap di halaman yang sama setelah user berhasil ditambahkan
+            return redirect(url_for("add_user"))
 
-    return render_template("pengguna.html")
+    return render_template("pengguna.html", akses_terbatas=False)
 
 
 @app.route("/get_latest_iuran_notifications", methods=["GET"])
@@ -1633,9 +1959,10 @@ def get_notification_count():
     return jsonify({"count": count})
 
 
-
 @app.route("/buku-tamu")
 def buku_tamu():
+
+    # Jika tidak ada user_id, anggap pengguna sebagai tamu dan langsung izinkan akses
     return render_template("tamu.html")
 
 
@@ -1739,23 +2066,114 @@ def send_telegram_notification(message):
 #         logging.error(f"Gagal mengirim notifikasi Slack: {response.text}")
 
 
-# Route untuk menampilkan daftar buku tamu
-@app.route("/pendatang")
+@app.route("/pendatang", methods=["GET", "POST"])
 def daftar_buku_tamu():
-    # Kode untuk menampilkan daftar buku tamu
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_role = session.get("role")
+
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
+        role = request.form["role"]
+
+        if user_role == "kader":
+            return (
+                jsonify(
+                    {
+                        "message": None,
+                        "error": "Fitur ini hanya dapat diakses oleh Admin.",
+                    }
+                ),
+                403,
+            )
+
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return jsonify({"message": None, "error": "Username sudah tersedia"}), 400
+
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+        new_user = User(username=username, password=hashed_password, role=role)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return (
+            jsonify({"message": "Pengguna berhasil ditambahkan!", "error": None}),
+            200,
+        )
+
     buku_tamu_list = BukuTamu.query.all()
-    return render_template("pendatang.html", buku_tamu_list=buku_tamu_list)
+
+    total_menetap = BukuTamu.query.filter(BukuTamu.tujuan.ilike("%Menetap%")).count()
+    total_sementara = BukuTamu.query.filter(
+        BukuTamu.tujuan.ilike("%Sementara%")
+    ).count()
+    total_lainnya = BukuTamu.query.filter(
+        ~BukuTamu.tujuan.ilike("%Menetap%"), ~BukuTamu.tujuan.ilike("%Sementara%")
+    ).count()
+
+    all_messages = Message.query.order_by(Message.timestamp.desc()).limit(3).all()
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in all_messages
+    ]
+
+    iuran_list = Iuran.query.all()
+    all_users = User.query.order_by(User.username.asc()).all()
+
+    return render_template(
+        "pendatang.html",
+        buku_tamu_list=buku_tamu_list,
+        iuran_list=iuran_list,
+        messages=message_list_to_display,
+        all_users=all_users,
+        total_menetap=total_menetap,
+        total_sementara=total_sementara,
+        total_lainnya=total_lainnya,
+    )
 
 
-# Route untuk menghapus buku tamu
 @app.route("/delete_buku_tamu/<int:tamu_id>", methods=["POST"])
 def delete_buku_tamu(tamu_id):
-    # Ambil data buku tamu berdasarkan ID
     tamu = BukuTamu.query.get(tamu_id)
     if tamu:
-        # Hapus data dari database
+        nama_tamu = tamu.nama
         db.session.delete(tamu)
         db.session.commit()
+
+        jakarta_tz = pytz.timezone("Asia/Jakarta")
+        now_jakarta = datetime.now(jakarta_tz).replace(tzinfo=None)
+
+        user_id = session.get("user_id")  # Hindari KeyError
+
+        if user_id:  # Pastikan user_id tersedia sebelum menambahkan aktivitas
+            try:
+                new_activity = Activity(
+                    user_id=user_id,
+                    action=f"Menghapus Pendatang atas nama {nama_tamu}",
+                    timestamp=now_jakarta,
+                )
+                db.session.add(new_activity)
+                db.session.commit()
+                print("Aktivitas berhasil dicatat")
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error saat mencatat aktivitas: {e}")
+        else:
+            print("User ID tidak ditemukan dalam sesi, aktivitas tidak dicatat.")
+
         flash("Data buku tamu berhasil dihapus.", "success")
     else:
         flash("Data buku tamu tidak ditemukan.", "danger")
@@ -1781,6 +2199,634 @@ def get_nama_keluarga():
     result = [{"nama_keluarga": name} for name in unique_names]
 
     return jsonify(result)
+
+
+@app.route("/lokasi_keluarga")
+def lokasi_keluarga():
+    # Periksa apakah pengguna sudah login melalui session
+    if "user_id" not in session:
+        # Jika pengguna belum login, arahkan ke halaman login
+        return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+    # Data dummy lokasi keluarga
+    lokasi_keluarga = [
+        {"nama": "Keluarga A", "lat": -6.340802, "lng": 106.846949},
+        {"nama": "Keluarga Abah", "lat": -6.341380, "lng": 106.847689},
+        {"nama": "Keluarga Pak RT", "lat": -6.340499, "lng": 106.847635},
+    ]
+
+    # Dapatkan username dari session untuk menampilkan nama pengguna di halaman
+    username = session.get("username")
+    iuran_list = Iuran.query.all()
+
+    return render_template(
+        "lokasi_keluarga.html",
+        iuran_list=iuran_list,
+        messages=message_list_to_display,
+        lokasi_keluarga=lokasi_keluarga,
+        username=username,
+    )
+
+
+@app.route("/manual_iuran")
+def manual_iuran():
+    # Periksa apakah pengguna sudah login melalui session
+    if "user_id" not in session:
+        # Jika pengguna belum login, arahkan ke halaman login
+        return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+
+    username = session.get("username")
+    return render_template(
+        "iuran/manual_iuran.html",
+        messages=message_list_to_display,
+        username=username,
+    )
+
+
+@app.route("/kirim_manual_iuran", methods=["POST"])
+def kirim_manual_iuran():
+    if request.method == "POST":
+        nama_keluarga = request.form.get("nama_keluarga")
+        jumlah_iuran = request.form.get("jumlah")
+        file = request.files.get("bukti_pembayaran")
+
+        file_url = None
+        if file:
+            try:
+                timestamp = int(time.time())
+                original_filename = secure_filename(file.filename)
+                filename = f"{timestamp}_{original_filename}"
+                bucket_name = "digipan"
+                file_path = f"bukti_pembayaran/{filename}"
+                upload_response = supabase.storage.from_(bucket_name).upload(
+                    file_path, file.read()
+                )
+
+                if upload_response.status_code == 200:
+                    file_url = supabase.storage.from_(bucket_name).get_public_url(
+                        file_path
+                    )
+            except Exception:
+                pass
+
+        try:
+            jakarta_tz = pytz.timezone("Asia/Jakarta")
+            now_jakarta = datetime.now(jakarta_tz).replace(tzinfo=None)
+
+            iuran_baru = Iuran(
+                nama_keluarga=nama_keluarga,
+                jumlah_iuran=float(
+                    jumlah_iuran.replace("Rp ", "").replace(".", "").replace(",", ".")
+                ),
+                bukti_pembayaran=file_url,
+                status_pembayaran="Menunggu",
+            )
+            db.session.add(iuran_baru)
+            db.session.commit()
+
+            new_activity = Activity(
+                user_id=session["user_id"],
+                action=f"Menambahkan iuran manual atas nama {nama_keluarga}",
+                timestamp=now_jakarta,
+            )
+            db.session.add(new_activity)
+            db.session.commit()
+
+            return jsonify({"message": "Iuran berhasil ditambahkan!"}), 200
+
+        except:
+            db.session.rollback()
+            return jsonify({"error": "Terjadi kesalahan saat menambahkan iuran."}), 400
+
+    return jsonify({"error": "Metode tidak valid."}), 400
+
+
+@app.route("/pengeluaran")
+def pengeluaran():
+    # Periksa apakah pengguna sudah login melalui session
+    if "user_id" not in session:
+        # Jika pengguna belum login, arahkan ke halaman login
+        return redirect(url_for("login"))
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+
+    username = session.get("username")
+    return render_template(
+        "iuran/pengeluaran.html",
+        messages=message_list_to_display,
+        username=username,
+    )
+
+
+@app.route("/pengeluaran", methods=["POST"])
+def tambah_pengeluaran():
+    try:
+        data = request.form
+        nama_kegiatan = data.get("nama_kegiatan")
+        jenis_pengeluaran = data.get("jenis_pengeluaran")
+        jumlah = data.get("jumlah").replace(".", "")
+        tanggal = data.get("tanggal")
+
+        jakarta_tz = pytz.timezone("Asia/Jakarta")
+        now_jakarta = datetime.now(jakarta_tz).replace(tzinfo=None)
+
+        jumlah_float = float(jumlah)
+
+        pengeluaran_baru = Pengeluaran(
+            nama_kegiatan=nama_kegiatan,
+            jenis_pengeluaran=jenis_pengeluaran,
+            jumlah=jumlah_float,
+            tanggal=tanggal,
+        )
+
+        db.session.add(pengeluaran_baru)
+        db.session.commit()
+
+        new_activity = Activity(
+            user_id=session["user_id"],
+            action=f"Menambahkan pengeluaran",
+            timestamp=now_jakarta,
+        )
+        db.session.add(new_activity)
+        db.session.commit()
+
+        return jsonify({"message": "Pengeluaran berhasil ditambahkan!"}), 200
+
+    except:
+        return (
+            jsonify({"error": "Terjadi kesalahan saat menambahkan pengeluaran."}),
+            500,
+        )
+
+
+# Endpoint delete_user
+@app.route("/delete_user/<int:user_id>", methods=["POST"])
+def delete_user(user_id):
+    # Periksa role pengguna yang sedang login
+    current_user_role = session.get("role")
+    if current_user_role == "kader":
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "Fitur ini hanya dapat diakses oleh Admin.",
+                }
+            ),
+            403,
+        )
+
+    # Temukan pengguna berdasarkan ID
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"status": "error", "message": "Pengguna tidak ditemukan."}), 404
+
+    # Hapus pengguna dari database
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"status": "success", "message": "Pengguna berhasil dihapus."})
+
+
+@app.route("/edit_user/<string:username>", methods=["POST"])
+def edit_user(username):
+    # Periksa role pengguna yang sedang login
+    current_user_role = session.get("role")
+    if current_user_role == "kader":
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "Fitur ini hanya dapat diakses oleh Admin.",
+                }
+            ),
+            403,
+        )
+
+    # Cari pengguna berdasarkan username
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"status": "error", "message": "Pengguna tidak ditemukan."}), 404
+
+    # Ambil data baru dari request
+    data = request.get_json()
+    role = data.get("role")
+    if not role:
+        return jsonify({"status": "error", "message": "Role harus diisi."}), 400
+
+    # Perbarui role pengguna
+    user.role = role
+    db.session.commit()
+
+    return jsonify({"status": "success", "message": "Pengguna berhasil diperbarui."})
+
+
+@app.route("/api/pengeluaran", methods=["GET"])
+def get_pengeluaran():
+    try:
+        bulan = request.args.get("bulan", type=int)
+        tahun = request.args.get("tahun", type=int)
+        query = Pengeluaran.query.with_entities(
+            Pengeluaran.nama_kegiatan, Pengeluaran.jumlah, Pengeluaran.tanggal
+        )
+
+        if bulan and tahun:
+            query = query.filter(
+                extract("month", Pengeluaran.tanggal) == bulan,
+                extract("year", Pengeluaran.tanggal) == tahun,
+            )
+
+        pengeluaran_data = query.all()
+
+        total_pengeluaran = db.session.query(func.sum(Pengeluaran.jumlah))
+        if bulan and tahun:
+            total_pengeluaran = total_pengeluaran.filter(
+                extract("month", Pengeluaran.tanggal) == bulan,
+                extract("year", Pengeluaran.tanggal) == tahun,
+            )
+        total_pengeluaran = total_pengeluaran.scalar() or 0
+
+        total_iuran_query = db.session.query(func.sum(Iuran.jumlah_iuran)).filter(
+            Iuran.status_pembayaran == "Diterima"
+        )
+
+        if bulan and tahun:
+            total_iuran_query = total_iuran_query.filter(
+                extract("month", Iuran.tanggal) == bulan,
+                extract("year", Iuran.tanggal) == tahun,
+            )
+
+        total_iuran = total_iuran_query.scalar() or 0
+
+        net_iuran = total_iuran - total_pengeluaran
+
+        result = [
+            {"nama_kegiatan": p.nama_kegiatan, "jumlah": p.jumlah}
+            for p in pengeluaran_data
+        ]
+
+        return (
+            jsonify(
+                {
+                    "pengeluaran_data": result,
+                    "total_pengeluaran": total_pengeluaran,
+                    "total_iuran": net_iuran,
+                    "net_iuran": net_iuran,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"message": "Error retrieving data", "error": str(e)}), 500
+
+
+@app.route("/api/pemasukan", methods=["GET"])
+def get_pemasukan():
+    bulan = request.args.get("bulan", type=int)
+    tahun = request.args.get("tahun", type=int)
+
+    query = db.session.query(
+        Iuran.nama_keluarga, Iuran.jumlah_iuran.label("jumlah"), Iuran.tanggal
+    ).filter(Iuran.status_pembayaran == "Diterima")
+
+    if bulan:
+        query = query.filter(func.extract("month", Iuran.tanggal) == bulan)
+    if tahun:
+        query = query.filter(func.extract("year", Iuran.tanggal) == tahun)
+
+    pemasukan_data = query.all()
+    total_pemasukan = sum(item.jumlah for item in pemasukan_data)
+    total_pengeluaran = db.session.query(func.sum(Pengeluaran.jumlah)).scalar()
+    total_pengeluaran = total_pengeluaran or 0
+    total_kas = total_pemasukan - total_pengeluaran
+
+    return jsonify(
+        {
+            "pemasukan_data": [
+                {"nama_keluarga": item.nama_keluarga, "jumlah": item.jumlah}
+                for item in pemasukan_data
+            ],
+            "total_pemasukan": total_pemasukan,
+            "total_kas": total_kas,
+        }
+    )
+
+
+@app.route("/register", methods=["POST"])
+def register_user():
+    try:
+        # Ambil data dari form
+        data = request.form
+        print(f"Data diterima: {data}")  # Tambahkan ini untuk debug
+        nama_lengkap = data.get("nama_lengkap")
+        nomor_whatsapp = data.get("nomor_whatsapp")
+        kata_sandi = data.get("kata_sandi")
+
+        # Validasi input
+        if not nama_lengkap or not nomor_whatsapp or not kata_sandi:
+            return jsonify({"error": "Semua field harus diisi!"}), 400
+
+        # Hash kata sandi untuk keamanan
+        from werkzeug.security import generate_password_hash
+
+        kata_sandi_hashed = generate_password_hash(kata_sandi)
+
+        # Buat objek registrasi dengan menambahkan tanggal_daftar
+        user_baru = Register(
+            nama_lengkap=nama_lengkap,
+            nomor_whatsapp=nomor_whatsapp,
+            kata_sandi=kata_sandi_hashed,
+            tanggal_daftar=datetime.now(),  # Menambahkan tanggal pendaftaran
+        )
+
+        # Simpan ke database
+        db.session.add(user_baru)
+        db.session.commit()
+
+        return (
+            jsonify(
+                {"message": "Pendaftaran berhasil ! Menunggu persetujuan pengurus RT"}
+            ),
+            200,
+        )
+    except Exception as e:
+        return jsonify({"error": f"Terjadi kesalahan: {str(e)}"}), 500
+
+
+@app.route("/loginusers", methods=["POST"])
+def loginusers():
+    try:
+        data = request.form
+        nama_lengkap = data.get("nama_lengkap")
+        kata_sandi = data.get("kata_sandi")
+
+        # Validasi input
+        if not nama_lengkap or not kata_sandi:
+            return jsonify({"error": "Nama lengkap dan kata sandi wajib diisi!"}), 400
+
+        # Cari pengguna berdasarkan nama_lengkap
+        user = Register.query.filter_by(nama_lengkap=nama_lengkap).first()
+
+        if not user:
+
+            return jsonify({"error": "Anda tidak terdaftar"}), 404
+
+        # 🔹 Periksa kecocokan kata sandi terlebih dahulu
+        if not check_password_hash(user.kata_sandi, kata_sandi):
+
+            return jsonify({"error": "Nama dan Kata sandi tidak sesuai!"}), 401
+
+        # 🔹 Periksa status pengguna setelah memastikan password benar
+        if user.status != "Aktif":
+            return jsonify({"error": "Akun belum aktif. Silakan hubungi admin!"}), 403
+
+        # Simpan sesi login
+        session["user_id"] = user.id
+        session["nama_lengkap"] = user.nama_lengkap
+        return jsonify({"message": "Login berhasil!", "user": user.nama_lengkap}), 200
+
+    except Exception as e:
+        return jsonify({"error": "Terjadi kesalahan server"}), 500
+
+
+@app.route("/aktivasi")
+def aktivasi():
+    if "username" not in session:
+        flash("Anda harus login terlebih dahulu.", "warning")
+        return redirect(url_for("login"))
+
+    all_messages = Message.query.order_by(Message.timestamp.desc()).all()
+
+    # Batasi pesan yang ditampilkan
+    messages_to_display = all_messages[:3]
+    register_data = Register.query.all()
+    # Format pesan untuk template
+    message_list_to_display = [
+        {
+            "message": msg.message,
+            "user": msg.user,
+            # Ganti awalan '0' dengan '62' untuk nomor Indonesia
+            "nomor_whatsapp": (
+                "62" + msg.nomor_whatsapp[1:]
+                if msg.nomor_whatsapp.startswith("0")
+                else msg.nomor_whatsapp
+            ),
+            "timestamp": msg.timestamp.astimezone(
+                pytz.timezone("Asia/Jakarta")
+            ).strftime("%d %b %Y · %H:%M"),
+        }
+        for msg in messages_to_display
+    ]
+
+    username = session.get("username")
+    return render_template(
+        "aktivasi.html",
+        register_data=register_data,
+        messages=message_list_to_display,
+        username=username,
+    )
+
+
+@app.route("/toggle_status/<nama_lengkap>", methods=["POST"])
+def toggle_user_status(nama_lengkap):
+    user = Register.query.filter_by(nama_lengkap=nama_lengkap).first()
+    if user:
+        # Jika user aktif, nonaktifkan; jika tidak aktif, aktifkan
+        user.status = "Belum Aktif" if user.status == "Aktif" else "Aktif"
+        db.session.commit()
+        flash(
+            f"Status akun {user.nama_lengkap} berhasil diubah menjadi {user.status}.",
+            "success",
+        )
+    else:
+        flash("Akun tidak ditemukan.", "danger")
+
+    return redirect(url_for("aktivasi"))
+
+
+# Route untuk menampilkan data Register
+@app.route("/get_register", methods=["GET"])
+def get_register():
+    try:
+        # Ambil parameter dari query string jika diperlukan (contoh: pencarian berdasarkan nomor whatsapp atau status)
+        nomor_whatsapp = request.args.get("nomor_whatsapp", type=str)
+        status = request.args.get("status", type=str)
+
+        # Query untuk mengambil data dari tabel register
+        query = Register.query.with_entities(
+            Register.id,
+            Register.nama_lengkap,
+            Register.nomor_whatsapp,
+            Register.tanggal_daftar,
+            Register.status,
+        )
+
+        if nomor_whatsapp:
+            query = query.filter(Register.nomor_whatsapp == nomor_whatsapp)
+
+        if status:
+            query = query.filter(Register.status == status)
+
+        register_data = query.all()
+
+        # Format data menjadi list of dicts
+        result = [
+            {
+                "id": r.id,
+                "nama_lengkap": r.nama_lengkap,
+                "nomor_whatsapp": r.nomor_whatsapp,
+                "tanggal_daftar": r.tanggal_daftar,
+                "status": r.status,
+            }
+            for r in register_data
+        ]
+
+        return jsonify({"register_data": result}), 200
+    except Exception as e:
+        return jsonify({"message": "Error retrieving data", "error": str(e)}), 500
+
+
+def send_whatsapp_message(nomor_whatsapp, message):
+    url = "https://api.fonnte.com/send"
+
+    headers = {"Authorization": "epNpDwe9gi9MabXMLZGG"}
+
+    payload = {"target": nomor_whatsapp, "message": message, "countryCode": "62"}
+
+    response = requests.post(url, data=payload, headers=headers)
+
+    if response.status_code == 200:
+        print("Pesan berhasil dikirim!")
+    else:
+        print(f"Error: {response.status_code} - {response.text}")
+
+
+def format_nomor_whatsapp(nomor):
+    if nomor.startswith("08"):
+        nomor = "+62" + nomor[1:]
+    return nomor
+
+
+def generate_custom_password(nama_lengkap):
+    # Menghilangkan spasi dan menggabungkan nama lengkap
+    nama_bersih = nama_lengkap.replace(" ", "")
+
+    # Mengambil 4 digit angka acak untuk menambah keamanan
+    angka_acak = random.randint(1000, 9999)
+
+    # Membuat password dengan format 'NamaLengkap + AngkaAcak'
+    password = f"{nama_bersih}{angka_acak}"
+    return password
+
+
+@app.route("/reset-password", methods=["POST"])
+def reset_password():
+    nama_lengkap = request.form.get("nama_lengkap")
+    kata_sandi = request.form.get("kata_sandi")
+    konfirmasi_kata_sandi = request.form.get("konfirmasi_kata_sandi")
+
+    if not nama_lengkap or not kata_sandi or not konfirmasi_kata_sandi:
+        flash("Semua kolom harus diisi.", "danger")
+        return redirect(url_for("index"))
+
+    if kata_sandi != konfirmasi_kata_sandi:
+        flash("Konfirmasi kata sandi tidak cocok.", "danger")
+        return redirect(url_for("index"))
+
+    user = Register.query.filter(
+        func.lower(Register.nama_lengkap) == func.lower(nama_lengkap)
+    ).first()
+
+    if user:
+        hashed_password = generate_password_hash(kata_sandi)
+        user.kata_sandi = hashed_password
+        db.session.commit()
+
+        flash(
+            "Password berhasil direset! Silakan login dengan password baru Anda.",
+            "success",
+        )
+    else:
+        flash("Nama lengkap tidak ditemukan. Silakan coba lagi.", "danger")
+
+    return redirect(url_for("index"))
+
+
+@app.route("/delete_warga/<nama_lengkap>", methods=["POST"])
+def delete_warga(nama_lengkap):
+    user = Register.query.filter_by(nama_lengkap=nama_lengkap).first()
+
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        flash("User berhasil dihapus", "success")
+    else:
+        flash("User tidak ditemukan", "danger")
+
+    return redirect(url_for("aktivasi"))
 
 
 if __name__ == "__main__":
